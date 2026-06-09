@@ -40,15 +40,15 @@ export default function FeaturedPackages({ packages, onViewPackage }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-900/50 to-transparent" />
                   
                   {/* Region Tag */}
-                  <span className="absolute top-3 left-3 px-2.5 py-0.5 bg-white/90 backdrop-blur-sm rounded-lg text-[9px] font-extrabold uppercase text-stone-700 border border-white/50">
+                  <span className="absolute top-3 left-3 px-2.5 py-0.5 bg-white text-[9px] font-extrabold uppercase text-stone-700 border border-stone-200 shadow-sm rounded-lg">
                     {pkg.region}
                   </span>
 
                   {/* Availability Badge */}
-                  <span className={`absolute top-3 right-3 px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase border backdrop-blur-sm ${
+                  <span className={`absolute top-3 right-3 px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase border shadow-sm ${
                     spotsLeft <= 3
-                      ? 'bg-rose-500/90 text-white border-rose-400/50'
-                      : 'bg-emerald-500/90 text-white border-emerald-400/50'
+                      ? 'bg-rose-500 text-white border-rose-400'
+                      : 'bg-emerald-500 text-white border-emerald-400'
                   }`}>
                     {spotsLeft <= 3 ? `${spotsLeft} Left!` : `${spotsLeft} Spots`}
                   </span>

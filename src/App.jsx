@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import FeaturedPackages from './components/FeaturedPackages'
 import TestimonialsSection from './components/TestimonialsSection'
 import Footer from './components/Footer'
 import DestinationsPage from './components/DestinationsPage'
+import DestinationCategories from './components/DestinationCategories'
 import PackageDetail from './components/PackageDetail'
 import AboutPage from './components/AboutPage'
 import BookingPage from './components/BookingPage'
@@ -12,33 +13,48 @@ import packages from './data/packages'
 import DevSwitcher from './components/DevSwitcher'
 
 function App() {
-  const [activePage, setActivePage] = useState('home') // home, destinations, about, booking, detail
+  const [activePage, setActivePage] = useState('home')
   const [selectedPackage, setSelectedPackage] = useState(null)
+  const [initialRegion, setInitialRegion] = useState('All')
 
-  const handleViewPackage = (pkg) => {
+  // Push a history entry and update state together
+  const navigate = useCallback((page, pkg = null, region = 'All') => {
+    window.history.pushState({ page, pkgId: pkg?.id ?? null, region }, '')
+    setActivePage(page)
     setSelectedPackage(pkg)
-    setActivePage('detail')
+    setInitialRegion(region)
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  }, [])
 
-  const handleExplore = () => {
-    setActivePage('destinations')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  // Handle browser back / forward
+  useEffect(() => {
+    // Seed the initial history entry so back works from the first page
+    window.history.replaceState({ page: 'home', pkgId: null, region: 'All' }, '')
 
-  const handleBook = (pkg = null) => {
-    setSelectedPackage(pkg)
-    setActivePage('booking')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+    const onPop = (e) => {
+      const state = e.state ?? { page: 'home', pkgId: null, region: 'All' }
+      const { page, pkgId, region } = state
+      const pkg = pkgId ? packages.find(p => p.id === pkgId) ?? null : null
+      setActivePage(page)
+      setSelectedPackage(pkg)
+      setInitialRegion(region ?? 'All')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleViewPackage = (pkg) => navigate('detail', pkg)
+  const handleExplore = (region = 'All') => navigate('destinations', null, region)
+  const handleBook = (pkg = null) => navigate('booking', pkg)
 
   return (
     <div className="min-h-screen bg-[#FDFCF7] text-stone-850 font-sans flex flex-col justify-between antialiased">
       {/* Header Navigation */}
       <Navbar
         activePage={activePage}
-        setActivePage={setActivePage}
-        setSelectedPackage={setSelectedPackage}
+        onNavigate={(page) => navigate(page)}
       />
 
       {/* Main Content Pages */}
@@ -50,6 +66,9 @@ function App() {
               onExplore={handleExplore}
               onBook={() => handleBook(null)}
             />
+
+            {/* Destination Categories Strip */}
+            <DestinationCategories onExplore={handleExplore} />
 
             {/* Featured Luxury Packages */}
             <FeaturedPackages
@@ -95,10 +114,11 @@ function App() {
           <DestinationsPage
             packages={packages}
             onViewPackage={handleViewPackage}
+            initialRegion={initialRegion}
           />
         )}
 
-        {activePage === 'about' && <AboutPage />}
+        {activePage === 'about' && <AboutPage onBook={handleBook} />}
 
         {activePage === 'booking' && (
           <BookingPage
@@ -117,10 +137,7 @@ function App() {
       </main>
 
       {/* Footer Branding & Links */}
-      <Footer
-        setActivePage={setActivePage}
-        setSelectedPackage={setSelectedPackage}
-      />
+      <Footer onNavigate={(page) => navigate(page)} />
       <DevSwitcher />
     </div>
   )

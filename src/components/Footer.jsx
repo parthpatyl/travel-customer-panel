@@ -1,10 +1,8 @@
 import logo from '../assets/logo.png'
 
-export default function Footer({ setActivePage, setSelectedPackage }) {
+export default function Footer({ onNavigate }) {
   const handleNav = (page) => {
-    setActivePage(page)
-    if (page !== 'detail') setSelectedPackage(null)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    onNavigate(page)
   }
 
   return (

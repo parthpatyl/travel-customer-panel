@@ -1,15 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import logo from '../assets/logo.png'
 
-export default function Navbar({ activePage, setActivePage, setSelectedPackage }) {
-  const [scrolled, setScrolled] = useState(false)
+export default function Navbar({ activePage, onNavigate }) {
   const [mobileOpen, setMobileOpen] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const navLinks = [
     { id: 'home', label: 'Home' },
@@ -18,21 +11,15 @@ export default function Navbar({ activePage, setActivePage, setSelectedPackage }
   ]
 
   const handleNav = (id) => {
-    setActivePage(id)
-    if (id !== 'detail') setSelectedPackage(null)
+    onNavigate(id)
     setMobileOpen(false)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-30 transition-all duration-500 ${
-        scrolled
-          ? 'glass border-b border-stone-200/50 shadow-sm'
-          : 'bg-transparent'
-      }`}>
+      <nav className="fixed top-0 left-0 right-0 z-30 bg-white border-b border-stone-100/80 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <button
               onClick={() => handleNav('home')}
@@ -57,11 +44,10 @@ export default function Navbar({ activePage, setActivePage, setSelectedPackage }
                 <button
                   key={link.id}
                   onClick={() => handleNav(link.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                    activePage === link.id
-                      ? 'text-amber-700 bg-amber-500/10'
-                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100/50'
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${activePage === link.id
+                    ? 'text-amber-800 bg-amber-500/15'
+                    : 'text-stone-800 hover:text-stone-950 hover:bg-stone-200/50'
+                    }`}
                 >
                   {link.label}
                 </button>
@@ -97,11 +83,11 @@ export default function Navbar({ activePage, setActivePage, setSelectedPackage }
         className={`mobile-nav-backdrop ${mobileOpen ? 'open' : ''} md:hidden`}
         onClick={() => setMobileOpen(false)}
       />
-      <div className={`mobile-nav ${mobileOpen ? 'open' : ''} md:hidden w-72 bg-white shadow-2xl`}>
+      <div className={`mobile-nav ${mobileOpen ? 'open' : ''} md:hidden w-72 bg-white border-l border-stone-100 shadow-2xl`}>
         <div className="p-6 border-b border-stone-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl overflow-hidden border border-stone-200 bg-white">
+              <div className="w-8 h-8 rounded-xl overflow-hidden border border-stone-200/50 bg-white">
                 <img src={logo} alt="Logo" className="w-full h-full object-contain p-0.5" />
               </div>
               <span className="text-sm font-black text-stone-900 uppercase">KRAFT YOUR TRIP</span>
@@ -121,16 +107,15 @@ export default function Navbar({ activePage, setActivePage, setSelectedPackage }
             <button
               key={link.id}
               onClick={() => handleNav(link.id)}
-              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                activePage === link.id
-                  ? 'text-amber-700 bg-amber-500/10'
-                  : 'text-stone-600 hover:bg-stone-50'
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all ${activePage === link.id
+                ? 'text-amber-800 bg-amber-500/15'
+                : 'text-stone-800 hover:text-stone-950 hover:bg-stone-100/50'
+                }`}
             >
               {link.label}
             </button>
           ))}
-          <div className="pt-3 border-t border-stone-100 mt-3">
+          <div className="pt-3 border-t border-stone-100/30 mt-3">
             <button
               onClick={() => handleNav('booking')}
               className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-sm font-bold shadow-sm transition-all text-center"

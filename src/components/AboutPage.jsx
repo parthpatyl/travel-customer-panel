@@ -36,7 +36,7 @@ export default function AboutPage() {
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-          <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-amber-400 text-[10px] font-bold uppercase tracking-wider mb-4 border border-white/10">
+          <span className="inline-block px-3 py-1 rounded-full bg-stone-800 text-amber-400 text-[10px] font-bold uppercase tracking-wider mb-4 border border-stone-700">
             Our Story
           </span>
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-tight">

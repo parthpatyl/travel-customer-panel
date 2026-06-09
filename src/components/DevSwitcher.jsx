@@ -14,7 +14,7 @@ export default function DevSwitcher() {
   return (
     <div className="fixed bottom-4 right-4 z-[9999] font-sans">
       <div 
-        className={`flex items-center gap-3 bg-stone-900/90 backdrop-blur-md border border-stone-800 text-white p-2.5 rounded-full shadow-2xl transition-all duration-300 ${
+        className={`flex items-center gap-3 bg-stone-900 border border-stone-800 text-white p-2.5 rounded-full shadow-2xl transition-all duration-300 ${
           isOpen ? 'pr-4 pl-3.5 rounded-2xl' : 'w-11 h-11 justify-center'
         }`}
         onMouseEnter={() => setIsOpen(true)}

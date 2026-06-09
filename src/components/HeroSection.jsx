@@ -13,12 +13,6 @@ export default function HeroSection({ onExplore, onBook }) {
 
       {/* Hero Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center pt-20">
-        {/* Badge */}
-        <div className="animate-fade-in-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white/90 text-[11px] font-semibold uppercase tracking-wider mb-8">
-          <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
-          Curated Luxury Experiences
-        </div>
-
         {/* Headline */}
         <h1 className="animate-fade-in-up delay-100 text-4xl sm:text-5xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] mb-6">
           Craft Your Perfect
@@ -27,8 +21,8 @@ export default function HeroSection({ onExplore, onBook }) {
 
         {/* Subheadline */}
         <p className="animate-fade-in-up delay-200 text-base sm:text-lg text-white/80 max-w-2xl mx-auto leading-relaxed mb-10 font-light">
-          Discover handcrafted travel packages to the world's most extraordinary destinations. 
-          From ancient temples in Kyoto to overwater villas in the Maldives — your dream escape awaits.
+          Discover handcrafted travel packages to the world's most extraordinary destinations.
+          From ancient temples in Kyoto to overwater villas in the Maldives your dream escape awaits.
         </p>
 
         {/* CTA Buttons */}
@@ -44,7 +38,7 @@ export default function HeroSection({ onExplore, onBook }) {
           </button>
           <button
             onClick={onBook}
-            className="px-8 py-3.5 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white border border-white/30 rounded-2xl text-sm font-bold active:scale-[0.97] transition-all duration-300"
+            className="px-8 py-3.5 bg-white hover:bg-stone-100 text-stone-900 rounded-2xl text-sm font-bold active:scale-[0.97] transition-all duration-300 shadow-sm"
           >
             Book Your Trip
           </button>
@@ -67,8 +61,8 @@ export default function HeroSection({ onExplore, onBook }) {
 
       {/* Scroll Indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-float">
-        <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
-          <div className="w-1 h-2.5 bg-white/60 rounded-full animate-pulse" />
+        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center pt-2">
+          <div className="w-1 h-2.5 bg-white rounded-full animate-pulse" />
         </div>
       </div>
     </section>

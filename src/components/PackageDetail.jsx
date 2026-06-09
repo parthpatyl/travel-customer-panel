@@ -23,7 +23,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
           {/* Back button */}
           <button
             onClick={onBack}
-            className="self-start mb-6 inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-xs font-bold transition-all"
+            className="self-start mb-6 inline-flex items-center gap-2 px-4 py-2 bg-white text-stone-900 hover:bg-stone-100 shadow-sm border border-stone-200 rounded-xl text-xs font-bold transition-all"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -36,7 +36,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
             <span className="px-2.5 py-0.5 bg-amber-500 text-white text-[9px] font-extrabold uppercase rounded-lg border border-amber-400/30">
               {pkg.region}
             </span>
-            <span className="px-2.5 py-0.5 bg-white/10 backdrop-blur-sm text-white/90 text-[9px] font-bold uppercase rounded-lg border border-white/15">
+            <span className="px-2.5 py-0.5 bg-white text-stone-900 text-[9px] font-bold uppercase rounded-lg border border-stone-200">
               {pkg.duration}
             </span>
             <span className="text-xs text-white/80 font-medium font-mono">ID: {pkg.id}</span>
