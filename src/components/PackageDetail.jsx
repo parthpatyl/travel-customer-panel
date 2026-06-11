@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatINR } from '../utils/currency'
+import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane } from 'lucide-react'
 
 export default function PackageDetail({ pkg, onBack, onBook }) {
   const [activeTab, setActiveTab] = useState('itinerary') // tabs: itinerary, inclusions
@@ -19,15 +20,13 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
         <div className="absolute inset-0 bg-gradient-to-b from-stone-900/60 via-stone-900/30 to-stone-950/80" />
         
         {/* Navigation / Header content */}
-        <div className="absolute inset-x-0 bottom-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 flex flex-col justify-end h-full">
+        <div className="absolute inset-x-0 bottom-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 flex flex-col justify-end h-full">
           {/* Back button */}
           <button
             onClick={onBack}
             className="self-start mb-6 inline-flex items-center gap-2 px-4 py-2 bg-white text-stone-900 hover:bg-stone-100 shadow-sm border border-stone-200 rounded-xl text-xs font-bold transition-all"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft className="w-4 h-4" />
             Back to Destinations
           </button>
 
@@ -50,7 +49,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
       </div>
 
       {/* Content Columns */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column: Description, Highlights, Tabs (Itinerary/Inclusions) */}
           <div className="lg:col-span-2 space-y-8 animate-fade-in-up">
@@ -69,9 +68,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
                 {pkg.highlights.map((item, idx) => (
                   <div key={idx} className="flex gap-3 items-start">
                     <span className="w-5 h-5 rounded-full bg-amber-500/10 text-amber-705 flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                      <Check className="w-3 h-3" />
                     </span>
                     <span className="text-xs text-stone-750 font-medium">{item}</span>
                   </div>
@@ -140,9 +137,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
                       <ul className="space-y-3">
                         {pkg.inclusions.map((inc, i) => (
                           <li key={i} className="flex gap-2.5 items-start text-xs text-stone-600 leading-relaxed">
-                            <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                             <span>{inc}</span>
                           </li>
                         ))}
@@ -157,9 +152,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
                       <ul className="space-y-3">
                         {pkg.exclusions.map((exc, i) => (
                           <li key={i} className="flex gap-2.5 items-start text-xs text-stone-600 leading-relaxed">
-                            <svg className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                             <span>{exc}</span>
                           </li>
                         ))}
@@ -176,27 +169,50 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
             <div className="bg-white border border-stone-200/80 rounded-2xl p-6 shadow-md space-y-6">
               <div>
                 <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Price Per Person</span>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-3xl font-black text-stone-900">{formatINR(pkg.basePrice)}</span>
-                  <span className="text-[11px] text-stone-400 font-medium">INR</span>
+                <div className="flex items-baseline justify-between gap-1 mt-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-stone-900">{formatINR(pkg.basePrice)}</span>
+                    <span className="text-[11px] text-stone-400 font-medium">INR</span>
+                  </div>
+                  {/* Icons next to the price */}
+                  <div className="flex items-center gap-1.5 text-stone-400 bg-stone-50 px-2 py-1 rounded-lg border border-stone-100">
+                    {pkg.inclusionsSelection?.hotel && <Hotel className="w-4 h-4 text-stone-600" title="Hotel Included" />}
+                    {pkg.inclusionsSelection?.sightseeing && <Compass className="w-4 h-4 text-stone-600" title="Sightseeing Included" />}
+                    {pkg.inclusionsSelection?.guide && <User className="w-4 h-4 text-stone-600" title="Guide Included" />}
+                    {pkg.inclusionsSelection?.airportTransfer && <Car className="w-4 h-4 text-stone-600" title="Airport Transfer Included" />}
+                    {pkg.inclusionsSelection?.flight && <Plane className="w-4 h-4 text-stone-600" title="Flight Included" />}
+                  </div>
                 </div>
               </div>
 
               {/* Status info */}
               <div className="space-y-3.5 pt-4 border-t border-stone-100">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-stone-500">Trip Duration</span>
+                  <span className="text-stone-500 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-stone-400" />
+                    Trip Duration
+                  </span>
                   <span className="font-semibold text-stone-850">{pkg.duration}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-stone-500">Selected Region</span>
+                  <span className="text-stone-500 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-stone-400" />
+                    Selected Region
+                  </span>
                   <span className="font-semibold text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded">
                     {pkg.region}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-stone-500">Availability</span>
-                  <span className={`font-semibold ${spotsLeft <= 3 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                  <span className="text-stone-500 flex items-center gap-1.5">
+                    {spotsLeft <= 3 ? (
+                      <Flame className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    )}
+                    Availability
+                  </span>
+                  <span className={`font-semibold ${spotsLeft <= 3 ? 'text-rose-600 font-bold' : 'text-emerald-600'}`}>
                     {spotsLeft} spots remaining
                   </span>
                 </div>
@@ -222,18 +238,18 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
                 Our luxury travel planners are available to tailor this itinerary exactly to your preferences.
               </p>
               <div className="pt-2 flex flex-col gap-2.5 text-xs">
-                <span className="flex items-center gap-2 text-stone-300">
-                  <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
+                <a href="tel:+15550192831" className="flex items-center gap-2 text-stone-300 hover:text-amber-400 transition-colors">
+                  <Phone className="w-4 h-4 text-amber-400 shrink-0" />
                   +1 (555) 019-2831
-                </span>
-                <span className="flex items-center gap-2 text-stone-300">
-                  <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                </a>
+                <a href="mailto:concierge@kraftyourtrip.com" className="flex items-center gap-2 text-stone-300 hover:text-amber-400 transition-colors">
+                  <Mail className="w-4 h-4 text-amber-400 shrink-0" />
                   concierge@kraftyourtrip.com
-                </span>
+                </a>
+                <div className="flex items-start gap-2 text-stone-300">
+                  <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span>456 Sandstone Ave, Suite 100, San Francisco, CA</span>
+                </div>
               </div>
             </div>
           </div>

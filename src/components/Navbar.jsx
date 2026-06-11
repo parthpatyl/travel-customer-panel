@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import logo from '../assets/logo.png'
+import { Menu, X, CalendarDays } from 'lucide-react'
 
 export default function Navbar({ activePage, onNavigate }) {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -23,16 +24,16 @@ export default function Navbar({ activePage, onNavigate }) {
             {/* Logo */}
             <button
               onClick={() => handleNav('home')}
-              className="flex items-center gap-2.5 group focus:outline-none"
+              className="flex items-center gap-2 group focus:outline-none"
             >
               <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shadow-sm border border-stone-200/60 bg-white">
                 <img src={logo} alt="KRAFT YOUR TRIP Logo" className="w-full h-full object-contain p-0.5" />
               </div>
-              <div>
-                <h1 className="text-sm font-black tracking-tight text-stone-900 uppercase leading-tight group-hover:text-amber-700 transition-colors">
+              <div className="flex flex-col items-start leading-none">
+                <h1 className="text-base font-black tracking-tight text-stone-900 uppercase group-hover:text-amber-700 transition-colors leading-none mb-0.5">
                   KRAFT YOUR TRIP
                 </h1>
-                <span className="text-[9px] text-amber-700 font-semibold uppercase tracking-wider">
+                <span className="text-[10px] text-amber-700 font-extrabold uppercase tracking-wider leading-none mt-0.5">
                   Luxury Travel
                 </span>
               </div>
@@ -54,8 +55,9 @@ export default function Navbar({ activePage, onNavigate }) {
               ))}
               <button
                 onClick={() => handleNav('booking')}
-                className="ml-3 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-sm font-bold shadow-sm active:scale-[0.97] transition-all duration-300"
+                className="ml-3 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-sm font-bold shadow-sm active:scale-[0.97] transition-all duration-300 flex items-center gap-1.5"
               >
+                <CalendarDays className="w-4 h-4" />
                 Book Your Trip
               </button>
             </div>
@@ -63,16 +65,10 @@ export default function Navbar({ activePage, onNavigate }) {
             {/* Mobile Hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-xl text-stone-600 hover:bg-stone-100 transition-all"
+              className="md:hidden p-2 rounded-xl text-stone-600 hover:bg-stone-100 transition-all flex items-center justify-center"
               aria-label="Toggle menu"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                {mobileOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -94,11 +90,9 @@ export default function Navbar({ activePage, onNavigate }) {
             </div>
             <button
               onClick={() => setMobileOpen(false)}
-              className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400"
+              className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 flex items-center justify-center"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -118,8 +112,9 @@ export default function Navbar({ activePage, onNavigate }) {
           <div className="pt-3 border-t border-stone-100/30 mt-3">
             <button
               onClick={() => handleNav('booking')}
-              className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-sm font-bold shadow-sm transition-all text-center"
+              className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
             >
+              <CalendarDays className="w-4 h-4" />
               Book Your Trip
             </button>
           </div>

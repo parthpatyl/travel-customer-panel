@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 
 // All images from Unsplash — free to use under the Unsplash License
 // `region` must match the region values used in packages.js (or 'All' to show everything)
@@ -114,10 +115,10 @@ export default function DestinationCategories({ onExplore }) {
   }
 
   return (
-    <section className="py-16 sm:py-20 bg-white">
+    <section className="-mt-12 sm:-mt-16 relative z-10 pt-2 pb-10 sm:pt-4 sm:pb-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-10 animate-fade-in-up">
+        <div className="flex items-end justify-between mb-3.5 animate-fade-in-up">
           <div>
             <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wider mb-3 border border-amber-500/10">
               Browse by Region
@@ -125,7 +126,7 @@ export default function DestinationCategories({ onExplore }) {
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
               Explore Destinations
             </h2>
-            <p className="text-sm text-stone-500 mt-1.5 font-light">
+            <p className="text-sm text-stone-500 mt-1 font-light">
               Handpicked destinations across the globe for every kind of traveller.
             </p>
           </div>
@@ -138,9 +139,7 @@ export default function DestinationCategories({ onExplore }) {
               aria-label="Scroll categories left"
               className="w-9 h-9 rounded-full bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-colors duration-200 border border-stone-200"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               id="dest-cat-scroll-right"
@@ -148,9 +147,7 @@ export default function DestinationCategories({ onExplore }) {
               aria-label="Scroll categories right"
               className="w-9 h-9 rounded-full bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-colors duration-200 border border-stone-200"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -209,9 +206,7 @@ export default function DestinationCategories({ onExplore }) {
             className="text-xs font-bold text-amber-700 flex items-center gap-1.5 hover:text-amber-600 transition-colors"
           >
             View all destinations
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

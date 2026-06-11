@@ -10,6 +10,13 @@ const packages = [
     region: 'Asia',
     slots: { booked: 18, total: 25 },
     trend: '+4 this week',
+    inclusionsSelection: {
+      hotel: true,
+      sightseeing: true,
+      guide: true,
+      airportTransfer: true,
+      flight: false
+    },
     heroImage: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80',
     cardImage: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=600&q=80',
     description: 'Immerse yourself in the ancient traditions and breathtaking beauty of Kyoto. From sacred temples draped in golden leaf to serene bamboo groves, this 7-day luxury cultural experience brings you face-to-face with Japan\'s living heritage.',
@@ -53,6 +60,13 @@ const packages = [
     region: 'Europe',
     slots: { booked: 12, total: 15 },
     trend: 'Stable',
+    inclusionsSelection: {
+      hotel: true,
+      sightseeing: true,
+      guide: true,
+      airportTransfer: true,
+      flight: false
+    },
     heroImage: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1200&q=80',
     cardImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
     description: 'Conquer the Swiss Alps on this 9-day luxury hiking adventure. Trek beneath the iconic Matterhorn, ride the famous Gornergrat cogwheel railway, and unwind in world-class alpine lodges surrounded by pristine mountain wilderness.',
@@ -94,6 +108,13 @@ const packages = [
     region: 'Asia',
     slots: { booked: 8, total: 10 },
     trend: '+2 this week',
+    inclusionsSelection: {
+      hotel: true,
+      sightseeing: true,
+      guide: true,
+      airportTransfer: true,
+      flight: false
+    },
     heroImage: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=1200&q=80',
     cardImage: 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=600&q=80',
     description: 'Escape to paradise in the Maldives with a 5-day overwater villa experience. Crystal-clear turquoise waters, private decks with glass-floor panels, and world-class dining under the stars await you at one of the world\'s most exclusive resorts.',
@@ -135,6 +156,13 @@ const packages = [
     region: 'Asia',
     slots: { booked: 15, total: 30 },
     trend: '+1 this week',
+    inclusionsSelection: {
+      hotel: true,
+      sightseeing: false,
+      guide: false,
+      airportTransfer: true,
+      flight: false
+    },
     heroImage: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80',
     cardImage: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80',
     description: 'The ultimate executive travel experience in Tokyo. Designed for business leaders who demand the finest — from penthouse suites in Shinjuku to private kaiseki dinners with industry leaders, every detail is curated for maximum impact and efficiency.',
@@ -175,6 +203,13 @@ const packages = [
     region: 'Europe',
     slots: { booked: 5, total: 12 },
     trend: 'Stable',
+    inclusionsSelection: {
+      hotel: true,
+      sightseeing: true,
+      guide: true,
+      airportTransfer: true,
+      flight: false
+    },
     heroImage: 'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?auto=format&fit=crop&w=1200&q=80',
     cardImage: 'https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=600&q=80',
     description: 'Create unforgettable family memories in the Swiss Alps. This 6-day adventure combines gentle mountain trails, cheese-making workshops, and scenic train rides through some of the most spectacular landscapes in Europe — all tailored for families with children.',
@@ -217,6 +252,13 @@ const packages = [
     region: 'Europe',
     slots: { booked: 10, total: 20 },
     trend: '+3 this week',
+    inclusionsSelection: {
+      hotel: true,
+      sightseeing: true,
+      guide: true,
+      airportTransfer: true,
+      flight: false
+    },
     heroImage: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1200&q=80',
     cardImage: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=600&q=80',
     description: 'The perfect romantic escape to the iconic white-washed cliffs of Santorini. Watch legendary sunsets from your private terrace, sail the caldera on a luxury catamaran, and savor authentic Greek cuisine paired with volcanic wines.',
@@ -259,6 +301,13 @@ const packages = [
     region: 'Asia',
     slots: { booked: 7, total: 18 },
     trend: '+2 this week',
+    inclusionsSelection: {
+      hotel: true,
+      sightseeing: true,
+      guide: true,
+      airportTransfer: true,
+      flight: false
+    },
     heroImage: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80',
     cardImage: 'https://images.unsplash.com/photo-1555400038-63f5ba517a47?auto=format&fit=crop&w=600&q=80',
     description: 'Rejuvenate your mind, body, and spirit on this 8-day Bali wellness retreat. Nestled among terraced rice paddies in Ubud, this transformative journey combines ancient Balinese healing traditions, yoga, meditation, and organic farm-to-table dining.',

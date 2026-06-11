@@ -1,13 +1,14 @@
 import { formatINR } from '../utils/currency'
+import { Clock, ArrowRight, Hotel, Compass, User, Car, Plane } from 'lucide-react'
 
 export default function FeaturedPackages({ packages, onViewPackage }) {
   const featured = packages.slice(0, 4)
 
   return (
-    <section className="py-20 sm:py-28 bg-[#FDFCF7]">
+    <section className="py-12 sm:py-16 bg-[#FDFCF7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-14 animate-fade-in-up">
+        <div className="text-center mb-8 animate-fade-in-up">
           <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wider mb-4 border border-amber-500/10">
             Handpicked For You
           </span>
@@ -55,9 +56,7 @@ export default function FeaturedPackages({ packages, onViewPackage }) {
 
                   {/* Duration */}
                   <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-white/90">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <Clock className="w-3.5 h-3.5" />
                     <span className="text-xs font-semibold">{pkg.duration}</span>
                   </div>
                 </div>
@@ -67,21 +66,38 @@ export default function FeaturedPackages({ packages, onViewPackage }) {
                   <h3 className="text-sm font-bold text-stone-900 group-hover:text-amber-700 transition-colors leading-tight mb-2">
                     {pkg.name}
                   </h3>
-                  <p className="text-[11px] text-stone-500 leading-relaxed line-clamp-2 mb-4">
+                  <p className="text-[11px] text-stone-500 leading-relaxed line-clamp-2 mb-3">
                     {pkg.description}
                   </p>
+
+                  {/* Highlights pill list */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {pkg.highlights.slice(0, 2).map((h, i) => (
+                      <span key={i} className="text-[10px] bg-stone-100 text-stone-600 px-2 py-0.5 rounded-md">
+                        {h}
+                      </span>
+                    ))}
+                  </div>
 
                   {/* Price & CTA */}
                   <div className="flex items-center justify-between pt-3 border-t border-stone-100">
                     <div>
                       <span className="text-[9px] text-stone-400 font-semibold uppercase block">From</span>
-                      <span className="text-lg font-black text-stone-900">{formatINR(pkg.basePrice)}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-black text-stone-900">{formatINR(pkg.basePrice)}</span>
+                        {/* Icons */}
+                        <div className="flex items-center gap-1 text-stone-400">
+                          {pkg.inclusionsSelection?.hotel && <Hotel className="w-3.5 h-3.5" title="Hotel Included" />}
+                          {pkg.inclusionsSelection?.sightseeing && <Compass className="w-3.5 h-3.5" title="Sightseeing Included" />}
+                          {pkg.inclusionsSelection?.guide && <User className="w-3.5 h-3.5" title="Guide Included" />}
+                          {pkg.inclusionsSelection?.airportTransfer && <Car className="w-3.5 h-3.5" title="Airport Transfer Included" />}
+                          {pkg.inclusionsSelection?.flight && <Plane className="w-3.5 h-3.5" title="Flight Included" />}
+                        </div>
+                      </div>
                     </div>
                     <span className="text-amber-700 text-xs font-bold group-hover:translate-x-1 transition-transform duration-300 flex items-center gap-1">
                       Explore
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </div>

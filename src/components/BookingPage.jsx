@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatINR } from '../utils/currency'
+import { BadgeCheck, User, Mail, Phone, Calendar, Users, Compass, MessageSquare } from 'lucide-react'
 
 export default function BookingPage({ packages, selectedPackage }) {
   const [formData, setFormData] = useState({
@@ -58,9 +59,7 @@ export default function BookingPage({ packages, selectedPackage }) {
         <div className="max-w-md w-full mx-auto px-4 text-center animate-fade-in">
           {/* Success Icon */}
           <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/25">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+            <BadgeCheck className="w-8 h-8" />
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-black text-stone-900 mb-4 tracking-tight">
@@ -120,23 +119,24 @@ export default function BookingPage({ packages, selectedPackage }) {
   }
 
   return (
-    <section className="py-24 sm:py-32 bg-[#FDFCF7] min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        {/* Header Section */}
-        <div className="text-center mb-12 animate-fade-in-up">
-          <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wider mb-4 border border-amber-500/10">
-            Booking Inquiry
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight mb-4">
-            Request A Bespoke Itinerary
-          </h1>
-          <p className="text-xs sm:text-sm text-stone-500 max-w-xl mx-auto">
-            Provide your preferences below. Our luxury travel designers will create a tailored package proposal.
-          </p>
-        </div>
+    <section className="py-16 sm:py-20 bg-[#FDFCF7] min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          {/* Header Section */}
+          <div className="text-center lg:text-left mb-8 animate-fade-in-up">
+            <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wider mb-4 border border-amber-500/10">
+              Booking Inquiry
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight mb-4">
+              Request A Bespoke Itinerary
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-500 max-w-xl mx-auto lg:mx-0">
+              Provide your preferences below. Our luxury travel designers will create a tailored package proposal.
+            </p>
+          </div>
 
-        {/* Form Container */}
-        <div className="bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-10 shadow-sm animate-fade-in-up delay-100">
+          {/* Form Container */}
+          <div className="bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-10 shadow-sm animate-fade-in-up delay-100">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Name */}
@@ -144,16 +144,19 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                   Full Name <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="e.g. Sophia Loren"
-                  className={`w-full bg-[#FAF9F5]/40 border ${
-                    errors.name ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
-                  } rounded-xl py-2.5 px-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
-                />
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="e.g. Sophia Loren"
+                    className={`w-full bg-[#FAF9F5]/40 border ${
+                      errors.name ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
+                    } rounded-xl py-2.5 pl-10 pr-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
+                  />
+                </div>
                 {errors.name && <span className="text-[10px] text-rose-500 mt-1.5 block font-semibold">{errors.name}</span>}
               </div>
 
@@ -162,16 +165,19 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="e.g. sophia@loren.com"
-                  className={`w-full bg-[#FAF9F5]/40 border ${
-                    errors.email ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
-                  } rounded-xl py-2.5 px-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="e.g. sophia@loren.com"
+                    className={`w-full bg-[#FAF9F5]/40 border ${
+                      errors.email ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
+                    } rounded-xl py-2.5 pl-10 pr-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
+                  />
+                </div>
                 {errors.email && <span className="text-[10px] text-rose-500 mt-1.5 block font-semibold">{errors.email}</span>}
               </div>
             </div>
@@ -182,16 +188,19 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                   Phone Number <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="e.g. +1 (555) 019-2831"
-                  className={`w-full bg-[#FAF9F5]/40 border ${
-                    errors.phone ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
-                  } rounded-xl py-2.5 px-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
-                />
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="e.g. +1 (555) 019-2831"
+                    className={`w-full bg-[#FAF9F5]/40 border ${
+                      errors.phone ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
+                    } rounded-xl py-2.5 pl-10 pr-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
+                  />
+                </div>
                 {errors.phone && <span className="text-[10px] text-rose-500 mt-1.5 block font-semibold">{errors.phone}</span>}
               </div>
 
@@ -200,21 +209,24 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                   Select Package <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  name="packageId"
-                  value={formData.packageId}
-                  onChange={handleChange}
-                  className={`w-full bg-[#FAF9F5]/40 border ${
-                    errors.packageId ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
-                  } rounded-xl py-2.5 px-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
-                >
-                  <option value="" disabled>-- Choose a package --</option>
-                  {packages.map((pkg) => (
-                    <option key={pkg.id} value={pkg.id}>
-                      {pkg.name} ({pkg.duration} - from {formatINR(pkg.basePrice)})
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <Compass className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  <select
+                    name="packageId"
+                    value={formData.packageId}
+                    onChange={handleChange}
+                    className={`w-full bg-[#FAF9F5]/40 border ${
+                      errors.packageId ? 'border-rose-450 focus:border-rose-550 focus:ring-rose-550' : 'border-stone-200 focus:border-amber-500 focus:ring-amber-500'
+                    } rounded-xl py-2.5 pl-10 pr-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
+                  >
+                    <option value="" disabled>-- Choose a package --</option>
+                    {packages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name} ({pkg.duration} - from {formatINR(pkg.basePrice)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 {errors.packageId && <span className="text-[10px] text-rose-500 mt-1.5 block font-semibold">{errors.packageId}</span>}
               </div>
             </div>
@@ -225,15 +237,18 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                   Start Date <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  className={`w-full bg-[#FAF9F5]/40 border ${
-                    errors.startDate ? 'border-rose-450 focus:border-rose-550' : 'border-stone-200 focus:border-amber-500'
-                  } rounded-xl py-2.5 px-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                    className={`w-full bg-[#FAF9F5]/40 border ${
+                      errors.startDate ? 'border-rose-450 focus:border-rose-550' : 'border-stone-200 focus:border-amber-500'
+                    } rounded-xl py-2.5 pl-10 pr-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
+                  />
+                </div>
                 {errors.startDate && <span className="text-[10px] text-rose-500 mt-1.5 block font-semibold">{errors.startDate}</span>}
               </div>
 
@@ -242,15 +257,18 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                   End Date <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                  className={`w-full bg-[#FAF9F5]/40 border ${
-                    errors.endDate ? 'border-rose-450 focus:border-rose-550' : 'border-stone-200 focus:border-amber-500'
-                  } rounded-xl py-2.5 px-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                    className={`w-full bg-[#FAF9F5]/40 border ${
+                      errors.endDate ? 'border-rose-450 focus:border-rose-550' : 'border-stone-200 focus:border-amber-500'
+                    } rounded-xl py-2.5 pl-10 pr-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all`}
+                  />
+                </div>
                 {errors.endDate && <span className="text-[10px] text-rose-500 mt-1.5 block font-semibold">{errors.endDate}</span>}
               </div>
 
@@ -259,19 +277,22 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                   Number of Guests
                 </label>
-                <select
-                  name="guests"
-                  value={formData.guests}
-                  onChange={handleChange}
-                  className="w-full bg-[#FAF9F5]/40 border border-stone-200 focus:border-amber-500 rounded-xl py-2.5 px-4 text-xs text-stone-850 outline-none focus:ring-1 transition-all"
-                >
-                  <option value="1">1 Guest</option>
-                  <option value="2">2 Guests</option>
-                  <option value="3">3 Guests</option>
-                  <option value="4">4 Guests</option>
-                  <option value="5">5 Guests</option>
-                  <option value="6">6+ Guests</option>
-                </select>
+                <div className="relative">
+                  <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  <select
+                    name="guests"
+                    value={formData.guests}
+                    onChange={handleChange}
+                    className="w-full bg-[#FAF9F5]/40 border border-stone-200 focus:border-amber-500 rounded-xl py-2.5 pl-10 pr-4 text-xs text-stone-850 outline-none focus:ring-1 transition-all"
+                  >
+                    <option value="1">1 Guest</option>
+                    <option value="2">2 Guests</option>
+                    <option value="3">3 Guests</option>
+                    <option value="4">4 Guests</option>
+                    <option value="5">5 Guests</option>
+                    <option value="6">6+ Guests</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -280,14 +301,17 @@ export default function BookingPage({ packages, selectedPackage }) {
               <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                 Special Requests / Dietary / Preferences
               </label>
-              <textarea
-                name="notes"
-                rows="4"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="e.g. Prefer high floor suites, vegetarian meals, airport speedboats..."
-                className="w-full bg-[#FAF9F5]/40 border border-stone-200 focus:border-amber-500 rounded-xl py-3 px-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all"
-              />
+              <div className="relative">
+                <MessageSquare className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400 pointer-events-none" />
+                <textarea
+                  name="notes"
+                  rows="4"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  placeholder="e.g. Prefer high floor suites, vegetarian meals, airport speedboats..."
+                  className="w-full bg-[#FAF9F5]/40 border border-stone-200 focus:border-amber-500 rounded-xl py-3 pl-10 pr-4 text-xs text-stone-850 placeholder-stone-400 outline-none focus:ring-1 transition-all"
+                />
+              </div>
             </div>
 
             {/* Submit button */}
@@ -301,6 +325,56 @@ export default function BookingPage({ packages, selectedPackage }) {
             </div>
           </form>
         </div>
+        </div>
+
+        <aside className="hidden lg:block space-y-6 sticky top-24">
+          {/* Help Card */}
+          <div className="bg-white border border-stone-200/80 rounded-2xl p-6 space-y-4 shadow-sm animate-fade-in-up delay-200">
+            <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider">Need Help?</h3>
+            <p className="text-xs text-stone-500 leading-relaxed font-light">
+              Call us at <a href="tel:+15550192831" className="font-semibold text-amber-750 hover:underline text-nowrap">+1 (555) 019-2831</a> or email <a href="mailto:concierge@kraftyourtrip.com" className="font-semibold text-amber-750 hover:underline">concierge@kraftyourtrip.com</a>
+            </p>
+          </div>
+
+          {/* Process Card */}
+          <div className="bg-white border border-stone-200/80 rounded-2xl p-6 space-y-5 shadow-sm animate-fade-in-up delay-300">
+            <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider">Our Custom Process</h3>
+            <div className="space-y-4">
+              {[
+                { title: 'Submit Inquiry', desc: 'Share your travel preferences, dates, and group details with us.', icon: Compass },
+                { title: 'Consultation', desc: 'Our travel designer schedules a brief call to refine your bespoke itinerary.', icon: Users },
+                { title: 'Finalize & Book', desc: 'Review your personalized proposal, adjust details, and lock in your escape.', icon: BadgeCheck }
+              ].map((p, idx) => {
+                const Icon = p.icon
+                return (
+                  <div key={idx} className="flex gap-3.5 items-start">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-750 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-semibold text-stone-900">{p.title}</h4>
+                      <p className="text-[10px] text-stone-550 leading-relaxed font-light">{p.desc}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Aesthetic Image Card */}
+          <div className="relative rounded-2xl overflow-hidden shadow-sm border border-stone-200/80 aspect-[4/3] group animate-fade-in-up delay-400">
+            <img
+              src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80"
+              alt="Bespoke travel planning desk"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-amber-400">Tailored Design</span>
+              <p className="text-xs font-bold text-white mt-1">Every detail crafted around you.</p>
+            </div>
+          </div>
+        </aside>
       </div>
     </section>
   )

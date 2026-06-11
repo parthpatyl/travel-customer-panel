@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ExternalLink, Terminal } from 'lucide-react'
 
 export default function DevSwitcher() {
   const [isOpen, setIsOpen] = useState(false)
@@ -35,25 +36,13 @@ export default function DevSwitcher() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 rounded-lg text-white font-bold transition-colors shadow-sm duration-200"
             >
               Open Dashboard
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-              </svg>
+              <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
         )}
 
         {!isOpen && (
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-5 w-5 text-amber-500" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+          <Terminal className="h-5 w-5 text-amber-500" />
         )}
       </div>
     </div>

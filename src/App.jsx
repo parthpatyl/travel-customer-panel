@@ -85,12 +85,13 @@ function App() {
                 <img
                   src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1200&q=80"
                   alt="CTA background image"
-                  className="w-full h-full object-cover opacity-20"
+                  className="w-full h-full object-cover opacity-35"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-950 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
               </div>
 
-              <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-6">
+              <div className="relative z-10 max-w-5xl mx-auto px-4 space-y-6">
                 <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
                   Ready to Start Planning Your Next Escape?
                 </h2>
