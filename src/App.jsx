@@ -10,7 +10,6 @@ import PackageDetail from './components/PackageDetail'
 import AboutPage from './components/AboutPage'
 import BookingPage from './components/BookingPage'
 import packages from './data/packages'
-import DevSwitcher from './components/DevSwitcher'
 
 function App() {
   const [activePage, setActivePage] = useState('home')
@@ -139,7 +138,6 @@ function App() {
 
       {/* Footer Branding & Links */}
       <Footer onNavigate={(page) => navigate(page)} />
-      <DevSwitcher />
     </div>
   )
 }
