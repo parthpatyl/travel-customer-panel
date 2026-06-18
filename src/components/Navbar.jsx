@@ -2,7 +2,8 @@ import { useState } from 'react'
 import logo from '../assets/logo.png'
 import { Menu, X, CalendarDays } from 'lucide-react'
 
-export default function Navbar({ activePage, onNavigate }) {
+export default function Navbar({ activePage, onNavigate, settings = {} }) {
+  const agencyName = settings.agencyName || 'KRAFT YOUR TRIP'
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const navLinks = [
@@ -31,7 +32,7 @@ export default function Navbar({ activePage, onNavigate }) {
               </div>
               <div className="flex flex-col items-start leading-none">
                 <h1 className="text-base font-black tracking-tight text-stone-900 uppercase group-hover:text-amber-700 transition-colors leading-none mb-0.5">
-                  KRAFT YOUR TRIP
+                  {agencyName}
                 </h1>
                 <span className="text-[10px] text-amber-700 font-extrabold uppercase tracking-wider leading-none mt-0.5">
                   Luxury Travel
@@ -86,7 +87,7 @@ export default function Navbar({ activePage, onNavigate }) {
               <div className="w-8 h-8 rounded-xl overflow-hidden border border-stone-200/50 bg-white">
                 <img src={logo} alt="Logo" className="w-full h-full object-contain p-0.5" />
               </div>
-              <span className="text-sm font-black text-stone-900 uppercase">KRAFT YOUR TRIP</span>
+              <span className="text-sm font-black text-stone-900 uppercase">{agencyName}</span>
             </div>
             <button
               onClick={() => setMobileOpen(false)}

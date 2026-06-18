@@ -1,11 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { formatINR } from '../utils/currency'
 import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane } from 'lucide-react'
 
 export default function PackageDetail({ pkg, onBack, onBook }) {
   const [activeTab, setActiveTab] = useState('itinerary') // tabs: itinerary, inclusions
+  const [weather, setWeather] = useState(null)
 
   const spotsLeft = pkg.slots.total - pkg.slots.booked
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    fetch(`${API_URL}/api/weather`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.data) {
+          // Try to match package region to weather data
+          const regionWeather = d.data[pkg.region] || null
+          setWeather(regionWeather)
+        }
+      })
+      .catch(() => { })
+  }, [pkg.region])
 
   return (
     <section className="bg-[#FDFCF7] pb-24">
@@ -18,7 +33,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
         />
         {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-stone-900/60 via-stone-900/30 to-stone-950/80" />
-        
+
         {/* Navigation / Header content */}
         <div className="absolute inset-x-0 bottom-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 flex flex-col justify-end h-full">
           {/* Back button */}
@@ -29,22 +44,32 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
             <ArrowLeft className="w-4 h-4" />
             Back to Destinations
           </button>
-
-          {/* Badges */}
-          <div className="flex gap-3 items-center mb-4">
-            <span className="px-2.5 py-0.5 bg-amber-500 text-white text-[9px] font-extrabold uppercase rounded-lg border border-amber-400/30">
-              {pkg.region}
-            </span>
-            <span className="px-2.5 py-0.5 bg-white text-stone-900 text-[9px] font-bold uppercase rounded-lg border border-stone-200">
-              {pkg.duration}
-            </span>
-            <span className="text-xs text-white/80 font-medium font-mono">ID: {pkg.id}</span>
-          </div>
-
           {/* Name */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
             {pkg.name}
           </h1>
+          {/* Badges */}
+          <div className="flex gap-3 items-center mb-4">
+            <span className="px-2.5 py-0.5 bg-amber-500 text-white text-[14px] font-extrabold uppercase rounded-lg border border-amber-400/30">
+              {pkg.region}
+            </span>
+            <span className="px-2.5 py-0.5 bg-white text-stone-900 text-[14px] font-bold uppercase rounded-lg border border-stone-200">
+              {pkg.duration}
+            </span>
+            {pkg.ctaBadge && (
+              <span className="px-2.5 py-0.5 bg-rose-500 text-white text-[14px] font-extrabold uppercase rounded-lg border border-rose-400/50 animate-pulse">
+                {pkg.ctaBadge}
+              </span>
+            )}
+            {pkg.bestMonth && (
+              <span className="px-2.5 py-0.5 bg-sky-500 text-white text-[14px] font-bold uppercase rounded-lg border border-sky-400/50">
+                📅 Best in {pkg.bestMonth}
+              </span>
+            )}
+          </div>
+          <div className='flex gap-3 items-center mb-4'>
+            <span className="text-xs text-white/80 font-medium font-mono">ID: {pkg.id}</span>
+          </div>
         </div>
       </div>
 
@@ -81,21 +106,19 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
               <div className="border-b border-stone-100 flex">
                 <button
                   onClick={() => setActiveTab('itinerary')}
-                  className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-all ${
-                    activeTab === 'itinerary'
-                      ? 'border-amber-600 text-amber-750'
-                      : 'border-transparent text-stone-400 hover:text-stone-750'
-                  }`}
+                  className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-all ${activeTab === 'itinerary'
+                    ? 'border-amber-600 text-amber-750'
+                    : 'border-transparent text-stone-400 hover:text-stone-750'
+                    }`}
                 >
                   Itinerary Schedule
                 </button>
                 <button
                   onClick={() => setActiveTab('inclusions')}
-                  className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-all ${
-                    activeTab === 'inclusions'
-                      ? 'border-amber-600 text-amber-750'
-                      : 'border-transparent text-stone-400 hover:text-stone-750'
-                  }`}
+                  className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-all ${activeTab === 'inclusions'
+                    ? 'border-amber-600 text-amber-750'
+                    : 'border-transparent text-stone-400 hover:text-stone-750'
+                    }`}
                 >
                   Inclusions & Exclusions
                 </button>
@@ -109,7 +132,7 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
                       <div key={idx} className="relative group">
                         {/* Bullet circle */}
                         <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-amber-600 border-4 border-white shadow-sm transition-transform duration-300 group-hover:scale-125" />
-                        
+
                         <div>
                           <span className="text-[10px] text-amber-700 font-extrabold uppercase tracking-wider block mb-1">
                             Day {dayItem.day}
@@ -230,7 +253,37 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
                 Submitting an inquiry is not a final booking. Our travel specialist will contact you within 24 hours.
               </p>
             </div>
-
+            {/* Weather Widget */}
+            {weather && weather.months && (
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-sm">
+                <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  🌤️ Monthly Weather — {weather.city}
+                </h4>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {weather.months.map((m) => {
+                    const currentMonth = new Date().toLocaleString('en', { month: 'short' })
+                    const isCurrentMonth = m.month === currentMonth
+                    const isBestMonth = pkg.bestMonth && pkg.bestMonth.substring(0, 3) === m.month
+                    return (
+                      <div
+                        key={m.month}
+                        className={`text-center py-2 px-1 rounded-lg text-[9px] border transition-all ${isBestMonth
+                          ? 'bg-amber-50 border-amber-300 ring-1 ring-amber-200'
+                          : isCurrentMonth
+                            ? 'bg-sky-50 border-sky-200'
+                            : 'bg-stone-50 border-stone-100'
+                          }`}
+                      >
+                        <span className={`block font-bold mb-0.5 ${isBestMonth ? 'text-amber-700' : 'text-stone-600'}`}>{m.month}</span>
+                        <span className="block text-stone-800 font-semibold">{m.avgHigh}°</span>
+                        <span className="block text-stone-400">{m.avgLow}°</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="text-[9px] text-stone-400 mt-2 text-center">Avg. highs & lows (°C) · Based on historical data</p>
+              </div>
+            )}
             {/* Assistance card */}
             <div className="bg-stone-900 text-white rounded-2xl p-6 shadow-sm space-y-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">Need Assistance?</h4>
@@ -256,5 +309,6 @@ export default function PackageDetail({ pkg, onBack, onBook }) {
         </div>
       </div>
     </section>
+
   )
 }

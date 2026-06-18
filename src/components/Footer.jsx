@@ -1,7 +1,12 @@
 import logo from '../assets/logo.png'
 import { MapPin, Phone, Mail, Send, Clock } from 'lucide-react'
 
-export default function Footer({ onNavigate }) {
+export default function Footer({ onNavigate, settings = {} }) {
+  const agencyName = settings.agencyName ?? 'KRAFT YOUR TRIP'
+  const agencyAddress = settings.agencyAddress ?? ''
+  const agencyPhone = settings.agencyPhone ?? ''
+  const agencyEmail = settings.agencyEmail ?? ''
+
   const handleNav = (page) => {
     onNavigate(page)
   }
@@ -21,7 +26,7 @@ export default function Footer({ onNavigate }) {
               </div>
               <div>
                 <h3 className="text-sm font-black tracking-tight text-white uppercase leading-tight">
-                  KRAFT YOUR TRIP
+                  {agencyName}
                 </h3>
                 <span className="text-[9px] text-amber-400 font-semibold uppercase tracking-wider">
                   Luxury Travel
@@ -78,15 +83,15 @@ export default function Footer({ onNavigate }) {
             <ul className="space-y-2 text-xs text-stone-400">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <span>456 Sandstone Ave, Suite 100, San Francisco, CA</span>
+                <span>{agencyAddress}</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-amber-500 shrink-0" />
-                <a href="tel:+15550192831" className="hover:text-amber-400 transition-colors">+1 (555) 019-2831</a>
+                <a href={`tel:${agencyPhone.replace(/[^0-9+]/g, '')}`} className="hover:text-amber-400 transition-colors">{agencyPhone}</a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-amber-500 shrink-0" />
-                <a href="mailto:concierge@kraftyourtrip.com" className="hover:text-amber-400 transition-colors">concierge@kraftyourtrip.com</a>
+                <a href={`mailto:${agencyEmail}`} className="hover:text-amber-400 transition-colors">{agencyEmail}</a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Clock className="w-4 h-4 text-amber-500 shrink-0" />
@@ -123,7 +128,7 @@ export default function Footer({ onNavigate }) {
 
         {/* Footer Bottom */}
         <div className="pt-5 mt-4 border-t border-stone-850 flex flex-col sm:flex-row items-center justify-between text-[11px] text-stone-550 gap-3">
-          <p>© 2026 KRAFT YOUR TRIP Inc. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {agencyName} Inc. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-stone-300">Privacy Policy</a>
             <a href="#" className="hover:text-stone-300">Terms of Service</a>

@@ -1,7 +1,26 @@
-import testimonials from '../data/testimonials'
 import { Star } from 'lucide-react'
 
-export default function TestimonialsSection() {
+export default function TestimonialsSection({ testimonials = [] }) {
+  if (testimonials.length === 0) {
+    return (
+      <section className="py-12 sm:py-16 bg-[#FAF9F5]/40 border-y border-stone-200/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wider mb-4 border border-amber-500/10">
+              Guest Experiences
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight mb-4">
+              What Our Travelers Say
+            </h2>
+          </div>
+          <div className="text-center text-stone-400 text-xs italic">
+            Traveler stories will appear here once customers share their experiences.
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="py-12 sm:py-16 bg-[#FAF9F5]/40 border-y border-stone-200/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -34,7 +34,7 @@ export default function AboutPage() {
             alt="Scenic mountain peaks banner"
             className="w-full h-full object-cover opacity-50"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#FDFCF7]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#FDFDFD]" />
           <div className="absolute inset-0 bg-gradient-to-r from-stone-950/30 via-transparent to-stone-950/30" />
         </div>
 
@@ -45,7 +45,7 @@ export default function AboutPage() {
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-tight">
             Curating Bespoke Travel
           </h1>
-          <p className="text-xs sm:text-sm text-stone-300 max-w-xl mx-auto leading-relaxed mt-4 font-light">
+          <p className="text-xs sm:text-sm text-stone-700 max-w-xl mx-auto leading-relaxed mt-4 font-light">
             Founded on the belief that travel should be art, KRAFT YOUR TRIP transforms ordinary vacations into masterfully tailored luxury itineraries.
           </p>
         </div>

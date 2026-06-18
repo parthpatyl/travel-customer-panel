@@ -88,11 +88,10 @@ function Pill({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap border ${
-        active
-          ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
-          : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
-      }`}
+      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap border ${active
+        ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+        : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
+        }`}
     >
       {children}
     </button>
@@ -277,11 +276,10 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
             {/* Toggle More Filters */}
             <button
               onClick={() => setShowFilters(p => !p)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all duration-200 whitespace-nowrap ${
-                showFilters || activeFiltersCount > 0
-                  ? 'bg-amber-600 text-white border-amber-600'
-                  : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all duration-200 whitespace-nowrap ${showFilters || activeFiltersCount > 0
+                ? 'bg-amber-600 text-white border-amber-600'
+                : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
+                }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               Filters
@@ -421,11 +419,10 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                     </span>
 
                     {/* Spots Tag */}
-                    <span className={`absolute top-3.5 right-3.5 px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase border shadow-sm ${
-                      spotsLeft <= 3
-                        ? 'bg-rose-500 text-white border-rose-400'
-                        : 'bg-emerald-500 text-white border-emerald-400'
-                    }`}>
+                    <span className={`absolute top-3.5 right-3.5 px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase border shadow-sm ${spotsLeft <= 3
+                      ? 'bg-rose-500 text-white border-rose-400'
+                      : 'bg-emerald-500 text-white border-emerald-400'
+                      }`}>
                       {spotsLeft <= 3 ? `${spotsLeft} Left!` : `${spotsLeft} Spots`}
                     </span>
 
@@ -443,7 +440,22 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                       })()}
                       {travelType}
                     </div>
+                    {/* CTA Badge */}
+                    {pkg.ctaBadge && (
+                      <span className="absolute top-12 left-3.5 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white border border-amber-400 shadow-sm">
+                        {pkg.ctaBadge}
+                      </span>
+                    )}
                   </div>
+
+                  {/* Best Month pill */}
+                  {pkg.bestMonth && (
+                    <div className="px-6 pt-3">
+                      <span className="inline-block px-2 py-0.5 rounded-md text-[12px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                        Best in {pkg.bestMonth}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Body Content */}
                   <div className="p-6">

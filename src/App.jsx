@@ -9,12 +9,50 @@ import DestinationCategories from './components/DestinationCategories'
 import PackageDetail from './components/PackageDetail'
 import AboutPage from './components/AboutPage'
 import BookingPage from './components/BookingPage'
-import packages from './data/packages'
+import staticPackages from './data/packages'
 
 function App() {
   const [activePage, setActivePage] = useState('home')
   const [selectedPackage, setSelectedPackage] = useState(null)
   const [initialRegion, setInitialRegion] = useState('All')
+
+  const [packages, setPackages] = useState(staticPackages)
+  const [testimonials, setTestimonials] = useState([])
+  const [settings, setSettings] = useState({
+    agencyName: 'KRAFT YOUR TRIP',
+    agencyAddress: '456 Sandstone Ave, Suite 100, San Francisco, CA',
+    agencyPhone: '+1 (555) 019-2831',
+    agencyEmail: 'concierge@kraftyourtrip.com'
+  })
+
+  // Load dynamic data from backend API
+  useEffect(() => {
+    const loadDynamicData = async () => {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      try {
+        const pkgRes = await fetch(`${API_URL}/api/packages`)
+        if (pkgRes.ok) {
+          const pkgData = await pkgRes.json()
+          setPackages(pkgData)
+        }
+
+        const testRes = await fetch(`${API_URL}/api/testimonials`)
+        if (testRes.ok) {
+          const testData = await testRes.json()
+          setTestimonials(testData)
+        }
+
+        const settingsRes = await fetch(`${API_URL}/api/settings`)
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json()
+          setSettings(settingsData)
+        }
+      } catch (err) {
+        console.warn('Backend API connection failed, using static fallbacks:', err)
+      }
+    }
+    loadDynamicData()
+  }, [])
 
   // Push a history entry and update state together
   const navigate = useCallback((page, pkg = null, region = 'All') => {
@@ -42,7 +80,8 @@ function App() {
 
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [packages])
+
 
   const handleViewPackage = (pkg) => navigate('detail', pkg)
   const handleExplore = (region = 'All') => navigate('destinations', null, region)
@@ -54,6 +93,7 @@ function App() {
       <Navbar
         activePage={activePage}
         onNavigate={(page) => navigate(page)}
+        settings={settings}
       />
 
       {/* Main Content Pages */}
@@ -73,10 +113,12 @@ function App() {
             <FeaturedPackages
               packages={packages}
               onViewPackage={handleViewPackage}
+              settings={settings}
+              onNavigate={(page) => navigate(page)}
             />
 
             {/* Customer Testimonials Grid */}
-            <TestimonialsSection />
+            <TestimonialsSection testimonials={testimonials} />
 
             {/* Final home CTA section */}
             <section className="py-20 text-center relative overflow-hidden bg-stone-900 text-white">
@@ -137,7 +179,7 @@ function App() {
       </main>
 
       {/* Footer Branding & Links */}
-      <Footer onNavigate={(page) => navigate(page)} />
+      <Footer onNavigate={(page) => navigate(page)} settings={settings} />
     </div>
   )
 }
