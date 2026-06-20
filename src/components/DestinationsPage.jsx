@@ -5,31 +5,10 @@ import {
   SlidersHorizontal,
   ChevronDown,
   RotateCcw,
-  Clock,
   ArrowRight,
   X,
-  SearchX,
-  Landmark,
-  Compass,
-  Sparkles,
-  Heart,
-  Users,
-  Briefcase,
-  Hotel,
-  User,
-  Car,
-  Plane
+  SearchX
 } from 'lucide-react'
-
-// Map travel types to Lucide Icons
-const TYPE_ICONS = {
-  cultural: Landmark,
-  adventure: Compass,
-  wellness: Sparkles,
-  romantic: Heart,
-  family: Users,
-  business: Briefcase
-}
 
 // ─── Filter Config ────────────────────────────────────────────────────────────
 const REGIONS = ['All', 'Asia', 'Europe']
@@ -401,99 +380,70 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                 <div
                   key={pkg.id}
                   onClick={() => onViewPackage(pkg)}
-                  className="animate-fade-in-up group bg-white border border-stone-200/80 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-pointer"
+                  className="animate-fade-in-up group bg-white border border-stone-200/60 rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-500 cursor-pointer flex flex-col h-full"
                   style={{ animationDelay: `${index * 50 + 100}ms` }}
                 >
                   {/* Card Image */}
-                  <div className="relative h-56 overflow-hidden">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden shrink-0 bg-stone-100">
                     <img
                       src={pkg.cardImage}
                       alt={pkg.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/20 to-transparent" />
 
-                    {/* Region Tag */}
-                    <span className="absolute top-3.5 left-3.5 px-2.5 py-0.5 bg-white text-[9px] font-extrabold uppercase text-stone-700 border border-stone-200 shadow-sm rounded-lg">
-                      {pkg.region}
-                    </span>
-
-                    {/* Spots Tag */}
-                    <span className={`absolute top-3.5 right-3.5 px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase border shadow-sm ${spotsLeft <= 3
-                      ? 'bg-rose-500 text-white border-rose-400'
-                      : 'bg-emerald-500 text-white border-emerald-400'
-                      }`}>
-                      {spotsLeft <= 3 ? `${spotsLeft} Left!` : `${spotsLeft} Spots`}
-                    </span>
-
-                    {/* Duration badge */}
-                    <div className="absolute bottom-3.5 left-3.5 flex items-center gap-1.5 text-white/90">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-xs font-semibold">{pkg.duration}</span>
-                    </div>
-
-                    {/* Type badge */}
-                    <div className="absolute bottom-3.5 right-3.5 capitalize px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-xs text-white text-[9px] font-bold border border-white/10 flex items-center gap-1.5">
-                      {(() => {
-                        const IconComponent = TYPE_ICONS[travelType] || Landmark
-                        return <IconComponent className="w-2.5 h-2.5 text-amber-300" />
-                      })()}
-                      {travelType}
-                    </div>
-                    {/* CTA Badge */}
+                    {/* Absolute Badge Overlay */}
                     {pkg.ctaBadge && (
-                      <span className="absolute top-12 left-3.5 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white border border-amber-400 shadow-sm">
+                      <span className="absolute top-3.5 left-3.5 px-2 py-0.5 rounded bg-stone-900/90 text-white text-[9px] font-bold uppercase tracking-wider backdrop-blur-xs border border-white/10 shadow-sm">
                         {pkg.ctaBadge}
+                      </span>
+                    )}
+                    {spotsLeft <= 3 && (
+                      <span className="absolute top-3.5 right-3.5 px-2 py-0.5 rounded bg-rose-600 text-white text-[9px] font-extrabold uppercase tracking-wider shadow-sm">
+                        Only {spotsLeft} Left!
                       </span>
                     )}
                   </div>
 
-                  {/* Best Month pill */}
-                  {pkg.bestMonth && (
-                    <div className="px-6 pt-3">
-                      <span className="inline-block px-2 py-0.5 rounded-md text-[12px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-                        Best in {pkg.bestMonth}
-                      </span>
-                    </div>
-                  )}
-
                   {/* Body Content */}
-                  <div className="p-6">
-                    <h3 className="text-base font-bold text-stone-900 group-hover:text-amber-700 transition-colors leading-tight mb-2.5">
-                      {pkg.name}
-                    </h3>
-                    <p className="text-xs text-stone-500 leading-relaxed line-clamp-3 mb-5">
-                      {pkg.description}
-                    </p>
+                  <div className="p-6 flex flex-col flex-grow justify-between">
+                    <div>
+                      {/* Editorial Eyebrow */}
+                      <div className="text-[10px] font-extrabold tracking-widest text-amber-700 uppercase mb-2">
+                        {pkg.region} • {pkg.duration} • {travelType}
+                      </div>
 
-                    {/* Highlights pill list */}
-                    <div className="flex flex-wrap gap-1.5 mb-6">
-                      {pkg.highlights.slice(0, 3).map((h, i) => (
-                        <span key={i} className="text-[10px] bg-stone-100 text-stone-600 px-2 py-0.5 rounded-md border border-stone-200/30">
-                          {h}
-                        </span>
-                      ))}
+                      <h3 className="text-base font-bold text-stone-900 group-hover:text-amber-700 transition-colors leading-tight mb-2.5">
+                        {pkg.name}
+                      </h3>
+                      <p className="text-xs text-stone-500 leading-relaxed line-clamp-3 mb-4">
+                        {pkg.description}
+                      </p>
+
+                      {/* Refined Highlights Line */}
+                      <div className="flex flex-col gap-1.5 text-xs text-stone-400 mb-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-stone-500">Highlights:</span>
+                          <span className="text-stone-600 font-medium">{pkg.highlights.slice(0, 3).join(' • ')}</span>
+                        </div>
+                        {pkg.bestMonth && (
+                          <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                            <span>📅 Best Season:</span>
+                            <span className="font-semibold">{pkg.bestMonth}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Price and Action */}
-                    <div className="flex items-center justify-between pt-4 border-t border-stone-100">
+                    <div className="flex items-center justify-between pt-4 border-t border-stone-100 mt-auto">
                       <div>
                         <span className="text-[9px] text-stone-400 font-semibold uppercase block">From</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl font-black text-stone-900">{formatINR(pkg.basePrice)}</span>
-                          {/* Icons */}
-                          <div className="flex items-center gap-1 text-stone-400">
-                            {pkg.inclusionsSelection?.hotel && <Hotel className="w-3.5 h-3.5" title="Hotel Included" />}
-                            {pkg.inclusionsSelection?.sightseeing && <Compass className="w-3.5 h-3.5" title="Sightseeing Included" />}
-                            {pkg.inclusionsSelection?.guide && <User className="w-3.5 h-3.5" title="Guide Included" />}
-                            {pkg.inclusionsSelection?.airportTransfer && <Car className="w-3.5 h-3.5" title="Airport Transfer Included" />}
-                            {pkg.inclusionsSelection?.flight && <Plane className="w-3.5 h-3.5" title="Flight Included" />}
-                          </div>
-                        </div>
+                        <span className="text-xl font-black text-stone-900">{formatINR(pkg.basePrice)}</span>
                       </div>
-                      <span className="text-amber-700 text-xs font-bold group-hover:translate-x-1.5 transition-transform duration-300 flex items-center gap-1">
+                      <span className="text-stone-900 group-hover:text-amber-700 text-xs font-bold transition-colors flex items-center gap-1.5">
                         Explore Details
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
                       </span>
                     </div>
                   </div>

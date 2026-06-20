@@ -37,13 +37,30 @@ export default function BookingPage({ packages, selectedPackage }) {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address'
     }
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required'
+    
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required'
+    } else if (!/^[+0-9\s-()]{7,20}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Please enter a valid phone number (at least 7 digits)'
+    }
+    
     if (!formData.packageId) newErrors.packageId = 'Please select a package or destination'
     if (formData.packageId === 'custom-other' && !formData.customDestination?.trim()) {
       newErrors.customDestination = 'Custom destination name is required'
     }
-    if (!formData.startDate) newErrors.startDate = 'Start date is required'
-    if (!formData.endDate) newErrors.endDate = 'End date is required'
+    
+    const todayStr = new Date().toISOString().split('T')[0]
+    if (!formData.startDate) {
+      newErrors.startDate = 'Start date is required'
+    } else if (formData.startDate < todayStr) {
+      newErrors.startDate = 'Start date cannot be in the past'
+    }
+    
+    if (!formData.endDate) {
+      newErrors.endDate = 'End date is required'
+    } else if (formData.startDate && formData.endDate < formData.startDate) {
+      newErrors.endDate = 'End date cannot be before start date'
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
