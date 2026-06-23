@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 
-// All images from Unsplash — free to use under the Unsplash License
 // `region` must match the region values used in packages.js (or 'All' to show everything)
 const DESTINATION_CATEGORIES = [
   {
@@ -115,29 +114,29 @@ export default function DestinationCategories({ onExplore }) {
   }
 
   return (
-    <section className="-mt-12 sm:-mt-16 relative z-10 pt-2 pb-10 sm:pt-4 sm:pb-12 bg-white">
+    <section className="relative z-10 pt-12 pb-10 sm:pt-16 sm:pb-14 bg-[#FDFCF7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-3.5 animate-fade-in-up">
-          <div>
-            <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wider mb-3 border border-amber-500/10">
+        <div className="flex items-end justify-between mb-6 animate-fade-in-up gap-4">
+          <div className="min-w-0">
+            <span className="editorial-mark-start text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2">
               Browse by Region
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-              Explore Destinations
+            <h2 className="font-display text-2xl sm:text-3xl text-stone-900 tracking-tight">
+              Explore destinations
             </h2>
-            <p className="text-sm text-stone-500 mt-1 font-light">
+            <p className="text-sm text-stone-500 mt-1.5 font-light max-w-md">
               Handpicked destinations across the globe for every kind of traveller.
             </p>
           </div>
 
           {/* Scroll Controls */}
-          <div className="hidden sm:flex items-center gap-2 mb-1">
+          <div className="hidden sm:flex items-center gap-2 mb-1 shrink-0">
             <button
               id="dest-cat-scroll-left"
               onClick={() => scroll('left')}
               aria-label="Scroll categories left"
-              className="w-9 h-9 rounded-full bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-colors duration-200 border border-stone-200"
+              className="w-10 h-10 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -145,7 +144,7 @@ export default function DestinationCategories({ onExplore }) {
               id="dest-cat-scroll-right"
               onClick={() => scroll('right')}
               aria-label="Scroll categories right"
-              className="w-9 h-9 rounded-full bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-colors duration-200 border border-stone-200"
+              className="w-10 h-10 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -155,12 +154,12 @@ export default function DestinationCategories({ onExplore }) {
         {/* Scrollable Category Strip */}
         <div className="relative">
           {/* Fade-out edge on right */}
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-2 w-12 sm:w-20 bg-gradient-to-l from-[#FDFCF7] to-transparent z-10 pointer-events-none" />
 
           <div
             ref={scrollRef}
             id="dest-cat-scroll-container"
-            className="flex gap-6 overflow-x-auto pb-4 scroll-smooth hide-scrollbar"
+            className="flex gap-5 sm:gap-6 overflow-x-auto pb-2 scroll-smooth hide-scrollbar"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {DESTINATION_CATEGORIES.map((dest, index) => (
@@ -169,15 +168,15 @@ export default function DestinationCategories({ onExplore }) {
                 id={`dest-cat-${dest.id}`}
                 onClick={() => onExplore(dest.region)}
                 title={`Explore ${dest.name} — ${dest.tours} tours`}
-                className="group flex-shrink-0 flex flex-col items-center gap-3 w-[100px] animate-fade-in-up focus:outline-none"
-                style={{ animationDelay: `${index * 60}ms` }}
+                className="group flex-shrink-0 flex flex-col items-center gap-2.5 w-[88px] sm:w-[100px] animate-fade-in-up focus:outline-none"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Circular Image */}
-                <div className="relative w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-full overflow-hidden border-2 border-amber-100 group-hover:border-amber-400 group-hover:shadow-lg group-hover:shadow-amber-200/60 transition-all duration-300 group-hover:scale-105">
+                <div className="relative w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-full overflow-hidden border border-stone-200 group-hover:border-amber-400 group-hover:shadow-lg group-hover:shadow-amber-200/40 transition-all duration-300 group-hover:scale-105 bg-stone-100">
                   <img
                     src={dest.image}
                     alt={dest.alt}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     loading="lazy"
                   />
                   {/* Subtle overlay on hover */}
@@ -186,10 +185,10 @@ export default function DestinationCategories({ onExplore }) {
 
                 {/* Label */}
                 <div className="text-center">
-                  <p className="text-[11px] sm:text-xs font-bold text-stone-800 group-hover:text-amber-700 transition-colors duration-200 leading-tight line-clamp-2 text-center">
+                  <p className="text-xs sm:text-xs font-semibold text-stone-800 group-hover:text-amber-700 transition-colors duration-200 leading-tight">
                     {dest.name}
                   </p>
-                  <p className="text-[10px] text-stone-400 mt-0.5 font-medium">
+                  <p className="text-xs text-stone-400 mt-0.5 font-medium tabular-nums">
                     {dest.tours} tours
                   </p>
                 </div>
@@ -199,11 +198,11 @@ export default function DestinationCategories({ onExplore }) {
         </div>
 
         {/* Mobile CTA */}
-        <div className="mt-6 flex justify-center sm:hidden">
+        <div className="mt-5 flex justify-center sm:hidden">
           <button
             id="dest-cat-explore-all"
             onClick={onExplore}
-            className="text-xs font-bold text-amber-700 flex items-center gap-1.5 hover:text-amber-600 transition-colors"
+            className="text-xs font-semibold text-amber-700 flex items-center gap-1.5 hover:text-amber-600 transition-colors"
           >
             View all destinations
             <ArrowRight className="w-3.5 h-3.5" />

@@ -88,7 +88,7 @@ function App() {
   const handleBook = (pkg = null) => navigate('booking', pkg)
 
   return (
-    <div className="min-h-screen bg-[#FDFCF7] text-stone-850 font-sans flex flex-col justify-between antialiased">
+    <div className="min-h-screen bg-[#FDFCF7] text-stone-900 font-sans flex flex-col justify-between antialiased">
       {/* Header Navigation */}
       <Navbar
         activePage={activePage}
@@ -121,30 +121,31 @@ function App() {
             <TestimonialsSection testimonials={testimonials} />
 
             {/* Final home CTA section */}
-            <section className="py-20 text-center relative overflow-hidden bg-stone-900 text-white">
+            <section className="py-20 sm:py-24 text-center relative overflow-hidden bg-stone-900 text-white">
               <div className="absolute inset-0">
                 <img
                   src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1200&q=80"
                   alt="CTA background image"
-                  className="w-full h-full object-cover opacity-35"
+                  className="w-full h-full object-cover opacity-40"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-stone-950/50 via-transparent to-stone-950/50" />
               </div>
 
-              <div className="relative z-10 max-w-5xl mx-auto px-4 space-y-6">
-                <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
-                  Ready to Start Planning Your Next Escape?
+              <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-5">
+                <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">Your Next Chapter</span>
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white tracking-[-0.02em] leading-[1.1]">
+                  Ready to start planning your escape?
                 </h2>
-                <p className="text-xs sm:text-sm text-stone-300 max-w-xl mx-auto leading-relaxed font-light">
+                <p className="text-sm sm:text-base text-stone-300 max-w-xl mx-auto leading-relaxed font-light">
                   Get in touch with our expert luxury travel specialists. We will customize every detail of your itinerary to build your perfect journey.
                 </p>
-                <div className="pt-4">
+                <div className="pt-3">
                   <button
                     onClick={() => handleBook(null)}
-                    className="px-8 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-amber-600/20 transition-all duration-300 active:scale-[0.98]"
+                    className="px-7 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold shadow-lg shadow-amber-900/30 transition-all duration-300 active:scale-[0.98]"
                   >
-                    Request Custom Quote
+                    Request custom quote
                   </button>
                 </div>
               </div>
