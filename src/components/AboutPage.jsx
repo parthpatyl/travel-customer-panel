@@ -1,6 +1,6 @@
 import { Sparkles, Compass, Sliders, PhoneCall } from 'lucide-react'
 
-export default function AboutPage({ onBook }) {
+export default function AboutPage() {
   const values = [
     {
       title: 'Bespoke Curation',

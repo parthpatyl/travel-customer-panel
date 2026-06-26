@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react'
-import { formatINR } from '../utils/currency'
+import { formatINR, formatUSD } from '../utils/currency'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import Markdown from 'react-markdown'
+
+const MarkdownInline = ({ children, className }) => (
+  <Markdown
+    components={{
+      p: ({ children }) => <span className={className}>{children}</span>,
+      strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
+    }}
+  >
+    {children}
+  </Markdown>
+)
+
 
 export default function FeaturedPackages({ packages, onViewPackage, settings = {}, onNavigate }) {
   const featured = packages.slice(0, 4)
@@ -139,11 +152,10 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
                       e.stopPropagation()
                       setCurrentSlide(idx)
                     }}
-                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                      idx === currentSlide
-                        ? 'bg-amber-300 w-6'
-                        : 'bg-white/40 hover:bg-white/70 w-1.5'
-                    }`}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${idx === currentSlide
+                      ? 'bg-amber-300 w-6'
+                      : 'bg-white/40 hover:bg-white/70 w-1.5'
+                      }`}
                     aria-label={`Go to slide ${idx + 1}`}
                   />
                 ))}
@@ -196,32 +208,25 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
                     <h3 className="text-[15px] font-semibold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-2 font-display tracking-tight">
                       {pkg.name}
                     </h3>
-                    <p className="text-sm text-stone-500 leading-relaxed line-clamp-2 mb-4 font-light">
-                      {pkg.description}
-                    </p>
 
-                    {/* Refined Highlights Line */}
-                    <div className="flex flex-col gap-1.5 text-xs text-stone-400 mb-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-semibold text-stone-500">Highlights:</span>
-                        <span className="text-stone-600 font-medium line-clamp-1">
-                          {pkg.highlights.slice(0, 2).join(' · ')}
-                        </span>
+                    <MarkdownInline className="text-sm text-stone-500 leading-relaxed line-clamp-2 mb-4 font-light">
+                      {(pkg.description || '').split('\n')[0]}
+                    </MarkdownInline>
+
+                    {pkg.bestMonth && (
+                      <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium mb-1">
+                        <span>Best season:</span>
+                        <span className="font-semibold">{pkg.bestMonth}</span>
                       </div>
-                      {pkg.bestMonth && (
-                        <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                          <span>Best season:</span>
-                          <span className="font-semibold">{pkg.bestMonth}</span>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   {/* Price & CTA Footer */}
                   <div className="flex items-center justify-between pt-4 mt-auto border-t border-stone-100">
                     <div>
                       <span className="text-xs text-stone-400 font-semibold uppercase tracking-wider block">From</span>
-                      <span className="text-lg font-semibold text-stone-900 tabular-nums">{formatINR(pkg.basePrice)}</span>
+                      <span className="text-lg font-semibold text-stone-900 tabular-nums">{formatINR(pkg.price)}</span>
+                      {pkg.usdPrice != null && <span className="ml-2 text-xs text-stone-400 font-medium">{formatUSD(pkg.usdPrice)}</span>}
                     </div>
                     <span className="text-stone-700 group-hover:text-amber-700 text-xs font-semibold transition-colors flex items-center gap-1.5">
                       Explore

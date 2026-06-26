@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { formatINR } from '../utils/currency'
-import { BadgeCheck, User, Mail, Phone, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { formatINR, formatUSD } from '../utils/currency'
+import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { parsePhoneNumber } from 'libphonenumber-js'
+import PhoneInput from './PhoneInput'
+import { getDefaultDialCode } from '../utils/dialCodes'
 
 const BESPOKE_FALLBACKS = [
   { id: 'custom-europe', name: 'Europe' },
@@ -20,6 +23,7 @@ const BESPOKE_FALLBACKS = [
 
 const DIETARY_OPTIONS = ['None', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Halal', 'Kosher', 'No Preference']
 const SEAT_OPTIONS = ['Window', 'Aisle', 'Middle']
+const NAME_REGEX = /^[a-zA-Z\s]+$/
 
 function parseDurationDays(duration) {
   if (!duration) return null
@@ -40,7 +44,10 @@ function GuestCard({ index, data, onChange, errors }) {
           <input
             type="text"
             value={data?.name || ''}
-            onChange={(e) => onChange(index, 'name', e.target.value)}
+            onChange={(e) => {
+              const filtered = e.target.value.replace(/[^a-zA-Z\s]/g, '')
+              onChange(index, 'name', filtered)
+            }}
             placeholder="e.g. Jane Doe"
             className={`w-full bg-white border ${errors?.[index]?.name ? 'border-rose-400' : 'border-stone-200'} focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
           />
@@ -100,10 +107,12 @@ function GuestCard({ index, data, onChange, errors }) {
 export default function BookingPage({ packages, selectedPackage }) {
   const standardPackages = (packages || []).filter(p => !p.isBespoke)
   const bespokePackages = (packages || []).filter(p => p.isBespoke)
+  const defaultCode = getDefaultDialCode()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    countryCode: defaultCode?.code ?? '',
     packageId: selectedPackage ? selectedPackage.id : '',
     customDestination: '',
     startDate: '',
@@ -181,6 +190,21 @@ export default function BookingPage({ packages, selectedPackage }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+    if (name === 'name') {
+      setFormData((prev) => ({ ...prev, name: value.replace(/[^a-zA-Z\s]/g, '') }))
+      if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
+      return
+    }
+    if (name === 'phone') {
+      setFormData((prev) => ({ ...prev, phone: value }))
+      if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }))
+      return
+    }
+    if (name === 'countryCode') {
+      setFormData((prev) => ({ ...prev, countryCode: value }))
+      if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }))
+      return
+    }
     if (name === 'guests') {
       if (value === '6+') {
         setShowExactGuests(true)
@@ -224,17 +248,34 @@ export default function BookingPage({ packages, selectedPackage }) {
 
   const validate = () => {
     const newErrors = {}
-    if (!formData.name.trim()) newErrors.name = 'Full name is required'
+
+    const nameVal = formData.name.trim()
+    if (!nameVal) {
+      newErrors.name = 'Full name is required'
+    } else if (!NAME_REGEX.test(nameVal)) {
+      newErrors.name = 'Name should only contain letters and spaces'
+    }
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email address is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address'
     }
 
-    if (!formData.phone.trim()) {
+    if (!formData.phone) {
       newErrors.phone = 'Phone number is required'
-    } else if (!/^[+0-9\s-()]{7,20}$/.test(formData.phone.trim())) {
-      newErrors.phone = 'Please enter a valid phone number (at least 7 digits)'
+    } else if (!formData.countryCode) {
+      newErrors.phone = 'Please select a country code'
+    } else {
+      const full = `${formData.countryCode}${formData.phone}`
+      try {
+        const parsed = parsePhoneNumber(full)
+        if (!parsed?.isValid()) {
+          newErrors.phone = `Invalid phone number${parsed?.country ? ` for ${parsed.country}` : ''}`
+        }
+      } catch {
+        newErrors.phone = 'Invalid phone number format'
+      }
     }
 
     if (!formData.packageId) newErrors.packageId = 'Please select a package or destination'
@@ -261,9 +302,13 @@ export default function BookingPage({ packages, selectedPackage }) {
     const newMemberErrors = {}
     for (let i = 1; i < guestCount; i++) {
       const member = groupMembers[i]
-      if (!member?.name?.trim()) {
+      const memberName = member?.name?.trim()
+      if (!memberName) {
         if (!newMemberErrors[i]) newMemberErrors[i] = {}
         newMemberErrors[i].name = 'Guest name is required'
+      } else if (!NAME_REGEX.test(memberName)) {
+        if (!newMemberErrors[i]) newMemberErrors[i] = {}
+        newMemberErrors[i].name = 'Name should only contain letters and spaces'
       }
     }
 
@@ -298,9 +343,15 @@ export default function BookingPage({ packages, selectedPackage }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          name: formData.name,
+          email: formData.email,
+          phone: `${formData.countryCode}${formData.phone}`,
+          packageId: formData.packageId,
+          customDestination: formData.customDestination,
+          startDate: formData.startDate,
           endDate: effectiveEndDate,
           guests: String(guestCount),
+          notes: formData.notes,
           groupMembers: members
         })
       })
@@ -430,9 +481,9 @@ export default function BookingPage({ packages, selectedPackage }) {
 
           <div className="bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-8 md:p-10 shadow-sm animate-fade-in-up delay-100">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-6 gap-5">
                 {/* Name */}
-                <div>
+                <div className="sm:col-span-3">
                   <label htmlFor="bk-name" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
                     Full Name <span className="text-rose-500">*</span>
                   </label>
@@ -445,15 +496,15 @@ export default function BookingPage({ packages, selectedPackage }) {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="e.g. Sophia Loren"
-                      className={`w-full bg-[#FAF9F5] border ${errors.name ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full py-3 pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
+                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.name ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                        } rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
                     />
                   </div>
                   {errors.name && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.name}</span>}
                 </div>
 
                 {/* Email */}
-                <div>
+                <div className="sm:col-span-3">
                   <label htmlFor="bk-email" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
                     Email Address <span className="text-rose-500">*</span>
                   </label>
@@ -466,38 +517,29 @@ export default function BookingPage({ packages, selectedPackage }) {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="e.g. sophia@loren.com"
-                      className={`w-full bg-[#FAF9F5] border ${errors.email ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full py-3 pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
+                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.email ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                        } rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
                     />
                   </div>
                   {errors.email && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.email}</span>}
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* Phone */}
-                <div>
+                <div className="sm:col-span-3">
                   <label htmlFor="bk-phone" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
                     Phone Number <span className="text-rose-500">*</span>
                   </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                    <input
-                      id="bk-phone"
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="e.g. +1 (555) 019-2831"
-                      className={`w-full bg-[#FAF9F5] border ${errors.phone ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full py-3 pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
-                    />
-                  </div>
+                  <PhoneInput
+                    countryCode={formData.countryCode}
+                    phone={formData.phone}
+                    onChange={handleChange}
+                    error={errors.phone}
+                  />
                   {errors.phone && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.phone}</span>}
                 </div>
 
                 {/* Package/Destination Select */}
-                <div>
+                <div className="sm:col-span-3">
                   <label htmlFor="bk-pkg" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
                     Select Package or Destination <span className="text-rose-500">*</span>
                   </label>
@@ -508,15 +550,15 @@ export default function BookingPage({ packages, selectedPackage }) {
                       name="packageId"
                       value={formData.packageId}
                       onChange={handleChange}
-                      className={`w-full bg-[#FAF9F5] border ${errors.packageId ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full py-3 pl-10 pr-10 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer`}
+                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.packageId ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                        } rounded-full pl-10 pr-10 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer`}
                     >
                       <option value="" disabled>Choose a package or destination</option>
 
                       <optgroup label="Company Provided Packages">
                         {standardPackages.map((pkg) => (
                           <option key={pkg.id} value={pkg.id}>
-                            {pkg.name} ({pkg.duration} - from {formatINR(pkg.basePrice)})
+                            {pkg.name} ({pkg.duration} - from {formatINR(pkg.price)}{pkg.usdPrice != null ? ` / ${formatUSD(pkg.usdPrice)}` : ''})
                           </option>
                         ))}
                       </optgroup>
@@ -539,34 +581,32 @@ export default function BookingPage({ packages, selectedPackage }) {
                   </div>
                   {errors.packageId && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.packageId}</span>}
                 </div>
-              </div>
 
-              {/* Custom Destination input text field if Other Destination is chosen */}
-              {formData.packageId === 'custom-other' && (
-                <div className="animate-fade-in">
-                  <label htmlFor="bk-custom" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    Please specify destination / country <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Compass className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                    <input
-                      id="bk-custom"
-                      type="text"
-                      name="customDestination"
-                      value={formData.customDestination || ''}
-                      onChange={handleChange}
-                      placeholder="e.g. Italy, Switzerland, Bali, Dubai..."
-                      className={`w-full bg-[#FAF9F5] border ${errors.customDestination ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full py-3 pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
-                    />
+                {/* Custom Destination input text field if Other Destination is chosen */}
+                {formData.packageId === 'custom-other' && (
+                  <div className="sm:col-span-6 animate-fade-in">
+                    <label htmlFor="bk-custom" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
+                      Please specify destination / country <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Compass className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                      <input
+                        id="bk-custom"
+                        type="text"
+                        name="customDestination"
+                        value={formData.customDestination || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. Italy, Switzerland, Bali, Dubai..."
+                        className={`w-full h-12 bg-[#FAF9F5] border ${errors.customDestination ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                          } rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
+                      />
+                    </div>
+                    {errors.customDestination && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.customDestination}</span>}
                   </div>
-                  {errors.customDestination && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.customDestination}</span>}
-                </div>
-              )}
+                )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {/* Start Date */}
-                <div>
+                <div className="sm:col-span-2">
                   <label htmlFor="bk-start" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
                     Start Date <span className="text-rose-500">*</span>
                   </label>
@@ -578,15 +618,15 @@ export default function BookingPage({ packages, selectedPackage }) {
                       name="startDate"
                       value={formData.startDate}
                       onChange={handleChange}
-                      className={`w-full bg-[#FAF9F5] border ${errors.startDate ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full py-3 pl-10 pr-3 text-sm text-stone-900 outline-none transition-all`}
+                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.startDate ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                        } rounded-full pl-10 pr-3 text-sm text-stone-900 outline-none transition-all`}
                     />
                   </div>
                   {errors.startDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.startDate}</span>}
                 </div>
 
                 {/* End Date */}
-                <div>
+                <div className="sm:col-span-2">
                   <label htmlFor="bk-end" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
                     End Date <span className="text-rose-500">*</span>
                   </label>
@@ -599,15 +639,15 @@ export default function BookingPage({ packages, selectedPackage }) {
                       value={effectiveEndDate}
                       onChange={isEndDateLocked ? undefined : handleChange}
                       disabled={isEndDateLocked}
-                      className={`w-full bg-[#FAF9F5] border ${errors.endDate ? 'border-rose-400' : 'border-stone-200'} ${isEndDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full py-3 pl-10 pr-3 text-sm text-stone-900 outline-none transition-all`}
+                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.endDate ? 'border-rose-400' : 'border-stone-200'} ${isEndDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                        } rounded-full pl-10 pr-3 text-sm text-stone-900 outline-none transition-all`}
                     />
                   </div>
                   {!isEndDateLocked && errors.endDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.endDate}</span>}
                 </div>
 
                 {/* Guests Count */}
-                <div>
+                <div className="sm:col-span-2">
                   <label htmlFor="bk-guests" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
                     Number of Travellers
                   </label>
@@ -619,9 +659,9 @@ export default function BookingPage({ packages, selectedPackage }) {
                         name="guests"
                         value={formData.guests}
                         onChange={handleChange}
-                        className="w-full bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full py-3 pl-10 pr-4 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer"
+                        className="w-full h-12 bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer"
                       >
-                        {[1,2,3,4,5].map(n => (
+                        {[1, 2, 3, 4, 5].map(n => (
                           <option key={n} value={String(n)}>{n} Traveller{n > 1 ? 's' : ''}</option>
                         ))}
                         <option value="6+">6+ Travellers</option>
@@ -638,7 +678,7 @@ export default function BookingPage({ packages, selectedPackage }) {
                           syncGroupMembers(val)
                           setGuestSectionOpen(true)
                         }}
-                        className="w-full bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full py-3 pl-10 pr-4 text-sm text-stone-900 outline-none transition-all"
+                        className="w-full h-12 bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all"
                       />
                     )}
                   </div>
@@ -688,7 +728,7 @@ export default function BookingPage({ packages, selectedPackage }) {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-stone-700">
                           <div><span className="text-stone-400 text-[10px] block">Name</span>{formData.name || '—'}</div>
                           <div><span className="text-stone-400 text-[10px] block">Email</span>{formData.email || '—'}</div>
-                          <div><span className="text-stone-400 text-[10px] block">Phone</span>{formData.phone || '—'}</div>
+                          <div><span className="text-stone-400 text-[10px] block">Phone</span>{formData.countryCode ? `${formData.countryCode} ${formData.phone}` : formData.phone || '—'}</div>
                         </div>
                       </div>
 

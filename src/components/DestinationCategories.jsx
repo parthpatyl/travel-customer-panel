@@ -31,7 +31,7 @@ const DESTINATION_CATEGORIES = [
     id: 'america',
     name: 'America',
     tours: 42,
-    region: 'All',
+    region: 'North America',
     image: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=400&q=80',
     alt: 'American landscape',
   },
@@ -39,7 +39,7 @@ const DESTINATION_CATEGORIES = [
     id: 'africa',
     name: 'Africa',
     tours: 11,
-    region: 'All',
+    region: 'Africa',
     image: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=400&q=80',
     alt: 'African landscape',
   },
@@ -117,36 +117,36 @@ export default function DestinationCategories({ onExplore }) {
     <section className="relative z-10 pt-12 pb-10 sm:pt-16 sm:pb-14 bg-[#FDFCF7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-6 animate-fade-in-up gap-4">
+        <div className="flex items-end justify-between mb-5 animate-fade-in-up gap-4">
           <div className="min-w-0">
-            <span className="editorial-mark-start text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2">
+            <span className="editorial-mark-start text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-1.5">
               Browse by Region
             </span>
-            <h2 className="font-display text-2xl sm:text-3xl text-stone-900 tracking-tight">
+            <h2 className="font-display text-xl sm:text-2xl text-stone-900 tracking-tight">
               Explore destinations
             </h2>
-            <p className="text-sm text-stone-500 mt-1.5 font-light max-w-md">
+            <p className="text-xs text-stone-500 mt-1 font-light max-w-md">
               Handpicked destinations across the globe for every kind of traveller.
             </p>
           </div>
 
           {/* Scroll Controls */}
-          <div className="hidden sm:flex items-center gap-2 mb-1 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 mb-0.5 shrink-0">
             <button
               id="dest-cat-scroll-left"
               onClick={() => scroll('left')}
               aria-label="Scroll categories left"
-              className="w-10 h-10 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
+              className="w-8 h-8 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <button
               id="dest-cat-scroll-right"
               onClick={() => scroll('right')}
               aria-label="Scroll categories right"
-              className="w-10 h-10 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
+              className="w-8 h-8 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function DestinationCategories({ onExplore }) {
           <div
             ref={scrollRef}
             id="dest-cat-scroll-container"
-            className="flex gap-5 sm:gap-6 overflow-x-auto pb-2 scroll-smooth hide-scrollbar"
+            className="flex gap-4 overflow-x-auto pb-2 scroll-smooth hide-scrollbar"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {DESTINATION_CATEGORIES.map((dest, index) => (
@@ -168,11 +168,11 @@ export default function DestinationCategories({ onExplore }) {
                 id={`dest-cat-${dest.id}`}
                 onClick={() => onExplore(dest.region)}
                 title={`Explore ${dest.name} — ${dest.tours} tours`}
-                className="group flex-shrink-0 flex flex-col items-center gap-2.5 w-[88px] sm:w-[100px] animate-fade-in-up focus:outline-none"
+                className="group flex-shrink-0 flex flex-col items-center gap-2 w-[68px] sm:w-[80px] animate-fade-in-up focus:outline-none"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Circular Image */}
-                <div className="relative w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-full overflow-hidden border border-stone-200 group-hover:border-amber-400 group-hover:shadow-lg group-hover:shadow-amber-200/40 transition-all duration-300 group-hover:scale-105 bg-stone-100">
+                <div className="relative w-[56px] h-[56px] sm:w-[64px] sm:h-[64px] rounded-full overflow-hidden border border-stone-200 group-hover:border-amber-400 group-hover:shadow-md group-hover:shadow-amber-200/40 transition-all duration-300 group-hover:scale-105 bg-stone-100">
                   <img
                     src={dest.image}
                     alt={dest.alt}
@@ -185,10 +185,10 @@ export default function DestinationCategories({ onExplore }) {
 
                 {/* Label */}
                 <div className="text-center">
-                  <p className="text-xs sm:text-xs font-semibold text-stone-800 group-hover:text-amber-700 transition-colors duration-200 leading-tight">
+                  <p className="text-[11px] sm:text-xs font-semibold text-stone-800 group-hover:text-amber-700 transition-colors duration-200 leading-tight">
                     {dest.name}
                   </p>
-                  <p className="text-xs text-stone-400 mt-0.5 font-medium tabular-nums">
+                  <p className="text-[10px] text-stone-400 mt-0.5 font-medium tabular-nums">
                     {dest.tours} tours
                   </p>
                 </div>

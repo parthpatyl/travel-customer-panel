@@ -1,5 +1,5 @@
 import logo from '../assets/logo.png'
-import { MapPin, Phone, Mail, Send, Clock, ArrowUpRight } from 'lucide-react'
+import { MapPin, Phone, Mail, Send, Clock } from 'lucide-react'
 
 export default function Footer({ onNavigate, settings = {} }) {
   const agencyName = settings.agencyName ?? 'KRAFT YOUR TRIP'

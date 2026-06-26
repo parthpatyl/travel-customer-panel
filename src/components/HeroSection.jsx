@@ -6,12 +6,12 @@ export default function HeroSection({ onExplore, onBook }) {
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1920&q=80"
+          src="/photo-1506929562872-bb421503ef21.jpeg"
           alt="Luxury tropical beach destination"
-          className="w-full h-full object-cover scale-105"
+          className="w-full h-full object-cover scale-100"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-stone-900/55 via-stone-900/20 to-[#FDFCF7]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-stone-900/35 via-transparent to-stone-900/25" />
+        <div className="absolute inset-0 bg-gradient-to-b from-stone-950/75 via-stone-950/45 to-stone-950/85" />
+        <div className="absolute inset-0 bg-gradient-to-r from-stone-950/45 via-transparent to-stone-950/35" />
       </div>
 
       {/* Hero Content */}
@@ -24,13 +24,13 @@ export default function HeroSection({ onExplore, onBook }) {
 
         {/* Headline — display serif */}
         <h1 className="animate-fade-in-up delay-100 font-display text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.05] tracking-[-0.02em] mb-6">
-          Craft your perfect
-          <span className="block italic text-amber-300 mt-1">journey.</span>
+          Kraft your perfect
+          <span className="block italic text-grey-400 mt-1">journey.</span>
         </h1>
 
         {/* Subheadline */}
         <p className="animate-fade-in-up delay-200 text-sm sm:text-base lg:text-lg text-white/85 max-w-2xl mx-auto leading-relaxed mb-10 font-light">
-          Handcrafted travel to the world's most extraordinary places — from ancient temples in Kyoto to overwater villas in the Maldives. Your escape, designed end-to-end.
+          Handcrafted travel to the world's most extraordinary places <br /> from ancient temples in Kyoto to overwater villas in the Maldives. Your escape, designed end-to-end.
         </p>
 
         {/* CTA Buttons */}
@@ -52,7 +52,7 @@ export default function HeroSection({ onExplore, onBook }) {
         </div>
 
         {/* Floating Stats — clear of the categories strip below */}
-        <div className="animate-fade-in-up delay-500 grid grid-cols-3 gap-3 sm:gap-6 max-w-3xl mx-auto pt-7 border-t border-white/15">
+        <div className=" grid grid-cols-3 gap-3 sm:gap-6 max-w-3xl mx-auto pt-7 border-t border-white/15">
           {[
             { value: '500+', label: 'Trips Crafted', icon: Compass },
             { value: '98%', label: 'Satisfaction', icon: Sparkles },
@@ -61,7 +61,7 @@ export default function HeroSection({ onExplore, onBook }) {
             const Icon = stat.icon
             return (
               <div key={i} className="text-center flex flex-col items-center">
-                <Icon className="w-5 h-5 text-amber-300 mb-2.5 animate-bounce-slow" />
+                <Icon className="w-5 h-5 text-amber-300 mb-2.5" />
                 <span className="text-2xl sm:text-3xl lg:text-4xl font-display text-white tracking-tight">
                   {stat.value}
                 </span>

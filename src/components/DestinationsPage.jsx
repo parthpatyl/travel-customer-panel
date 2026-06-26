@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
-import { formatINR } from '../utils/currency'
+import { useState, useMemo } from 'react'
+import { formatINR, formatUSD } from '../utils/currency'
 import {
   Search,
   SlidersHorizontal,
@@ -9,9 +9,21 @@ import {
   X,
   SearchX
 } from 'lucide-react'
+import Markdown from 'react-markdown'
+
+const MarkdownInline = ({ children, className }) => (
+  <Markdown
+    components={{
+      p: ({ children }) => <span className={className}>{children}</span>,
+      strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
+    }}
+  >
+    {children}
+  </Markdown>
+)
 
 // ─── Filter Config ────────────────────────────────────────────────────────────
-const REGIONS = ['All', 'Asia', 'Europe']
+const REGIONS = ['All', 'Africa', 'Asia', 'Australia', 'Europe', 'North America', 'South America']
 
 const TRAVEL_TYPES = [
   { label: 'All Types', value: 'all' },
@@ -69,11 +81,10 @@ function Pill({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap border ${
-        active
-          ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
-          : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
-      }`}
+      className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap border ${active
+        ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
+        : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
+        }`}
     >
       {children}
     </button>
@@ -119,6 +130,7 @@ function FilterBadge({ label, onRemove }) {
 export default function DestinationsPage({ packages, onViewPackage, initialRegion = 'All' }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedRegion, setSelectedRegion] = useState(initialRegion)
+  const [prevInitialRegion, setPrevInitialRegion] = useState(initialRegion)
   const [selectedType, setSelectedType] = useState('all')
   const [selectedDuration, setSelectedDuration] = useState('all')
   const [selectedBudget, setSelectedBudget] = useState('all')
@@ -127,9 +139,10 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   const [showFilters, setShowFilters] = useState(false)
 
   // Sync when parent sends a different initialRegion (e.g. back-nav then new category click)
-  useEffect(() => {
+  if (initialRegion !== prevInitialRegion) {
     setSelectedRegion(initialRegion)
-  }, [initialRegion])
+    setPrevInitialRegion(initialRegion)
+  }
 
   // Compute active filter count (excluding sort & search)
   const activeFiltersCount = [
@@ -164,7 +177,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
       if (selectedDuration === '6-8' && (days < 6 || days > 8)) return false
       if (selectedDuration === '9+' && days < 9) return false
 
-      const price = pkg.basePrice
+      const price = pkg.price
       if (pkg.isBespoke) {
         /* bespoke has no fixed price — include in all budget ranges */
       } else if (selectedBudget === 'under-50k' && price >= 50000) return false
@@ -187,7 +200,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
       return true
     })
 
-    const bespokeSortVal = (p) => p.isBespoke ? Infinity : p.basePrice
+    const bespokeSortVal = (p) => p.isBespoke ? Infinity : p.price
     if (sortBy === 'price-asc') result = [...result].sort((a, b) => bespokeSortVal(a) - bespokeSortVal(b))
     else if (sortBy === 'price-desc') result = [...result].sort((a, b) => bespokeSortVal(b) - bespokeSortVal(a))
     else if (sortBy === 'dur-asc') result = [...result].sort((a, b) => parseDays(a.duration) - parseDays(b.duration))
@@ -197,18 +210,18 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   }, [packages, searchQuery, selectedRegion, selectedType, selectedDuration, selectedBudget, selectedAvail, sortBy])
 
   return (
-    <section className="py-14 sm:py-20 bg-[#FDFCF7]">
+    <section className="py-10 sm:py-14 bg-[#FDFCF7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Page Header ── */}
-        <div className="text-center mb-10 animate-fade-in-up">
-          <span className="editorial-mark text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 mb-3">
+        <div className="text-center mb-6 animate-fade-in-up">
+          <span className="editorial-mark text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2">
             Luxury Catalog
           </span>
-          <h1 className="font-display text-4xl sm:text-5xl text-stone-900 tracking-[-0.02em] mb-4">
+          <h1 className="font-display text-2xl sm:text-3xl text-stone-900 tracking-[-0.02em] mb-2">
             Handcrafted destinations
           </h1>
-          <p className="text-sm sm:text-base text-stone-500 max-w-2xl mx-auto font-light">
+          <p className="text-xs sm:text-sm text-stone-500 max-w-2xl mx-auto font-light">
             Discover our collection of curated luxury travel experiences designed for the discerning traveller.
           </p>
         </div>
@@ -237,7 +250,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
             <div className="hidden lg:block w-px h-8 bg-stone-200" />
 
             {/* Region Quick Pills */}
-            <div className="flex gap-1.5 flex-wrap lg:flex-nowrap">
+            <div className="flex gap-1.5 flex-wrap">
               {REGIONS.map(r => (
                 <Pill key={r} active={selectedRegion === r} onClick={() => setSelectedRegion(r)}>
                   {r === 'All' ? 'All Regions' : r}
@@ -262,11 +275,10 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
 
               <button
                 onClick={() => setShowFilters(p => !p)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold border transition-all duration-200 whitespace-nowrap shrink-0 ${
-                  showFilters || activeFiltersCount > 0
-                    ? 'bg-stone-900 text-white border-stone-900'
-                    : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold border transition-all duration-200 whitespace-nowrap shrink-0 ${showFilters || activeFiltersCount > 0
+                  ? 'bg-stone-900 text-white border-stone-900'
+                  : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
+                  }`}
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Filters
@@ -338,7 +350,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
         {activeFiltersCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-5 animate-fade-in">
             {selectedRegion !== 'All' && (
-              <FilterBadge label={`Region: ${selectedRegion}`} onRemove={() => setSelectedRegion('All')} />
+              <FilterBadge label={`Continent: ${selectedRegion}`} onRemove={() => setSelectedRegion('All')} />
             )}
             {selectedType !== 'all' && (
               <FilterBadge
@@ -379,7 +391,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
 
         {/* ── Package Grid ── */}
         {filteredPackages.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-4 lg:gap-3">
             {filteredPackages.map((pkg, index) => {
               const spotsLeft = pkg.slots.total - pkg.slots.booked
               const travelType = inferType(pkg)
@@ -387,11 +399,11 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                 <article
                   key={pkg.id}
                   onClick={() => onViewPackage(pkg)}
-                  className="animate-fade-in-up group bg-white border border-stone-200/80 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-stone-900/[0.06] hover:-translate-y-1 transition-all duration-500 cursor-pointer flex flex-col h-full"
+                  className="animate-fade-in-up group bg-white border border-stone-200/80 rounded-xl overflow-hidden hover:shadow-lg hover:shadow-stone-900/[0.06] hover:-translate-y-0.5 transition-all duration-400 cursor-pointer flex flex-col h-full"
                   style={{ animationDelay: `${index * 40 + 100}ms` }}
                 >
                   {/* Card Image */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden shrink-0 bg-stone-100">
+                  <div className="relative aspect-[4/3] sm:aspect-[4/3] lg:aspect-[3/2] w-full overflow-hidden shrink-0 bg-stone-100">
                     <img
                       src={pkg.cardImage}
                       alt={pkg.name}
@@ -401,61 +413,71 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
 
                     {/* Absolute Badge Overlay */}
                     {pkg.ctaBadge && (
-                      <span className="absolute top-3.5 left-3.5 px-2.5 py-0.5 rounded-full bg-stone-900/85 text-white text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+                      <span className="absolute top-3 sm:top-2.5 left-3 sm:left-2.5 px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full bg-stone-900/85 text-white text-xs sm:text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm">
                         {pkg.ctaBadge}
                       </span>
                     )}
                     {pkg.isBespoke && (
-                      <span className="absolute top-3.5 left-3.5 px-2.5 py-0.5 rounded-full bg-amber-600 text-white text-xs font-bold uppercase tracking-wider">
+                      <span className="absolute top-3 sm:top-2.5 left-3 sm:left-2.5 px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full bg-amber-600 text-white text-xs sm:text-[10px] font-bold uppercase tracking-wider">
                         Bespoke
                       </span>
                     )}
                     {spotsLeft <= 3 && (
-                      <span className="absolute top-3.5 right-3.5 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-xs font-bold uppercase tracking-wider">
+                      <span className="absolute top-3 sm:top-2.5 right-3 sm:right-2.5 px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full bg-rose-600 text-white text-xs sm:text-[10px] font-bold uppercase tracking-wider">
                         Only {spotsLeft} left
                       </span>
                     )}
                   </div>
 
                   {/* Body Content */}
-                  <div className="p-6 flex flex-col flex-grow">
+                  <div className="p-5 flex flex-col flex-grow">
                     <div>
                       {/* Editorial Eyebrow */}
-                      <div className="text-xs font-semibold tracking-[0.15em] text-amber-700 uppercase mb-2">
+                      <div className="text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] text-amber-700 uppercase mb-2">
                         {pkg.region} · {pkg.duration} · {travelType}
                       </div>
 
-                      <h3 className="text-base font-semibold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-2.5 font-display tracking-tight">
+                      <h3 className="text-base sm:text-lg font-semibold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-3 font-display tracking-tight">
                         {pkg.name}
                       </h3>
-                      <p className="text-sm text-stone-500 leading-relaxed line-clamp-3 mb-4 font-light">
-                        {pkg.description}
-                      </p>
+
+                      <MarkdownInline className="text-sm text-stone-500 leading-relaxed line-clamp-2 mb-4 font-light">
+                        {(pkg.description || '').split('\n')[0]}
+                      </MarkdownInline>
 
                       {/* Refined Highlights Line */}
-                      <div className="flex flex-col gap-1.5 text-sm text-stone-400 mb-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-stone-500">Highlights:</span>
-                          <span className="text-stone-600 font-medium">{pkg.highlights.slice(0, 3).join(' · ')}</span>
-                        </div>
-                        {pkg.bestMonth && (
-                          <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                            <span>Best season:</span>
-                            <span className="font-semibold">{pkg.bestMonth}</span>
-                          </div>
-                        )}
+                      <div className="space-y-0.5 mb-3">
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-stone-400 uppercase tracking-wider block mb-0.5">Highlights</span>
+                        <ul className="space-y-0.5">
+                          {pkg.highlights.slice(0, 3).map((h, i) => (
+                            <li key={i} className="flex items-start gap-1.5 text-xs sm:text-[13px] text-stone-600 font-normal leading-snug">
+                              <span className="text-amber-500 shrink-0 select-none mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              <MarkdownInline className="text-stone-600 font-normal">{h}</MarkdownInline>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
+
+                      {pkg.bestMonth && (
+                        <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 border border-emerald-100/80 rounded-md px-2 py-0.5 mb-4">
+                          <span className="font-medium text-emerald-600">Best Season:</span>
+                          <span className="font-bold">{pkg.bestMonth}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Price and Action */}
                     <div className="flex items-center justify-between pt-4 mt-auto border-t border-stone-100">
                       <div>
-                        <span className="text-xs text-stone-400 font-semibold uppercase tracking-wider block">From</span>
-                        <span className="text-lg font-semibold text-stone-900 tabular-nums">
-                          {pkg.isBespoke ? 'Custom Quote' : formatINR(pkg.basePrice)}
+                        <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-wider block">From</span>
+                        <span className="text-base sm:text-lg font-semibold text-stone-900 tabular-nums">
+                          {pkg.isBespoke ? 'Custom Quote' : formatINR(pkg.price)}
+                          {!pkg.isBespoke && pkg.usdPrice != null && (
+                            <span className="ml-1.5 text-xs text-stone-400 font-medium">{formatUSD(pkg.usdPrice)}</span>
+                          )}
                         </span>
                       </div>
-                      <span className="text-stone-700 group-hover:text-amber-700 text-sm font-semibold transition-colors flex items-center gap-1.5">
+                      <span className="text-stone-700 group-hover:text-amber-700 text-xs font-semibold transition-colors flex items-center gap-1.5">
                         Explore
                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
                       </span>
