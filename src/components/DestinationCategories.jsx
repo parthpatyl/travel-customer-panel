@@ -66,7 +66,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Jammu & Kashmir',
     tours: 15,
     region: 'All',
-    image: `${API_URL}/assets/unsplash-kashmir.png`,
+    image: `${API_URL}/assets/unsplash-iceland.jpg`,
     alt: 'Kashmir valley',
   },
   {

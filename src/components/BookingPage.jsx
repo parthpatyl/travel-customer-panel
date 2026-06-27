@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
-import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
+import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
 import { getDefaultDialCode } from '../utils/dialCodes'
@@ -164,6 +164,13 @@ export default function BookingPage({ packages, selectedPackage }) {
   const [submissionAttempted, setSubmissionAttempted] = useState(false)
   const [showExactGuests, setShowExactGuests] = useState(false)
   const [exactGuestCount, setExactGuestCount] = useState(6)
+  const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 3500)
+    return () => clearTimeout(timer)
+  }, [toast])
 
   const guestCount = showExactGuests ? exactGuestCount : (parseInt(formData.guests) || 1)
 
@@ -248,9 +255,7 @@ export default function BookingPage({ packages, selectedPackage }) {
         if (count > 1) setGuestSectionOpen(true)
       }
     } else if (name === 'startDate' || name === 'endDate') {
-      const cleaned = value.replace(/[^0-9/]/g, '')
-      const iso = parseDateDisplay(cleaned)
-      setFormData((prev) => ({ ...prev, [name]: iso || cleaned }))
+      setFormData((prev) => ({ ...prev, [name]: value }))
       if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }))
       return
     } else if (name === 'packageId') {
@@ -327,7 +332,7 @@ export default function BookingPage({ packages, selectedPackage }) {
     if (!formData.startDate) {
       newErrors.startDate = 'Start date is required'
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(startISO)) {
-      newErrors.startDate = 'Please enter a valid date (DD/MM/YYYY)'
+      newErrors.startDate = 'Please enter a valid date'
     } else if (startISO < todayStr) {
       newErrors.startDate = 'Start date cannot be in the past'
     }
@@ -337,7 +342,7 @@ export default function BookingPage({ packages, selectedPackage }) {
       if (!formData.endDate) {
         newErrors.endDate = 'End date is required'
       } else if (!/^\d{4}-\d{2}-\d{2}$/.test(endISO)) {
-        newErrors.endDate = 'Please enter a valid date (DD/MM/YYYY)'
+        newErrors.endDate = 'Please enter a valid date'
       } else if (formData.startDate && endISO < todayStr) {
         newErrors.endDate = 'End date cannot be in the past'
       } else if (formData.startDate && /^\d{4}-\d{2}-\d{2}$/.test(startISO) && endISO < startISO) {
@@ -410,8 +415,10 @@ export default function BookingPage({ packages, selectedPackage }) {
       }
 
       setSubmitted(true)
+      setToast({ message: 'Booking inquiry submitted successfully!', type: 'success' })
     } catch (err) {
       setSubmitError(err.message)
+      setToast({ message: err.message, type: 'error' })
     } finally {
       setSubmitting(false)
     }
@@ -440,7 +447,16 @@ export default function BookingPage({ packages, selectedPackage }) {
 
   if (submitted) {
     return (
-      <section className="py-20 sm:py-28 bg-[#FDFCF7] min-h-screen flex items-center justify-center">
+      <>
+        {toast && (
+          <div className="fixed top-4 right-4 z-50 animate-fade-in">
+            <div className={`px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'} text-white`}>
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span className="text-sm font-medium">{toast.message}</span>
+            </div>
+          </div>
+        )}
+        <section className="py-20 sm:py-28 bg-[#FDFCF7] min-h-screen flex items-center justify-center">
         <div className="max-w-md w-full mx-auto px-4 text-center animate-fade-in-up">
           <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-200">
             <BadgeCheck className="w-8 h-8" strokeWidth={2} />
@@ -508,11 +524,21 @@ export default function BookingPage({ packages, selectedPackage }) {
           </button>
         </div>
       </section>
+      </>
     )
   }
 
   return (
-    <section className="py-14 sm:py-20 bg-[#FDFCF7] min-h-screen">
+    <>
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 animate-fade-in">
+          <div className={`px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'} text-white`}>
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span className="text-sm font-medium">{toast.message}</span>
+          </div>
+        </div>
+      )}
+      <section className="py-14 sm:py-20 bg-[#FDFCF7] min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="mb-7 animate-fade-in-up">
@@ -680,13 +706,13 @@ export default function BookingPage({ packages, selectedPackage }) {
                     <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
                     <input
                       id="bk-start"
-                      type="text"
+                      type="date"
                       name="startDate"
-                      placeholder="DD/MM/YYYY"
-                      value={formatDateDisplay(formData.startDate)}
+                      value={formData.startDate}
+                      min={new Date().toISOString().split('T')[0]}
                       onChange={handleChange}
                       className={`w-full h-12 bg-[#FAF9F5] border ${errors.startDate ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full pl-10 pr-3 text-sm text-stone-900 outline-none transition-all`}
+                        } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all cursor-pointer`}
                     />
                   </div>
                   {errors.startDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.startDate}</span>}
@@ -701,14 +727,14 @@ export default function BookingPage({ packages, selectedPackage }) {
                     <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
                     <input
                       id="bk-end"
-                      type="text"
+                      type="date"
                       name="endDate"
-                      placeholder="DD/MM/YYYY"
-                      value={formatDateDisplay(effectiveEndDate)}
+                      value={effectiveEndDate}
+                      min={formData.startDate || new Date().toISOString().split('T')[0]}
                       onChange={isEndDateLocked ? undefined : handleChange}
                       disabled={isEndDateLocked}
-                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.endDate ? 'border-rose-400' : 'border-stone-200'} ${isEndDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full pl-10 pr-3 text-sm text-stone-900 outline-none transition-all`}
+                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.endDate ? 'border-rose-400' : 'border-stone-200'} ${isEndDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer'
+                        } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all`}
                     />
                   </div>
                   {!isEndDateLocked && errors.endDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.endDate}</span>}
@@ -914,5 +940,6 @@ export default function BookingPage({ packages, selectedPackage }) {
         </aside>
       </div>
     </section>
+    </>
   )
 }
