@@ -11,6 +11,8 @@ import AboutPage from './components/AboutPage'
 import BookingPage from './components/BookingPage'
 import staticPackages from './data/packages'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 function App() {
   const [activePage, setActivePage] = useState('home')
   const [selectedPackage, setSelectedPackage] = useState(null)
@@ -124,7 +126,7 @@ function App() {
             <section className="py-20 sm:py-24 text-center relative overflow-hidden bg-stone-900 text-white">
               <div className="absolute inset-0">
                 <img
-                  src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1200&q=80"
+                  src={`${API_URL}/assets/unsplash-app-hero.jpg`}
                   alt="CTA background image"
                   className="w-full h-full object-cover opacity-40"
                 />

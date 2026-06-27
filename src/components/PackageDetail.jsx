@@ -3,6 +3,9 @@ import { formatINR, formatUSD } from '../utils/currency'
 import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane } from 'lucide-react'
 import Markdown from 'react-markdown'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
+
 const mdComponents = {
   strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
 }
@@ -45,7 +48,7 @@ export default function PackageDetail({ pkg, onBook }) {
       {/* Hero Header */}
       <div className="relative h-[47vh] md:h-[55vh] overflow-hidden">
         <img
-          src={pkg.heroImage}
+          src={imgUrl(pkg.heroImage)}
           alt={pkg.name}
           className="w-full h-full object-cover"
         />

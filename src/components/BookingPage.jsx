@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
-import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
 import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
 import { getDefaultDialCode } from '../utils/dialCodes'
@@ -24,6 +24,35 @@ const BESPOKE_FALLBACKS = [
 const DIETARY_OPTIONS = ['None', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Halal', 'Kosher', 'No Preference']
 const SEAT_OPTIONS = ['Window', 'Aisle', 'Middle']
 const NAME_REGEX = /^[a-zA-Z\s]+$/
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return ''
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split('-')
+    return `${d}/${m}/${y}`
+  }
+  return dateStr
+}
+
+function parseDateDisplay(str) {
+  const cleaned = str.replace(/[^0-9/]/g, '')
+  const match = cleaned.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (!match) return null
+  const d = match[1], m = match[2], y = match[3]
+  return `${y}-${m}-${d}`
+}
+
+function toDateObject(str) {
+  if (!str) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const d = new Date(str)
+    return isNaN(d.getTime()) ? null : d
+  }
+  const iso = parseDateDisplay(str)
+  if (!iso) return null
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? null : d
+}
 
 function parseDurationDays(duration) {
   if (!duration) return null
@@ -117,12 +146,12 @@ export default function BookingPage({ packages, selectedPackage }) {
     customDestination: '',
     startDate: '',
     endDate: '',
-    guests: '2',
+    guests: '1',
     notes: ''
   })
 
   const [groupMembers, setGroupMembers] = useState(() =>
-    Array.from({ length: 2 }, () => ({
+    Array.from({ length: 1 }, () => ({
       name: '', email: '', dietary: 'None', seat: 'Window', passport: ''
     }))
   )
@@ -132,6 +161,7 @@ export default function BookingPage({ packages, selectedPackage }) {
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [submissionAttempted, setSubmissionAttempted] = useState(false)
   const [showExactGuests, setShowExactGuests] = useState(false)
   const [exactGuestCount, setExactGuestCount] = useState(6)
 
@@ -147,7 +177,8 @@ export default function BookingPage({ packages, selectedPackage }) {
     if (!isStandardPackage || !formData.startDate) return ''
     const days = parseDurationDays(selectedPkg.duration)
     if (!days) return ''
-    const start = new Date(formData.startDate)
+    const start = toDateObject(formData.startDate)
+    if (!start) return ''
     const end = new Date(start)
     end.setDate(end.getDate() + days - 1)
     return end.toISOString().split('T')[0]
@@ -216,6 +247,12 @@ export default function BookingPage({ packages, selectedPackage }) {
         syncGroupMembers(count)
         if (count > 1) setGuestSectionOpen(true)
       }
+    } else if (name === 'startDate' || name === 'endDate') {
+      const cleaned = value.replace(/[^0-9/]/g, '')
+      const iso = parseDateDisplay(cleaned)
+      setFormData((prev) => ({ ...prev, [name]: iso || cleaned }))
+      if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }))
+      return
     } else if (name === 'packageId') {
       setFormData((prev) => {
         // If switching FROM a standard package where endDate was derived, keep the computed value
@@ -230,10 +267,12 @@ export default function BookingPage({ packages, selectedPackage }) {
         if (wasStandard && (!newPkg || newPkg.isBespoke) && prev.startDate && !prev.endDate) {
           const days = parseDurationDays(oldPkg.duration)
           if (days) {
-            const start = new Date(prev.startDate)
-            const end = new Date(start)
-            end.setDate(end.getDate() + days - 1)
-            next.endDate = end.toISOString().split('T')[0]
+            const start = toDateObject(prev.startDate)
+            if (start) {
+              const end = new Date(start)
+              end.setDate(end.getDate() + days - 1)
+              next.endDate = end.toISOString().split('T')[0]
+            }
           }
         }
         return next
@@ -284,16 +323,24 @@ export default function BookingPage({ packages, selectedPackage }) {
     }
 
     const todayStr = new Date().toISOString().split('T')[0]
+    const startISO = formData.startDate
     if (!formData.startDate) {
       newErrors.startDate = 'Start date is required'
-    } else if (formData.startDate < todayStr) {
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(startISO)) {
+      newErrors.startDate = 'Please enter a valid date (DD/MM/YYYY)'
+    } else if (startISO < todayStr) {
       newErrors.startDate = 'Start date cannot be in the past'
     }
 
+    const endISO = isEndDateLocked ? null : formData.endDate
     if (!isEndDateLocked) {
       if (!formData.endDate) {
         newErrors.endDate = 'End date is required'
-      } else if (formData.startDate && formData.endDate < formData.startDate) {
+      } else if (!/^\d{4}-\d{2}-\d{2}$/.test(endISO)) {
+        newErrors.endDate = 'Please enter a valid date (DD/MM/YYYY)'
+      } else if (formData.startDate && endISO < todayStr) {
+        newErrors.endDate = 'End date cannot be in the past'
+      } else if (formData.startDate && /^\d{4}-\d{2}-\d{2}$/.test(startISO) && endISO < startISO) {
         newErrors.endDate = 'End date cannot be before start date'
       }
     }
@@ -319,6 +366,7 @@ export default function BookingPage({ packages, selectedPackage }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmissionAttempted(true)
     if (!validate()) return
 
     setSubmitting(true)
@@ -427,7 +475,7 @@ export default function BookingPage({ packages, selectedPackage }) {
             )}
             <div className="flex justify-between gap-4">
               <span className="text-stone-500">Target Dates</span>
-              <span className="font-semibold text-stone-900">{formData.startDate} → {effectiveEndDate}</span>
+              <span className="font-semibold text-stone-900">{formatDateDisplay(formData.startDate)} → {formatDateDisplay(effectiveEndDate)}</span>
             </div>
           </div>
 
@@ -438,21 +486,21 @@ export default function BookingPage({ packages, selectedPackage }) {
 
           <button
             onClick={() => {
-              setFormData({
-                name: '',
-                email: '',
-                phone: '',
-                packageId: '',
-                customDestination: '',
-                startDate: '',
-                endDate: '',
-                guests: '2',
-                notes: ''
-              })
-              setGroupMembers([])
-              setShowExactGuests(false)
-              setExactGuestCount(6)
-              setSubmitted(false)
+            setFormData({
+              name: '',
+              email: '',
+              phone: '',
+              packageId: '',
+              customDestination: '',
+              startDate: '',
+              endDate: '',
+              guests: '1',
+              notes: ''
+            })
+            setGroupMembers([{ name: '', email: '', dietary: 'None', seat: 'Window', passport: '' }])
+            setShowExactGuests(false)
+            setExactGuestCount(6)
+            setSubmitted(false)
             }}
             className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold transition-all shadow-sm"
           >
@@ -480,6 +528,24 @@ export default function BookingPage({ packages, selectedPackage }) {
           </div>
 
           <div className="bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-8 md:p-10 shadow-sm animate-fade-in-up delay-100">
+            {submissionAttempted && (Object.values(errors).some(Boolean) || Object.values(memberErrors).some(e => e && Object.values(e).some(Boolean))) && (
+              <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 animate-fade-in">
+                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                <div className="text-sm text-rose-800 font-medium">
+                  <span className="block mb-0.5">Please fix the following errors before submitting:</span>
+                  <ul className="list-disc list-inside text-rose-700 font-normal space-y-0.5">
+                    {Object.entries(errors).filter(([, v]) => v).map(([field, msg]) => (
+                      <li key={field}>{msg}</li>
+                    ))}
+                    {Object.entries(memberErrors).filter(([, v]) => v && Object.values(v).some(Boolean)).map(([idx, fieldErrs]) =>
+                      Object.entries(fieldErrs).filter(([, v]) => v).map(([field, msg]) => (
+                        <li key={`g${idx}-${field}`}>Guest {idx}: {msg}</li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-6 gap-5">
                 {/* Name */}
@@ -614,9 +680,10 @@ export default function BookingPage({ packages, selectedPackage }) {
                     <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
                     <input
                       id="bk-start"
-                      type="date"
+                      type="text"
                       name="startDate"
-                      value={formData.startDate}
+                      placeholder="DD/MM/YYYY"
+                      value={formatDateDisplay(formData.startDate)}
                       onChange={handleChange}
                       className={`w-full h-12 bg-[#FAF9F5] border ${errors.startDate ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
                         } rounded-full pl-10 pr-3 text-sm text-stone-900 outline-none transition-all`}
@@ -634,9 +701,10 @@ export default function BookingPage({ packages, selectedPackage }) {
                     <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
                     <input
                       id="bk-end"
-                      type="date"
+                      type="text"
                       name="endDate"
-                      value={effectiveEndDate}
+                      placeholder="DD/MM/YYYY"
+                      value={formatDateDisplay(effectiveEndDate)}
                       onChange={isEndDateLocked ? undefined : handleChange}
                       disabled={isEndDateLocked}
                       className={`w-full h-12 bg-[#FAF9F5] border ${errors.endDate ? 'border-rose-400' : 'border-stone-200'} ${isEndDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
@@ -831,7 +899,7 @@ export default function BookingPage({ packages, selectedPackage }) {
           {/* Aesthetic Image Card */}
           <div className="relative rounded-2xl overflow-hidden shadow-sm border border-stone-200/80 aspect-[4/3] group animate-fade-in-up delay-400">
             <img
-              src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80"
+              src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/assets/unsplash-featured.jpg`}
               alt="Bespoke travel planning desk"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />

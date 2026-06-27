@@ -3,6 +3,9 @@ import { formatINR, formatUSD } from '../utils/currency'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import Markdown from 'react-markdown'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
+
 const MarkdownInline = ({ children, className }) => (
   <Markdown
     components={{
@@ -25,7 +28,7 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
       id: 'default-1',
       title: 'Craft Your Bespoke Journey',
       subtitle: 'Tell us your dream destinations and let our expert planners design a tailor-made luxury itinerary just for you.',
-      imageUrl: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1000&q=80',
+      imageUrl: `${API_URL}/assets/unsplash-featured.jpg`,
       buttonText: 'Request Custom Quote',
       targetPage: 'booking'
     }
@@ -178,7 +181,7 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
                 {/* Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden shrink-0 bg-stone-100">
                   <img
-                    src={pkg.cardImage}
+                    src={imgUrl(pkg.cardImage)}
                     alt={pkg.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />

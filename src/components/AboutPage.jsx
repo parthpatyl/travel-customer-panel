@@ -1,5 +1,7 @@
 import { Sparkles, Compass, Sliders, PhoneCall } from 'lucide-react'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 export default function AboutPage() {
   const values = [
     {
@@ -30,7 +32,7 @@ export default function AboutPage() {
       <div className="relative py-20 sm:py-28 bg-stone-900 overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=1920&q=80"
+            src={`${API_URL}/assets/unsplash-about-hero.jpg`}
             alt="Scenic mountain peaks banner"
             className="w-full h-full object-cover opacity-50"
           />
@@ -69,7 +71,7 @@ export default function AboutPage() {
           </div>
           <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-square animate-fade-in-up delay-100">
             <img
-              src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80"
+              src={`${API_URL}/assets/unsplash-about-section.jpg`}
               alt="Travel design roadmap"
               className="w-full h-full object-cover"
             />

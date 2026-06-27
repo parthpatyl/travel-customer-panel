@@ -1,5 +1,5 @@
 import logo from '../assets/logo.png'
-import { MapPin, Phone, Mail, Send, Clock } from 'lucide-react'
+import { MapPin, Phone, Mail, Clock } from 'lucide-react'
 
 export default function Footer({ onNavigate, settings = {} }) {
   const agencyName = settings.agencyName ?? 'KRAFT YOUR TRIP'
@@ -115,30 +115,7 @@ export default function Footer({ onNavigate, settings = {} }) {
             </ul>
           </div>
 
-          {/* Newsletter */}
-          <div className="col-span-2 lg:col-span-4 space-y-3">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-[0.15em]">Newsletter</h4>
-            <p className="text-sm text-stone-400 leading-relaxed font-light">
-              Subscribe for curated itineraries, travel guides, and exclusive offers.
-            </p>
-            <form onSubmit={(e) => e.preventDefault()} className="flex gap-2">
-              <div className="relative flex-1 min-w-0">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-stone-900 border border-stone-800 text-sm rounded-full py-2.5 pl-9 pr-3 focus:outline-none focus:border-amber-500 text-white w-full placeholder-stone-500"
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 flex items-center gap-1.5"
-              >
-                Join
-                <Send className="w-3.5 h-3.5" />
-              </button>
-            </form>
-          </div>
+
         </div>
 
         {/* Footer Bottom */}

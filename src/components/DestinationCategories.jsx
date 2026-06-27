@@ -1,5 +1,7 @@
-import { useRef } from 'react'
+import { useState } from 'react'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 // `region` must match the region values used in packages.js (or 'All' to show everything)
 const DESTINATION_CATEGORIES = [
@@ -8,7 +10,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Europe',
     tours: 3,
     region: 'Europe',
-    image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-paris.jpg`,
     alt: 'European landmark',
   },
   {
@@ -16,7 +18,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Asia',
     tours: 4,
     region: 'Asia',
-    image: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-bali.jpg`,
     alt: 'Asia temple',
   },
   {
@@ -24,7 +26,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Japan & China',
     tours: 22,
     region: 'All',
-    image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-tokyo.jpg`,
     alt: 'Japan landmark',
   },
   {
@@ -32,7 +34,7 @@ const DESTINATION_CATEGORIES = [
     name: 'America',
     tours: 42,
     region: 'North America',
-    image: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-us.jpg`,
     alt: 'American landscape',
   },
   {
@@ -40,7 +42,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Africa',
     tours: 11,
     region: 'Africa',
-    image: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-dubai.jpg`,
     alt: 'African landscape',
   },
   {
@@ -48,7 +50,7 @@ const DESTINATION_CATEGORIES = [
     name: 'South East Asia',
     tours: 49,
     region: 'Asia',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-iceland.jpg`,
     alt: 'South East Asia',
   },
   {
@@ -56,7 +58,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Maldives',
     tours: 2,
     region: 'Asia',
-    image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-maldives.jpg`,
     alt: 'Maldives overwater villas',
   },
   {
@@ -64,7 +66,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Jammu & Kashmir',
     tours: 15,
     region: 'All',
-    image: 'https://images.unsplash.com/photo-1544085311-11a028465b03?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-kashmir.png`,
     alt: 'Kashmir valley',
   },
   {
@@ -72,7 +74,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Kerala',
     tours: 20,
     region: 'All',
-    image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-japan.jpg`,
     alt: 'Kerala backwaters',
   },
   {
@@ -80,7 +82,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Andaman',
     tours: 4,
     region: 'All',
-    image: 'https://images.unsplash.com/photo-1539367628448-4bc5c9d171c8?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-australia.jpg`,
     alt: 'Andaman beach',
   },
   {
@@ -88,7 +90,7 @@ const DESTINATION_CATEGORIES = [
     name: 'Leh Ladakh',
     tours: 19,
     region: 'All',
-    image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-thailand.jpg`,
     alt: 'Leh Ladakh mountains',
   },
   {
@@ -96,28 +98,34 @@ const DESTINATION_CATEGORIES = [
     name: 'North East',
     tours: 19,
     region: 'All',
-    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=400&q=80',
+    image: `${API_URL}/assets/unsplash-egypt.jpg`,
     alt: 'North East India landscape',
   },
 ]
 
 export default function DestinationCategories({ onExplore }) {
-  const scrollRef = useRef(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const itemsPerPage = 5
+  const totalPages = Math.ceil(DESTINATION_CATEGORIES.length / itemsPerPage)
 
-  const scroll = (direction) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -320 : 320,
-        behavior: 'smooth',
-      })
-    }
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(0, prev - 1))
   }
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+  }
+
+  const visibleCategories = DESTINATION_CATEGORIES.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  )
 
   return (
     <section className="relative z-10 pt-12 pb-10 sm:pt-16 sm:pb-14 bg-[#FDFCF7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-5 animate-fade-in-up gap-4">
+        <div className="flex items-end justify-between mb-8 animate-fade-in-up gap-4">
           <div className="min-w-0">
             <span className="editorial-mark-start text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-1.5">
               Browse by Region
@@ -130,82 +138,79 @@ export default function DestinationCategories({ onExplore }) {
             </p>
           </div>
 
-          {/* Scroll Controls */}
-          <div className="hidden sm:flex items-center gap-1.5 mb-0.5 shrink-0">
+          {/* Pagination Controls */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
-              id="dest-cat-scroll-left"
-              onClick={() => scroll('left')}
-              aria-label="Scroll categories left"
-              className="w-8 h-8 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
+              id="dest-cat-prev"
+              onClick={handlePrev}
+              disabled={currentPage === 0}
+              aria-label="Previous destinations"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 border ${currentPage === 0
+                ? 'bg-stone-50 text-stone-300 border-stone-200 cursor-not-allowed'
+                : 'bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 border-stone-200 hover:border-amber-300 shadow-sm'
+                }`}
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              id="dest-cat-scroll-right"
-              onClick={() => scroll('right')}
-              aria-label="Scroll categories right"
-              className="w-8 h-8 rounded-full bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 flex items-center justify-center transition-all duration-200 border border-stone-200 hover:border-amber-300"
+              id="dest-cat-next"
+              onClick={handleNext}
+              disabled={currentPage === totalPages - 1}
+              aria-label="Next destinations"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 border ${currentPage === totalPages - 1
+                ? 'bg-stone-50 text-stone-300 border-stone-200 cursor-not-allowed'
+                : 'bg-white hover:bg-amber-50 text-stone-600 hover:text-amber-700 border-stone-200 hover:border-amber-300 shadow-sm'
+                }`}
             >
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Scrollable Category Strip */}
-        <div className="relative">
-          {/* Fade-out edge on right */}
-          <div className="absolute right-0 top-0 bottom-2 w-12 sm:w-20 bg-gradient-to-l from-[#FDFCF7] to-transparent z-10 pointer-events-none" />
+        {/* Categories Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 sm:gap-4 min-h-[160px] sm:min-h-[180px]">
+          {visibleCategories.map((dest, index) => (
+            <button
+              key={`${dest.id}-${currentPage}`}
+              id={`dest-cat-${dest.id}`}
+              onClick={() => onExplore(dest.region)}
+              title={`Explore ${dest.name} — ${dest.tours} tours`}
+              className="group flex flex-col items-center justify-start gap-2 animate-fade-in-up focus:outline-none"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              {/* Circular Image */}
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border border-stone-200 group-hover:border-amber-400 group-hover:shadow-lg group-hover:shadow-amber-200/40 transition-all duration-300 group-hover:scale-105 bg-stone-100 shrink-0">
+                <img
+                  src={dest.image}
+                  alt={dest.alt}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-amber-900/0 group-hover:bg-amber-900/10 transition-colors duration-300 rounded-full" />
+              </div>
 
-          <div
-            ref={scrollRef}
-            id="dest-cat-scroll-container"
-            className="flex gap-4 overflow-x-auto pb-2 scroll-smooth hide-scrollbar"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {DESTINATION_CATEGORIES.map((dest, index) => (
-              <button
-                key={dest.id}
-                id={`dest-cat-${dest.id}`}
-                onClick={() => onExplore(dest.region)}
-                title={`Explore ${dest.name} — ${dest.tours} tours`}
-                className="group flex-shrink-0 flex flex-col items-center gap-2 w-[68px] sm:w-[80px] animate-fade-in-up focus:outline-none"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {/* Circular Image */}
-                <div className="relative w-[56px] h-[56px] sm:w-[64px] sm:h-[64px] rounded-full overflow-hidden border border-stone-200 group-hover:border-amber-400 group-hover:shadow-md group-hover:shadow-amber-200/40 transition-all duration-300 group-hover:scale-105 bg-stone-100">
-                  <img
-                    src={dest.image}
-                    alt={dest.alt}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    loading="lazy"
-                  />
-                  {/* Subtle overlay on hover */}
-                  <div className="absolute inset-0 bg-amber-900/0 group-hover:bg-amber-900/10 transition-colors duration-300 rounded-full" />
-                </div>
-
-                {/* Label */}
-                <div className="text-center">
-                  <p className="text-[11px] sm:text-xs font-semibold text-stone-800 group-hover:text-amber-700 transition-colors duration-200 leading-tight">
-                    {dest.name}
-                  </p>
-                  <p className="text-[10px] text-stone-400 mt-0.5 font-medium tabular-nums">
-                    {dest.tours} tours
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
+              {/* Label */}
+              <div className="text-center">
+                <p className="text-[14px] sm:text-[15px] font-semibold text-stone-800 group-hover:text-amber-700 transition-colors duration-200 leading-tight">
+                  {dest.name}
+                </p>
+                <p className="text-[11px] sm:text-xs text-stone-400 mt-1 font-medium tabular-nums">
+                  {dest.tours} tours
+                </p>
+              </div>
+            </button>
+          ))}
         </div>
 
-        {/* Mobile CTA */}
-        <div className="mt-5 flex justify-center sm:hidden">
+        {/* Explore All CTA */}
+        <div className="mt-8 sm:mt-10 flex justify-center">
           <button
             id="dest-cat-explore-all"
-            onClick={onExplore}
-            className="text-xs font-semibold text-amber-700 flex items-center gap-1.5 hover:text-amber-600 transition-colors"
+            onClick={() => onExplore('All')}
+            className="text-[13px] font-semibold text-amber-700 flex items-center gap-1.5 hover:text-amber-600 transition-colors"
           >
             View all destinations
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -11,6 +11,9 @@ import {
 } from 'lucide-react'
 import Markdown from 'react-markdown'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
+
 const MarkdownInline = ({ children, className }) => (
   <Markdown
     components={{
@@ -405,7 +408,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                   {/* Card Image */}
                   <div className="relative aspect-[4/3] sm:aspect-[4/3] lg:aspect-[3/2] w-full overflow-hidden shrink-0 bg-stone-100">
                     <img
-                      src={pkg.cardImage}
+                      src={imgUrl(pkg.cardImage)}
                       alt={pkg.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
