@@ -26,8 +26,27 @@ function MarkdownInline({ children, className }) {
 export default function PackageDetail({ pkg, onBook }) {
   const [activeTab, setActiveTab] = useState('itinerary') // tabs: itinerary, inclusions
   const [weather, setWeather] = useState(null)
+  const [groupDepartures, setGroupDepartures] = useState([])
 
   const spotsLeft = pkg.slots.total - pkg.slots.booked
+
+  useEffect(() => {
+    const fetchGroupDepartures = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/group-departures`)
+        if (res.ok) {
+          const data = await res.json()
+          const filtered = data.filter(
+            (d) => d.packageId === pkg.id && (d.status === 'scheduled' || d.status === 'confirmed')
+          )
+          setGroupDepartures(filtered)
+        }
+      } catch (err) {
+        console.warn('Failed to fetch group departures:', err)
+      }
+    }
+    fetchGroupDepartures()
+  }, [pkg.id])
 
   useEffect(() => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -35,13 +54,152 @@ export default function PackageDetail({ pkg, onBook }) {
       .then(r => r.json())
       .then(d => {
         if (d.data) {
-          // Try to match package region to weather data
-          const regionWeather = d.data[pkg.region] || null
-          setWeather(regionWeather)
+          // Country keyword lookup — maps city/destination keywords to country cache keys
+          const KEYWORD_TO_COUNTRY = {
+            // India
+            'india': 'India', 'delhi': 'India', 'jaipur': 'India', 'udaipur': 'India',
+            'jodhpur': 'India', 'coorg': 'India', 'agra': 'India', 'kerala': 'India',
+            'kashmir': 'India', 'ladakh': 'India', 'andaman': 'India', 'guwahati': 'India',
+            'golden triangle': 'India', 'taj mahal': 'India', 'mumbai': 'India',
+            'rajasthan': 'India', 'goa': 'India', 'himachal': 'India', 'manali': 'India',
+            'darjeeling': 'India', 'varanasi': 'India', 'rishikesh': 'India',
+            // Thailand
+            'thailand': 'Thailand', 'bangkok': 'Thailand', 'phuket': 'Thailand', 'chiang mai': 'Thailand',
+            // Japan
+            'japan': 'Japan', 'tokyo': 'Japan', 'kyoto': 'Japan', 'osaka': 'Japan',
+            // China
+            'china': 'China', 'beijing': 'China', 'shanghai': 'China', 'great wall': 'China',
+            // Indonesia
+            'indonesia': 'Indonesia', 'bali': 'Indonesia', 'jakarta': 'Indonesia',
+            // Maldives
+            'maldives': 'Maldives', 'malé': 'Maldives',
+            // Sri Lanka
+            'sri lanka': 'Sri Lanka', 'colombo': 'Sri Lanka',
+            // Nepal
+            'nepal': 'Nepal', 'kathmandu': 'Nepal', 'everest': 'Nepal',
+            // Bhutan
+            'bhutan': 'Bhutan', 'thimphu': 'Bhutan', 'paro': 'Bhutan',
+            // Cambodia
+            'cambodia': 'Cambodia', 'angkor': 'Cambodia', 'siem reap': 'Cambodia', 'phnom penh': 'Cambodia',
+            // Myanmar
+            'myanmar': 'Myanmar', 'yangon': 'Myanmar', 'bagan': 'Myanmar',
+            // Philippines
+            'philippines': 'Philippines', 'manila': 'Philippines', 'boracay': 'Philippines', 'palawan': 'Philippines',
+            // South Korea
+            'south korea': 'South Korea', 'korea': 'South Korea', 'seoul': 'South Korea', 'busan': 'South Korea',
+            // France
+            'france': 'France', 'paris': 'France', 'provence': 'France', 'nice': 'France',
+            // Switzerland
+            'switzerland': 'Switzerland', 'swiss': 'Switzerland', 'alps': 'Switzerland', 'zurich': 'Switzerland', 'bern': 'Switzerland',
+            // Italy
+            'italy': 'Italy', 'rome': 'Italy', 'venice': 'Italy', 'tuscany': 'Italy', 'florence': 'Italy', 'amalfi': 'Italy',
+            // Greece
+            'greece': 'Greece', 'santorini': 'Greece', 'athens': 'Greece', 'mykonos': 'Greece',
+            // Spain
+            'spain': 'Spain', 'barcelona': 'Spain', 'madrid': 'Spain', 'ibiza': 'Spain',
+            // Portugal
+            'portugal': 'Portugal', 'lisbon': 'Portugal', 'porto': 'Portugal',
+            // UK
+            'london': 'United Kingdom', 'england': 'United Kingdom', 'scotland': 'United Kingdom',
+            // Germany
+            'germany': 'Germany', 'berlin': 'Germany', 'munich': 'Germany',
+            // Austria
+            'austria': 'Austria', 'vienna': 'Austria', 'salzburg': 'Austria',
+            // Netherlands
+            'netherlands': 'Netherlands', 'amsterdam': 'Netherlands',
+            // Norway
+            'norway': 'Norway', 'oslo': 'Norway', 'fjord': 'Norway', 'northern lights': 'Norway',
+            // Iceland
+            'iceland': 'Iceland', 'reykjavik': 'Iceland',
+            // Croatia
+            'croatia': 'Croatia', 'dubrovnik': 'Croatia', 'split': 'Croatia',
+            // Czech Republic
+            'czech': 'Czech Republic', 'prague': 'Czech Republic',
+            // USA
+            'new york': 'USA', 'california': 'USA', 'hawaii': 'USA', 'usa': 'USA', 'las vegas': 'USA',
+            // Canada
+            'canada': 'Canada', 'toronto': 'Canada', 'vancouver': 'Canada', 'banff': 'Canada',
+            // Mexico
+            'mexico': 'Mexico', 'cancun': 'Mexico', 'tulum': 'Mexico',
+            // Brazil
+            'brazil': 'Brazil', 'rio': 'Brazil',
+            // Peru
+            'peru': 'Peru', 'cusco': 'Peru', 'machu picchu': 'Peru', 'lima': 'Peru',
+            // Argentina
+            'argentina': 'Argentina', 'buenos aires': 'Argentina', 'patagonia': 'Argentina',
+            // Colombia
+            'colombia': 'Colombia', 'bogota': 'Colombia', 'cartagena': 'Colombia',
+            // UAE
+            'dubai': 'UAE', 'abu dhabi': 'UAE', 'uae': 'UAE',
+            // Oman
+            'oman': 'Oman', 'muscat': 'Oman',
+            // Jordan
+            'jordan': 'Jordan', 'petra': 'Jordan', 'amman': 'Jordan', 'dead sea': 'Jordan',
+            // Kenya
+            'kenya': 'Kenya', 'nairobi': 'Kenya', 'safari': 'Kenya', 'masai mara': 'Kenya',
+            // South Africa
+            'south africa': 'South Africa', 'cape town': 'South Africa', 'kruger': 'South Africa',
+            // Tanzania
+            'tanzania': 'Tanzania', 'kilimanjaro': 'Tanzania', 'serengeti': 'Tanzania', 'zanzibar': 'Tanzania',
+            // Egypt
+            'egypt': 'Egypt', 'cairo': 'Egypt', 'pyramid': 'Egypt', 'luxor': 'Egypt',
+            // Morocco
+            'morocco': 'Morocco', 'marrakech': 'Morocco', 'casablanca': 'Morocco', 'fes': 'Morocco',
+            // Australia
+            'australia': 'Australia', 'sydney': 'Australia', 'melbourne': 'Australia', 'barrier reef': 'Australia',
+            // New Zealand
+            'new zealand': 'New Zealand', 'auckland': 'New Zealand', 'queenstown': 'New Zealand',
+            // Fiji
+            'fiji': 'Fiji', 'suva': 'Fiji',
+            // Singapore
+            'singapore': 'Singapore',
+            // Malaysia
+            'malaysia': 'Malaysia', 'kuala lumpur': 'Malaysia', 'langkawi': 'Malaysia',
+            // Vietnam
+            'vietnam': 'Vietnam', 'hanoi': 'Vietnam', 'ho chi minh': 'Vietnam', 'ha long': 'Vietnam',
+            // Turkey
+            'turkey': 'Turkey', 'istanbul': 'Turkey', 'cappadocia': 'Turkey',
+            // Russia
+            'russia': 'Russia', 'moscow': 'Russia', 'st petersburg': 'Russia',
+          };
+
+          // Region-to-country fallback (for broad regions like "Asia", "Europe" etc.)
+          const REGION_FALLBACK = {
+            'Asia': 'India',
+            'Europe': 'France',
+            'Africa': 'Kenya',
+            'Middle East': 'UAE',
+            'Australia': 'Australia',
+            'North America': 'USA',
+            'South America': 'Brazil',
+            'South East Asia': 'Thailand',
+          };
+
+          const searchText = `${pkg.name} ${pkg.description} ${pkg.id}`.toLowerCase();
+
+          // Scan for the most specific keyword match
+          let matched = null;
+          // Sort keywords longest-first so "south africa" matches before "africa"
+          const sortedKeywords = Object.keys(KEYWORD_TO_COUNTRY).sort((a, b) => b.length - a.length);
+          for (const kw of sortedKeywords) {
+            if (searchText.includes(kw)) {
+              matched = KEYWORD_TO_COUNTRY[kw];
+              break;
+            }
+          }
+
+          // Fallback: map the broad region to a default country
+          if (!matched) {
+            matched = REGION_FALLBACK[pkg.region] || null;
+          }
+
+          const weatherData = matched ? d.data[matched] || null : null;
+          if (weatherData) weatherData._country = matched;
+          setWeather(weatherData);
         }
       })
       .catch(() => { })
-  }, [pkg.region])
+  }, [pkg.region, pkg.name, pkg.description, pkg.id])
 
   return (
     <section className="bg-[#FDFCF7] pb-24">
@@ -323,12 +481,64 @@ export default function PackageDetail({ pkg, onBook }) {
                 </div>
               </div>
 
+              {groupDepartures.length > 0 && (
+                <div className="pt-4 border-t border-stone-100 space-y-3">
+                  <span className="text-xs text-stone-500 font-semibold uppercase tracking-[0.15em] block">
+                    Upcoming Group Departures
+                  </span>
+                  <div className="space-y-2">
+                    {groupDepartures.map((dep) => {
+                      const depSpotsLeft = dep.slots.total - dep.slots.booked
+                      const isFull = depSpotsLeft <= 0
+                      return (
+                        <div key={dep.id} className="flex items-center justify-between p-3 bg-stone-50 border border-stone-200/70 rounded-xl text-xs">
+                          <div>
+                            <span className="font-semibold text-stone-800 block">
+                              {new Date(dep.departureDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                            </span>
+                            <span className="text-[10px] text-stone-500 block">
+                              {isFull ? 'Sold Out' : `${depSpotsLeft} spots left`}
+                            </span>
+                          </div>
+                          <button
+                            disabled={isFull}
+                            onClick={() => {
+                              onBook({
+                                ...pkg,
+                                departureId: dep.id,
+                                departureDate: dep.departureDate ? dep.departureDate.split('T')[0] : '',
+                                returnDate: dep.returnDate ? dep.returnDate.split('T')[0] : '',
+                                priceModifier: dep.priceModifier || 0
+                              })
+                            }}
+                            className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
+                              isFull
+                                ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                                : 'bg-stone-900 hover:bg-amber-700 text-white cursor-pointer'
+                            }`}
+                          >
+                            {isFull ? 'Full' : 'Join Group'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="text-center py-1">
+                    <span className="text-[10px] text-stone-400 italic font-light">— OR —</span>
+                  </div>
+                </div>
+              )}
+
               {/* Booking CTA Button */}
               <button
                 onClick={() => onBook(pkg)}
-                className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold shadow-md shadow-amber-900/15 active:scale-[0.98] transition-all duration-300 text-center"
+                className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold shadow-md shadow-amber-900/15 active:scale-[0.98] transition-all duration-300 text-center cursor-pointer"
               >
-                Inquire for Booking
+                {pkg.isBespoke
+                  ? 'Inquire for Custom Quote'
+                  : groupDepartures.length > 0
+                  ? 'Book Private / Custom Tour'
+                  : 'Inquire for Booking'}
               </button>
 
               <p className="text-xs text-center text-stone-500 leading-relaxed font-light">
@@ -340,7 +550,7 @@ export default function PackageDetail({ pkg, onBook }) {
             {weather && weather.months && (
               <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-sm">
                 <h4 className="text-xs font-semibold text-stone-900 uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
-                  <span aria-hidden>🌤️</span> Monthly Weather — {weather.city}
+                  <span aria-hidden>🌤️</span> Monthly Weather — {weather._country || weather.city}
                 </h4>
                 <div className="grid grid-cols-4 gap-1.5">
                   {weather.months.map((m) => {

@@ -9,6 +9,9 @@ import DestinationCategories from './components/DestinationCategories'
 import PackageDetail from './components/PackageDetail'
 import AboutPage from './components/AboutPage'
 import BookingPage from './components/BookingPage'
+import LuxuryExperiences from './components/LuxuryExperiences'
+import CorporateTours from './components/CorporateTours'
+import UpcomingTrips from './components/UpcomingTrips'
 import staticPackages from './data/packages'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -20,6 +23,12 @@ function App() {
 
   const [packages, setPackages] = useState(staticPackages)
   const [testimonials, setTestimonials] = useState([])
+  const [initialSearch, setInitialSearch] = useState('')
+  const [stats, setStats] = useState({
+    tripsCrafted: '500+',
+    satisfaction: '98%',
+    destinations: '50+'
+  })
   const [settings, setSettings] = useState({
     agencyName: 'KRAFT YOUR TRIP',
     agencyAddress: '456 Sandstone Ave, Suite 100, San Francisco, CA',
@@ -49,6 +58,12 @@ function App() {
           const settingsData = await settingsRes.json()
           setSettings(settingsData)
         }
+
+        const statsRes = await fetch(`${API_URL}/api/stats`)
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          setStats(statsData)
+        }
       } catch (err) {
         console.warn('Backend API connection failed, using static fallbacks:', err)
       }
@@ -57,26 +72,27 @@ function App() {
   }, [])
 
   // Push a history entry and update state together
-  const navigate = useCallback((page, pkg = null, region = 'All') => {
-    window.history.pushState({ page, pkgId: pkg?.id ?? null, region }, '')
+  const navigate = useCallback((page, pkg = null, region = 'All', search = '') => {
+    window.history.pushState({ page, pkgId: pkg?.id ?? null, region, search }, '')
     setActivePage(page)
     setSelectedPackage(pkg)
     setInitialRegion(region)
+    setInitialSearch(search)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
   // Handle browser back / forward
   useEffect(() => {
-    // Seed the initial history entry so back works from the first page
-    window.history.replaceState({ page: 'home', pkgId: null, region: 'All' }, '')
+    window.history.replaceState({ page: 'home', pkgId: null, region: 'All', search: '' }, '')
 
     const onPop = (e) => {
-      const state = e.state ?? { page: 'home', pkgId: null, region: 'All' }
-      const { page, pkgId, region } = state
+      const state = e.state ?? { page: 'home', pkgId: null, region: 'All', search: '' }
+      const { page, pkgId, region, search } = state
       const pkg = pkgId ? packages.find(p => p.id === pkgId) ?? null : null
       setActivePage(page)
       setSelectedPackage(pkg)
-      setInitialRegion(region ?? 'All')
+      setInitialRegion(region)
+      setInitialSearch(search ?? '')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
@@ -94,18 +110,19 @@ function App() {
       {/* Header Navigation */}
       <Navbar
         activePage={activePage}
-        onNavigate={(page) => navigate(page)}
+        onNavigate={(page, pkg, region, search) => navigate(page, pkg, region, search)}
         settings={settings}
       />
 
       {/* Main Content Pages */}
-      <main className="flex-grow">
+      <main className="flex-grow pt-[56px] lg:pt-[78px]">
         {activePage === 'home' && (
           <div className="animate-fade-in">
             {/* Hero Banner */}
             <HeroSection
               onExplore={handleExplore}
               onBook={() => handleBook(null)}
+              stats={stats}
             />
 
             {/* Destination Categories Strip */}
@@ -116,8 +133,11 @@ function App() {
               packages={packages}
               onViewPackage={handleViewPackage}
               settings={settings}
-              onNavigate={(page) => navigate(page)}
+        onNavigate={(page, pkg, region, search) => navigate(page, pkg, region, search)}
             />
+
+            {/* Upcoming Group Departures */}
+            <UpcomingTrips onBook={handleBook} />
 
             {/* Customer Testimonials Grid */}
             <TestimonialsSection testimonials={testimonials} />
@@ -160,10 +180,24 @@ function App() {
             packages={packages}
             onViewPackage={handleViewPackage}
             initialRegion={initialRegion}
+            initialSearch={initialSearch}
+            onBook={() => navigate('booking')}
           />
         )}
 
         {activePage === 'about' && <AboutPage onBook={handleBook} />}
+
+        {activePage === 'luxury' && (
+          <LuxuryExperiences onViewPackage={handleViewPackage} onBook={handleBook} />
+        )}
+
+        {activePage === 'corporate' && (
+          <CorporateTours onNavigate={(page, pkg, region, search) => navigate(page, pkg, region, search)} />
+        )}
+
+        {activePage === 'group-tours' && (
+          <UpcomingTrips onBook={handleBook} />
+        )}
 
         {activePage === 'booking' && (
           <BookingPage

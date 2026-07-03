@@ -93,12 +93,11 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
             return (
               <div
                 key={offer.id}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-                  }`}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isActive ? 'opacity-100 z-10 visible' : 'opacity-0 z-0 pointer-events-none invisible'}`}
               >
                 {/* Background Image */}
                 <img
-                  src={offer.imageUrl}
+                  src={imgUrl(offer.imageUrl)}
                   alt={offer.title}
                   className="w-full h-full object-cover"
                 />

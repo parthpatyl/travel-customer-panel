@@ -1,6 +1,12 @@
 import { Compass, CalendarRange, Sparkles, Globe } from 'lucide-react'
 
-export default function HeroSection({ onExplore, onBook }) {
+const parseStat = (val, defaultValue) => {
+  if (val === undefined || val === null) return defaultValue;
+  const parsed = parseInt(String(val).replace(/\D/g, ''), 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
+
+export default function HeroSection({ onExplore, onBook, stats }) {
   return (
     <section className="relative min-h-[75vh] sm:min-h-[88vh] flex items-end justify-center overflow-hidden pt-20 pb-12 sm:pt-32 sm:pb-20">
       {/* Background Image */}
@@ -16,11 +22,6 @@ export default function HeroSection({ onExplore, onBook }) {
 
       {/* Hero Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center w-full">
-        {/* Editorial eyebrow */}
-        <div className="animate-fade-in-up delay-100 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-xs font-semibold uppercase tracking-[0.2em] mb-7">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse" />
-          Bespoke travel since 2018
-        </div>
 
         {/* Headline — display serif */}
         <h1 className="animate-fade-in-up delay-100 font-display text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.05] tracking-[-0.02em] mb-6">
@@ -34,13 +35,12 @@ export default function HeroSection({ onExplore, onBook }) {
         </p>
 
         {/* CTA Buttons */}
-        <div className="animate-fade-in-up delay-300 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-14">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 max-w-md mx-auto sm:max-w-none">
           <button
-            onClick={() => onExplore()}
-            className="w-full sm:w-auto px-7 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold shadow-lg shadow-amber-900/20 active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-2"
+            onClick={() => onExplore?.()}
+            className="w-full sm:w-auto px-7 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold active:scale-[0.97] transition-all duration-300 shadow-lg shadow-amber-900/20 flex items-center justify-center gap-2"
           >
-            <Compass className="w-4 h-4" />
-            Explore Destinations
+            Explore Packages
           </button>
           <button
             onClick={onBook}
@@ -54,9 +54,9 @@ export default function HeroSection({ onExplore, onBook }) {
         {/* Floating Stats — clear of the categories strip below */}
         <div className=" grid grid-cols-3 gap-3 sm:gap-6 max-w-3xl mx-auto pt-7 border-t border-white/15">
           {[
-            { value: '500+', label: 'Trips Crafted', icon: Compass },
-            { value: '98%', label: 'Satisfaction', icon: Sparkles },
-            { value: '50+', label: 'Destinations', icon: Globe },
+            { value: `${parseStat(stats?.tripsCrafted, 500).toLocaleString()}+`, label: 'Trips Crafted', icon: Compass },
+            { value: `${parseStat(stats?.satisfaction, 98)}%`, label: 'Satisfaction', icon: Sparkles },
+            { value: `${parseStat(stats?.destinations, 50).toLocaleString()}+`, label: 'Destinations', icon: Globe },
           ].map((stat, i) => {
             const Icon = stat.icon
             return (

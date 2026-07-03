@@ -26,7 +26,7 @@ const MarkdownInline = ({ children, className }) => (
 )
 
 // ─── Filter Config ────────────────────────────────────────────────────────────
-const REGIONS = ['All', 'Africa', 'Asia', 'Australia', 'Europe', 'North America', 'South America']
+const REGIONS = ['All', 'Africa', 'Antarctica', 'Asia', 'Europe', 'North America', 'Australia', 'South America']
 
 const TRAVEL_TYPES = [
   { label: 'All Types', value: 'all' },
@@ -130,10 +130,11 @@ function FilterBadge({ label, onRemove }) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function DestinationsPage({ packages, onViewPackage, initialRegion = 'All' }) {
-  const [searchQuery, setSearchQuery] = useState('')
+export default function DestinationsPage({ packages, onViewPackage, initialRegion = 'All', initialSearch = '', onBook }) {
+  const [searchQuery, setSearchQuery] = useState(initialSearch)
   const [selectedRegion, setSelectedRegion] = useState(initialRegion)
   const [prevInitialRegion, setPrevInitialRegion] = useState(initialRegion)
+  const [prevInitialSearch, setPrevInitialSearch] = useState(initialSearch)
   const [selectedType, setSelectedType] = useState('all')
   const [selectedDuration, setSelectedDuration] = useState('all')
   const [selectedBudget, setSelectedBudget] = useState('all')
@@ -145,6 +146,12 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   if (initialRegion !== prevInitialRegion) {
     setSelectedRegion(initialRegion)
     setPrevInitialRegion(initialRegion)
+  }
+
+  // Sync when parent sends a different initialSearch (e.g. clicking a destination from mega-menu)
+  if (initialSearch !== prevInitialSearch) {
+    setSearchQuery(initialSearch)
+    setPrevInitialSearch(initialSearch)
   }
 
   // Compute active filter count (excluding sort & search)
@@ -214,7 +221,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
 
   return (
     <section className="py-10 sm:py-14 bg-[#FDFCF7]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Page Header ── */}
         <div className="text-center mb-6 animate-fade-in-up">
@@ -232,11 +239,11 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
         {/* ── Filter Bar ── */}
         <div className="bg-white border border-stone-200/80 rounded-2xl shadow-sm mb-5 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
 
-          {/* Top row: Search + Region Pills + Sort + Toggle */}
-          <div className="flex flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-center">
+          {/* Controls row: Search + Sort + Filter */}
+          <div className="flex flex-col sm:flex-row gap-3 p-4 sm:p-5 sm:items-center">
 
             {/* Search */}
-            <div className="relative w-full lg:flex-1 lg:max-w-xs">
+            <div className="relative w-full sm:w-1/2">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
                 <Search className="h-4 w-4" />
               </span>
@@ -249,21 +256,9 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
               />
             </div>
 
-            {/* Divider on larger screens */}
-            <div className="hidden lg:block w-px h-8 bg-stone-200" />
-
-            {/* Region Quick Pills */}
-            <div className="flex gap-1.5 flex-wrap">
-              {REGIONS.map(r => (
-                <Pill key={r} active={selectedRegion === r} onClick={() => setSelectedRegion(r)}>
-                  {r === 'All' ? 'All Regions' : r}
-                </Pill>
-              ))}
-            </div>
-
-            {/* Sort + Toggle row on mobile, inline on desktop */}
+            {/* Sort + Toggle */}
             <div className="flex items-center gap-2">
-              <div className="relative flex-1 lg:flex-none lg:w-44">
+              <div className="relative flex-1 sm:flex-none sm:w-44">
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
@@ -291,6 +286,17 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                   </span>
                 )}
               </button>
+            </div>
+          </div>
+
+          {/* Region pills row */}
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-stone-100 pt-3 sm:pt-4">
+            <div className="flex gap-1.5 flex-wrap">
+              {REGIONS.map(r => (
+                <Pill key={r} active={selectedRegion === r} onClick={() => setSelectedRegion(r)}>
+                  {r === 'All' ? 'All Regions' : r}
+                </Pill>
+              ))}
             </div>
           </div>
 
@@ -394,7 +400,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
 
         {/* ── Package Grid ── */}
         {filteredPackages.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-4 lg:gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPackages.map((pkg, index) => {
               const spotsLeft = pkg.slots.total - pkg.slots.booked
               const travelType = inferType(pkg)
@@ -406,7 +412,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                   style={{ animationDelay: `${index * 40 + 100}ms` }}
                 >
                   {/* Card Image */}
-                  <div className="relative aspect-[4/3] sm:aspect-[4/3] lg:aspect-[3/2] w-full overflow-hidden shrink-0 bg-stone-100">
+                  <div className="relative aspect-[16/9] sm:aspect-[16/9] lg:aspect-[2.2/1] w-full overflow-hidden shrink-0 bg-stone-100">
                     <img
                       src={imgUrl(pkg.cardImage)}
                       alt={pkg.name}
@@ -433,26 +439,26 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                   </div>
 
                   {/* Body Content */}
-                  <div className="p-5 flex flex-col flex-grow">
+                  <div className="p-4 sm:p-4.5 flex flex-col flex-grow">
                     <div>
                       {/* Editorial Eyebrow */}
-                      <div className="text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] text-amber-700 uppercase mb-2">
+                      <div className="text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] text-amber-700 uppercase mb-1.5">
                         {pkg.region} · {pkg.duration} · {travelType}
                       </div>
 
-                      <h3 className="text-base sm:text-lg font-semibold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-3 font-display tracking-tight">
+                      <h3 className="text-base sm:text-lg font-semibold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-2 font-display tracking-tight">
                         {pkg.name}
                       </h3>
 
-                      <MarkdownInline className="text-sm text-stone-500 leading-relaxed line-clamp-2 mb-4 font-light">
+                      <MarkdownInline className="text-xs sm:text-[13px] text-stone-500 leading-relaxed line-clamp-2 mb-3 font-light">
                         {(pkg.description || '').split('\n')[0]}
                       </MarkdownInline>
 
                       {/* Refined Highlights Line */}
-                      <div className="space-y-0.5 mb-3">
+                      <div className="space-y-0.5 mb-2.5">
                         <span className="text-[10px] sm:text-[11px] font-semibold text-stone-400 uppercase tracking-wider block mb-0.5">Highlights</span>
                         <ul className="space-y-0.5">
-                          {pkg.highlights.slice(0, 3).map((h, i) => (
+                          {pkg.highlights.slice(0, 2).map((h, i) => (
                             <li key={i} className="flex items-start gap-1.5 text-xs sm:text-[13px] text-stone-600 font-normal leading-snug">
                               <span className="text-amber-500 shrink-0 select-none mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
                               <MarkdownInline className="text-stone-600 font-normal">{h}</MarkdownInline>
@@ -462,7 +468,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                       </div>
 
                       {pkg.bestMonth && (
-                        <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 border border-emerald-100/80 rounded-md px-2 py-0.5 mb-4">
+                        <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-800 font-semibold bg-emerald-50/60 border border-emerald-100/80 rounded-md px-2 py-0.5 mb-3">
                           <span className="font-medium text-emerald-600">Best Season:</span>
                           <span className="font-bold">{pkg.bestMonth}</span>
                         </div>
@@ -493,14 +499,30 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
         ) : (
           <div className="text-center py-16 bg-white border border-dashed border-stone-300 rounded-2xl">
             <SearchX className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-            <h3 className="text-base font-semibold text-stone-900 mb-1.5 font-display">No destinations found</h3>
-            <p className="text-sm text-stone-500 mb-5 font-light">We couldn't find any travel packages matching your filters.</p>
-            <button
-              onClick={resetAll}
-              className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-full transition-all"
-            >
-              Reset Filters
-            </button>
+            <h3 className="text-base font-semibold text-stone-900 mb-1.5 font-display">No packages available yet</h3>
+            <p className="text-sm text-stone-500 mb-5 font-light">
+              {searchQuery
+                ? `We don't have packages for "${searchQuery}" yet. Check back soon or request a custom trip.`
+                : selectedRegion !== 'All'
+                  ? `We don't have packages for ${selectedRegion} yet. Check back soon or request a custom trip.`
+                  : "No packages match your current filters."}
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={resetAll}
+                className="px-5 py-2.5 bg-white border border-stone-300 hover:border-amber-400 text-stone-700 text-sm font-semibold rounded-full transition-all"
+              >
+                Reset Filters
+              </button>
+              {onBook && (
+                <button
+                  onClick={onBook}
+                  className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-full transition-all"
+                >
+                  Request Custom Quote
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

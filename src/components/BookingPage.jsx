@@ -1,25 +1,11 @@
 import { useState, useEffect } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
-import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Building2 } from 'lucide-react'
 import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
 import { getDefaultDialCode } from '../utils/dialCodes'
 
-const BESPOKE_FALLBACKS = [
-  { id: 'custom-europe', name: 'Europe' },
-  { id: 'custom-asia', name: 'Asia' },
-  { id: 'custom-japan-china', name: 'Japan & China' },
-  { id: 'custom-america', name: 'America' },
-  { id: 'custom-africa', name: 'Africa' },
-  { id: 'custom-south-east-asia', name: 'South East Asia' },
-  { id: 'custom-maldives', name: 'Maldives' },
-  { id: 'custom-jammu-kashmir', name: 'Jammu & Kashmir' },
-  { id: 'custom-kerala', name: 'Kerala' },
-  { id: 'custom-andaman', name: 'Andaman' },
-  { id: 'custom-leh-ladakh', name: 'Leh Ladakh' },
-  { id: 'custom-north-east', name: 'North East' },
-  { id: 'custom-other', name: 'Other Destination' },
-]
+const BESPOKE_FALLBACKS = []
 
 const DIETARY_OPTIONS = ['None', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Halal', 'Kosher', 'No Preference']
 const SEAT_OPTIONS = ['Window', 'Aisle', 'Middle']
@@ -137,17 +123,63 @@ export default function BookingPage({ packages, selectedPackage }) {
   const standardPackages = (packages || []).filter(p => !p.isBespoke)
   const bespokePackages = (packages || []).filter(p => p.isBespoke)
   const defaultCode = getDefaultDialCode()
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    countryCode: defaultCode?.code ?? '',
-    packageId: selectedPackage ? selectedPackage.id : '',
-    customDestination: '',
-    startDate: '',
-    endDate: '',
-    guests: '1',
-    notes: ''
+
+  const [inquiryType, setInquiryType] = useState(() => {
+    if (selectedPackage && (selectedPackage.isCorporate || selectedPackage.id === 'corporate')) {
+      return 'corporate'
+    }
+    return 'leisure'
+  })
+
+  const [corporatePackages, setCorporatePackages] = useState([])
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+    fetch(`${API_URL}/api/corporate-packages`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setCorporatePackages(data))
+      .catch(err => console.warn('Failed to load corporate packages:', err))
+  }, [])
+
+  const [formData, setFormData] = useState(() => {
+    const isCorp = selectedPackage && (selectedPackage.isCorporate || selectedPackage.id === 'corporate')
+    let packageId = ''
+    let customDestination = ''
+    let startDate = ''
+    let endDate = ''
+    let departureId = ''
+
+    if (selectedPackage) {
+      if (selectedPackage.id === 'corporate') {
+        if (selectedPackage.corporatePackageId) {
+          packageId = selectedPackage.corporatePackageId
+        } else if (selectedPackage.destination) {
+          packageId = 'custom-other'
+          customDestination = selectedPackage.destination
+        }
+      } else {
+        packageId = selectedPackage.id
+        if (selectedPackage.departureId) {
+          departureId = selectedPackage.departureId
+          startDate = selectedPackage.departureDate || ''
+          endDate = selectedPackage.returnDate || ''
+        }
+      }
+    }
+
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      countryCode: defaultCode?.code ?? '',
+      packageId,
+      customDestination,
+      startDate,
+      endDate,
+      departureId,
+      guests: isCorp ? '10' : '1',
+      notes: '',
+      companyName: ''
+    }
   })
 
   const [groupMembers, setGroupMembers] = useState(() =>
@@ -162,8 +194,6 @@ export default function BookingPage({ packages, selectedPackage }) {
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submissionAttempted, setSubmissionAttempted] = useState(false)
-  const [showExactGuests, setShowExactGuests] = useState(false)
-  const [exactGuestCount, setExactGuestCount] = useState(6)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
@@ -172,17 +202,21 @@ export default function BookingPage({ packages, selectedPackage }) {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const guestCount = showExactGuests ? exactGuestCount : (parseInt(formData.guests) || 1)
+  const guestCount = parseInt(formData.guests) || (inquiryType === 'corporate' ? 10 : 1)
 
   // Derived state: detect standard package and auto-compute end date
-  const selectedPkg = formData.packageId && !formData.packageId.startsWith('custom-')
-    ? packages.find(p => p.id === formData.packageId)
-    : null
+  const selectedPkg = inquiryType === 'corporate'
+    ? corporatePackages.find(p => p.id === formData.packageId)
+    : (formData.packageId && !formData.packageId.startsWith('custom-')
+        ? packages.find(p => p.id === formData.packageId)
+        : null)
   const isStandardPackage = selectedPkg && !selectedPkg.isBespoke
 
   const computedEndDate = (() => {
-    if (!isStandardPackage || !formData.startDate) return ''
-    const days = parseDurationDays(selectedPkg.duration)
+    if (!selectedPkg || !formData.startDate) return ''
+    const days = inquiryType === 'corporate'
+      ? (selectedPkg.nights ? selectedPkg.nights + 1 : null)
+      : parseDurationDays(selectedPkg.duration)
     if (!days) return ''
     const start = toDateObject(formData.startDate)
     if (!start) return ''
@@ -191,8 +225,11 @@ export default function BookingPage({ packages, selectedPackage }) {
     return end.toISOString().split('T')[0]
   })()
 
-  const isEndDateLocked = isStandardPackage && !!computedEndDate
-  const effectiveEndDate = isEndDateLocked ? computedEndDate : formData.endDate
+  const isStartDateLocked = !!formData.departureId
+  const isEndDateLocked = (inquiryType !== 'corporate' && isStandardPackage && !!computedEndDate) || !!formData.departureId
+  const effectiveEndDate = isEndDateLocked
+    ? (formData.departureId ? formData.endDate : computedEndDate)
+    : formData.endDate
 
   const syncGroupMembers = (count) => {
     setGroupMembers((prev) => {
@@ -244,15 +281,30 @@ export default function BookingPage({ packages, selectedPackage }) {
       return
     }
     if (name === 'guests') {
-      if (value === '6+') {
-        setShowExactGuests(true)
-        setFormData((prev) => ({ ...prev, guests: '6' }))
+      if (inquiryType !== 'corporate') {
+        const count = parseInt(value)
+        if (!isNaN(count)) {
+          if (count > 25) {
+            setToast({ message: 'Maximum of 25 travellers allowed for personal bookings.', type: 'error' })
+            setFormData((prev) => ({ ...prev, guests: '25' }))
+            syncGroupMembers(25)
+            setGuestSectionOpen(true)
+            return
+          }
+          setFormData((prev) => ({ ...prev, guests: value }))
+          syncGroupMembers(count)
+          if (count > 1) {
+            setGuestSectionOpen(true)
+          } else {
+            setGuestSectionOpen(false)
+          }
+        } else {
+          setFormData((prev) => ({ ...prev, guests: value }))
+          syncGroupMembers(1)
+          setGuestSectionOpen(false)
+        }
       } else {
-        setShowExactGuests(false)
-        const count = parseInt(value) || 1
         setFormData((prev) => ({ ...prev, guests: value }))
-        syncGroupMembers(count)
-        if (count > 1) setGuestSectionOpen(true)
       }
     } else if (name === 'startDate' || name === 'endDate') {
       setFormData((prev) => ({ ...prev, [name]: value }))
@@ -268,6 +320,11 @@ export default function BookingPage({ packages, selectedPackage }) {
         const isCustom = value.startsWith('custom-')
         const newPkg = !isCustom ? packages.find(p => p.id === value) : null
         const next = { ...prev, packageId: value }
+        if (prev.departureId) {
+          next.departureId = ''
+          next.startDate = ''
+          next.endDate = ''
+        }
         // Pre-fill end date when going standard→bespoke so user has a starting point
         if (wasStandard && (!newPkg || newPkg.isBespoke) && prev.startDate && !prev.endDate) {
           const days = parseDurationDays(oldPkg.duration)
@@ -301,7 +358,7 @@ export default function BookingPage({ packages, selectedPackage }) {
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required'
+      newErrors.email = inquiryType === 'corporate' ? 'Work email is required' : 'Email address is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address'
     }
@@ -319,6 +376,12 @@ export default function BookingPage({ packages, selectedPackage }) {
         }
       } catch {
         newErrors.phone = 'Invalid phone number format'
+      }
+    }
+
+    if (inquiryType === 'corporate') {
+      if (!formData.companyName || !formData.companyName.trim()) {
+        newErrors.companyName = 'Company name is required'
       }
     }
 
@@ -350,17 +413,24 @@ export default function BookingPage({ packages, selectedPackage }) {
       }
     }
 
-    // Validate group member names (index 1+ need names)
     const newMemberErrors = {}
-    for (let i = 1; i < guestCount; i++) {
-      const member = groupMembers[i]
-      const memberName = member?.name?.trim()
-      if (!memberName) {
-        if (!newMemberErrors[i]) newMemberErrors[i] = {}
-        newMemberErrors[i].name = 'Guest name is required'
-      } else if (!NAME_REGEX.test(memberName)) {
-        if (!newMemberErrors[i]) newMemberErrors[i] = {}
-        newMemberErrors[i].name = 'Name should only contain letters and spaces'
+    if (inquiryType !== 'corporate') {
+      const gCount = parseInt(formData.guests) || 1
+      if (gCount > 25) {
+        newErrors.guests = 'Maximum of 25 travellers allowed for personal bookings'
+      }
+
+      // Validate group member names (index 1+ need names)
+      for (let i = 1; i < guestCount; i++) {
+        const member = groupMembers[i]
+        const memberName = member?.name?.trim()
+        if (!memberName) {
+          if (!newMemberErrors[i]) newMemberErrors[i] = {}
+          newMemberErrors[i].name = 'Guest name is required'
+        } else if (!NAME_REGEX.test(memberName)) {
+          if (!newMemberErrors[i]) newMemberErrors[i] = {}
+          newMemberErrors[i].name = 'Name should only contain letters and spaces'
+        }
       }
     }
 
@@ -377,54 +447,106 @@ export default function BookingPage({ packages, selectedPackage }) {
     setSubmitting(true)
     setSubmitError('')
 
-    // Build groupMembers for the API
-    const members = groupMembers.map((m, idx) => {
-      const base = {
-        name: (idx === 0 ? formData.name : m.name)?.trim() || `Guest ${idx + 1}`,
-        email: idx === 0 ? formData.email : (m.email || ''),
-        phone: idx === 0 ? formData.phone : (m.phone || ''),
-        dietary: m.dietary || 'None',
-        seat: m.seat || 'Window',
-        passport: m.passport || ''
-      }
-      return base
-    })
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_URL}/api/bookings/inquiry`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: `${formData.countryCode}${formData.phone}`,
-          packageId: formData.packageId,
-          customDestination: formData.customDestination,
-          startDate: formData.startDate,
-          endDate: effectiveEndDate,
-          guests: String(guestCount),
-          notes: formData.notes,
-          groupMembers: members
+    if (inquiryType === 'corporate') {
+      const selectedCorpPkg = corporatePackages.find(p => p.id === formData.packageId)
+      const packageLabel = selectedCorpPkg 
+        ? selectedCorpPkg.name 
+        : (formData.packageId === 'custom-other' ? `Custom: ${formData.customDestination}` : 'Custom Corporate Itinerary')
+      
+      const messageBody = `
+Enquiry Type: Corporate Retreat / MICE Event
+Selected Destination/Package: ${packageLabel}
+Estimated Group Size: ${guestCount} attendees
+Preferred Dates: ${formatDateDisplay(formData.startDate)} to ${formatDateDisplay(formData.endDate)}
+Additional Requirements:
+${formData.notes || 'No special requests specified.'}
+      `.trim()
+
+      try {
+        const response = await fetch(`${API_URL}/api/corporate-leads`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            mobile: `${formData.countryCode}${formData.phone}`.replace(/[\s()-]/g, ''),
+            workEmail: formData.email,
+            companyName: formData.companyName,
+            message: messageBody
+          })
         })
+
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit inquiry')
+        }
+
+        setSubmitted(true)
+        setToast({ message: 'Corporate inquiry submitted successfully!', type: 'success' })
+      } catch (err) {
+        setSubmitError(err.message)
+        setToast({ message: err.message, type: 'error' })
+      } finally {
+        setSubmitting(false)
+      }
+    } else {
+      // Build groupMembers for the API
+      const members = groupMembers.map((m, idx) => {
+        const base = {
+          name: (idx === 0 ? formData.name : m.name)?.trim() || `Guest ${idx + 1}`,
+          email: idx === 0 ? formData.email : (m.email || ''),
+          phone: idx === 0 ? formData.phone : (m.phone || ''),
+          dietary: m.dietary || 'None',
+          seat: m.seat || 'Window',
+          passport: m.passport || ''
+        }
+        return base
       })
 
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit inquiry')
-      }
+      try {
+        const response = await fetch(`${API_URL}/api/bookings/inquiry`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: formData.name,
+              email: formData.email,
+              phone: `${formData.countryCode}${formData.phone}`.replace(/[\s()-]/g, ''),
+              packageId: formData.packageId,
+              customDestination: formData.customDestination,
+              startDate: formData.startDate,
+              endDate: effectiveEndDate,
+              guests: String(guestCount),
+              notes: formData.notes,
+              groupMembers: members,
+              departureId: formData.departureId || null
+            })
+          })
 
-      setSubmitted(true)
-      setToast({ message: 'Booking inquiry submitted successfully!', type: 'success' })
-    } catch (err) {
-      setSubmitError(err.message)
-      setToast({ message: err.message, type: 'error' })
-    } finally {
-      setSubmitting(false)
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit inquiry')
+        }
+
+        setSubmitted(true)
+        setToast({ message: 'Booking inquiry submitted successfully!', type: 'success' })
+      } catch (err) {
+        setSubmitError(err.message)
+        setToast({ message: err.message, type: 'error' })
+      } finally {
+        setSubmitting(false)
+      }
     }
   }
 
   const getSelectedPackageDisplayName = () => {
+    if (inquiryType === 'corporate') {
+      if (formData.packageId === 'custom-other') {
+        return `Custom Corporate Retreat: ${formData.customDestination || 'Other'}`
+      }
+      const pkg = corporatePackages.find((p) => p.id === formData.packageId)
+      return pkg ? `${pkg.name} (Corporate)` : 'Custom Corporate Itinerary'
+    }
     if (formData.packageId === 'custom-other') {
       return `Custom Itinerary: ${formData.customDestination || 'Other'}`
     }
@@ -462,61 +584,103 @@ export default function BookingPage({ packages, selectedPackage }) {
             <BadgeCheck className="w-8 h-8" strokeWidth={2} />
           </div>
 
-          <h1 className="font-display text-3xl sm:text-4xl text-stone-900 mb-3 tracking-[-0.02em]">
-            Inquiry received
-          </h1>
-          <p className="text-sm text-stone-600 leading-relaxed font-light mb-7">
-            Thank you, <span className="font-semibold text-stone-900">{formData.name}</span>. Your booking inquiry for the{' '}
-            <span className="font-semibold text-amber-700">{getSelectedPackageDisplayName()}</span> has been successfully logged.
-          </p>
+          {inquiryType === 'corporate' ? (
+            <>
+              <h1 className="font-display text-3xl sm:text-4xl text-stone-900 mb-3 tracking-[-0.02em]">
+                Corporate Inquiry Received
+              </h1>
+              <p className="text-sm text-stone-600 leading-relaxed font-light mb-7">
+                Thank you, <span className="font-semibold text-stone-900">{formData.name}</span>. Your MICE retreat inquiry for{' '}
+                <span className="font-semibold text-amber-700">{getSelectedPackageDisplayName()}</span> has been successfully logged.
+              </p>
 
-          <div className="bg-white border border-stone-200/80 rounded-2xl p-5 text-left text-sm mb-7 space-y-2.5 shadow-sm">
-            <div className="flex justify-between gap-4">
-              <span className="text-stone-500">Traveller Name</span>
-              <span className="font-semibold text-stone-900 truncate">{formData.name}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-stone-500">Package / Destination</span>
-              <span className="font-semibold text-stone-900 truncate">{getSelectedPackageDisplayName()}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-stone-500">Group Size</span>
-              <span className="font-semibold text-stone-900">{guestCount} Travellers</span>
-            </div>
-            {guestCount > 1 && (
-              <div className="flex justify-between gap-4">
-                <span className="text-stone-500">Travellers</span>
-                <span className="font-semibold text-stone-900 text-right truncate max-w-[200px]">{getGroupSummary()}</span>
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-5 text-left text-sm mb-7 space-y-2.5 shadow-sm">
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Contact Person</span>
+                  <span className="font-semibold text-stone-900 truncate">{formData.name}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Company Name</span>
+                  <span className="font-semibold text-stone-900 truncate">{formData.companyName}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Destination</span>
+                  <span className="font-semibold text-stone-900 truncate">{getSelectedPackageDisplayName()}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Group Size</span>
+                  <span className="font-semibold text-stone-900">{guestCount} Attendees</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Target Dates</span>
+                  <span className="font-semibold text-stone-900">{formatDateDisplay(formData.startDate)} → {formatDateDisplay(formData.endDate)}</span>
+                </div>
               </div>
-            )}
-            <div className="flex justify-between gap-4">
-              <span className="text-stone-500">Target Dates</span>
-              <span className="font-semibold text-stone-900">{formatDateDisplay(formData.startDate)} → {formatDateDisplay(effectiveEndDate)}</span>
-            </div>
-          </div>
 
-          <p className="text-xs text-stone-500 leading-relaxed italic mb-7 font-light">
-            A luxury travel specialist will reach out to you at <span className="font-semibold text-stone-800 not-italic">{formData.email}</span> or{' '}
-            <span className="font-semibold text-stone-800 not-italic">{formData.phone}</span> within 24 hours to begin customizing your itinerary.
-          </p>
+              <p className="text-xs text-stone-500 leading-relaxed italic mb-7 font-light">
+                Our dedicated MICE desk specialist will reach out to you at <span className="font-semibold text-stone-800 not-italic">{formData.email}</span> or{' '}
+                <span className="font-semibold text-stone-800 not-italic">{formData.phone}</span> within 12 hours with a preliminary proposal.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="font-display text-3xl sm:text-4xl text-stone-900 mb-3 tracking-[-0.02em]">
+                Inquiry received
+              </h1>
+              <p className="text-sm text-stone-600 leading-relaxed font-light mb-7">
+                Thank you, <span className="font-semibold text-stone-900">{formData.name}</span>. Your booking inquiry for the{' '}
+                <span className="font-semibold text-amber-700">{getSelectedPackageDisplayName()}</span> has been logged.
+              </p>
+
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-5 text-left text-sm mb-7 space-y-2.5 shadow-sm">
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Traveller Name</span>
+                  <span className="font-semibold text-stone-900 truncate">{formData.name}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Package / Destination</span>
+                  <span className="font-semibold text-stone-900 truncate">{getSelectedPackageDisplayName()}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Group Size</span>
+                  <span className="font-semibold text-stone-900">{guestCount} Travellers</span>
+                </div>
+                {guestCount > 1 && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-stone-500">Travellers</span>
+                    <span className="font-semibold text-stone-900 text-right truncate max-w-[200px]">{getGroupSummary()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Target Dates</span>
+                  <span className="font-semibold text-stone-900">{formatDateDisplay(formData.startDate)} → {formatDateDisplay(effectiveEndDate)}</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-stone-500 leading-relaxed italic mb-7 font-light">
+                A luxury travel specialist will reach out to you at <span className="font-semibold text-stone-800 not-italic">{formData.email}</span> or{' '}
+                <span className="font-semibold text-stone-800 not-italic">{formData.phone}</span> within 24 hours to begin customizing your itinerary.
+              </p>
+            </>
+          )}
 
           <button
             onClick={() => {
-            setFormData({
-              name: '',
-              email: '',
-              phone: '',
-              packageId: '',
-              customDestination: '',
-              startDate: '',
-              endDate: '',
-              guests: '1',
-              notes: ''
-            })
-            setGroupMembers([{ name: '', email: '', dietary: 'None', seat: 'Window', passport: '' }])
-            setShowExactGuests(false)
-            setExactGuestCount(6)
-            setSubmitted(false)
+              setFormData({
+                name: '',
+                email: '',
+                phone: '',
+                countryCode: defaultCode?.code ?? '',
+                packageId: '',
+                customDestination: '',
+                startDate: '',
+                endDate: '',
+                guests: inquiryType === 'corporate' ? '10' : '1',
+                notes: '',
+                companyName: ''
+              })
+              setGroupMembers([{ name: '', email: '', dietary: 'None', seat: 'Window', passport: '' }])
+              setSubmitted(false)
             }}
             className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold transition-all shadow-sm"
           >
@@ -573,11 +737,60 @@ export default function BookingPage({ packages, selectedPackage }) {
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Inquiry Type Tabs */}
+              <div className="flex bg-[#FAF9F5] p-1.5 rounded-full border border-stone-200/80 mb-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInquiryType('leisure')
+                    setErrors({})
+                    setFormData(prev => ({
+                      ...prev,
+                      guests: '1',
+                      packageId: '',
+                      customDestination: '',
+                      companyName: ''
+                    }))
+                    syncGroupMembers(1)
+                    setGuestSectionOpen(false)
+                  }}
+                  className={`flex-1 py-2 rounded-full text-xs font-bold uppercase tracking-[0.15em] transition-all cursor-pointer ${
+                    inquiryType === 'leisure'
+                      ? 'bg-amber-600 text-white shadow-sm'
+                      : 'text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  Personal Holiday
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInquiryType('corporate')
+                    setErrors({})
+                    setFormData(prev => ({
+                      ...prev,
+                      guests: '10',
+                      packageId: '',
+                      customDestination: '',
+                      companyName: ''
+                    }))
+                    syncGroupMembers(10)
+                  }}
+                  className={`flex-1 py-2 rounded-full text-xs font-bold uppercase tracking-[0.15em] transition-all cursor-pointer ${
+                    inquiryType === 'corporate'
+                      ? 'bg-amber-600 text-white shadow-sm'
+                      : 'text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  Corporate Retreat
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-6 gap-5">
                 {/* Name */}
                 <div className="sm:col-span-3">
                   <label htmlFor="bk-name" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    Full Name <span className="text-rose-500">*</span>
+                    {inquiryType === 'corporate' ? 'Contact Person Name' : 'Full Name'} <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
@@ -587,7 +800,7 @@ export default function BookingPage({ packages, selectedPackage }) {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="e.g. Sophia Loren"
+                      placeholder={inquiryType === 'corporate' ? 'e.g. John Doe' : 'e.g. Sophia Loren'}
                       className={`w-full h-12 bg-[#FAF9F5] border ${errors.name ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
                         } rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
                     />
@@ -595,10 +808,33 @@ export default function BookingPage({ packages, selectedPackage }) {
                   {errors.name && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.name}</span>}
                 </div>
 
+                {/* Company Name (Corporate Only) */}
+                {inquiryType === 'corporate' ? (
+                  <div className="sm:col-span-3 animate-fade-in">
+                    <label htmlFor="bk-company" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
+                      Company Name <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                      <input
+                        id="bk-company"
+                        type="text"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        placeholder="e.g. Acme Corp"
+                        className={`w-full h-12 bg-[#FAF9F5] border ${errors.companyName ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                          } rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
+                      />
+                    </div>
+                    {errors.companyName && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.companyName}</span>}
+                  </div>
+                ) : null}
+
                 {/* Email */}
                 <div className="sm:col-span-3">
                   <label htmlFor="bk-email" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    Email Address <span className="text-rose-500">*</span>
+                    {inquiryType === 'corporate' ? 'Work Email Address' : 'Email Address'} <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
@@ -608,7 +844,7 @@ export default function BookingPage({ packages, selectedPackage }) {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="e.g. sophia@loren.com"
+                      placeholder={inquiryType === 'corporate' ? 'e.g. john@company.com' : 'e.g. sophia@loren.com'}
                       className={`w-full h-12 bg-[#FAF9F5] border ${errors.email ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
                         } rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
                     />
@@ -619,7 +855,7 @@ export default function BookingPage({ packages, selectedPackage }) {
                 {/* Phone */}
                 <div className="sm:col-span-3">
                   <label htmlFor="bk-phone" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    Phone Number <span className="text-rose-500">*</span>
+                    {inquiryType === 'corporate' ? 'Mobile Number' : 'Phone Number'} <span className="text-rose-500">*</span>
                   </label>
                   <PhoneInput
                     countryCode={formData.countryCode}
@@ -633,46 +869,75 @@ export default function BookingPage({ packages, selectedPackage }) {
                 {/* Package/Destination Select */}
                 <div className="sm:col-span-3">
                   <label htmlFor="bk-pkg" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    Select Package or Destination <span className="text-rose-500">*</span>
+                    {inquiryType === 'corporate' ? 'Corporate Package' : 'Select Package or Destination'} <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Compass className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                    <select
-                      id="bk-pkg"
-                      name="packageId"
-                      value={formData.packageId}
-                      onChange={handleChange}
-                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.packageId ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full pl-10 pr-10 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer`}
-                    >
-                      <option value="" disabled>Choose a package or destination</option>
-
-                      <optgroup label="Company Provided Packages">
-                        {standardPackages.map((pkg) => (
+                    {inquiryType === 'corporate' ? (
+                      <select
+                        id="bk-pkg"
+                        name="packageId"
+                        value={formData.packageId}
+                        onChange={handleChange}
+                        className={`w-full h-12 bg-[#FAF9F5] border ${errors.packageId ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                          } rounded-full pl-10 pr-10 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer`}
+                      >
+                        <option value="" disabled>Choose a corporate package</option>
+                        {corporatePackages.map((pkg) => (
                           <option key={pkg.id} value={pkg.id}>
-                            {pkg.name} ({pkg.duration} - from {formatINR(pkg.price)}{pkg.usdPrice != null ? ` / ${formatUSD(pkg.usdPrice)}` : ''})
+                            {pkg.name} ({pkg.nights} Nights{pkg.starting_price ? ` - from ${formatINR(pkg.starting_price)}` : ''})
                           </option>
                         ))}
-                      </optgroup>
-                      <optgroup label="Bespoke Destinations">
-                        {bespokePackages.length > 0 ? (
-                          bespokePackages.map((pkg) => (
+                        <option value="custom-other">Custom Destination / Other</option>
+                      </select>
+                    ) : (
+                      <select
+                        id="bk-pkg"
+                        name="packageId"
+                        value={formData.packageId}
+                        onChange={handleChange}
+                        className={`w-full h-12 bg-[#FAF9F5] border ${errors.packageId ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+                          } rounded-full pl-10 pr-10 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer`}
+                      >
+                        <option value="" disabled>Choose a package or destination</option>
+
+                        <optgroup label="Company Provided Packages">
+                          {standardPackages.map((pkg) => (
                             <option key={pkg.id} value={pkg.id}>
-                              {pkg.name} (Bespoke Itinerary)
+                              {pkg.name} ({pkg.duration} - from {formatINR(pkg.price)}{pkg.usdPrice != null ? ` / ${formatUSD(pkg.usdPrice)}` : ''})
                             </option>
-                          ))
-                        ) : (
-                          BESPOKE_FALLBACKS.map((d) => (
-                            <option key={d.id} value={d.id}>
-                              {d.name} (Bespoke Itinerary)
-                            </option>
-                          ))
-                        )}
-                      </optgroup>
-                    </select>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Bespoke Destinations">
+                          {bespokePackages.length > 0 ? (
+                            bespokePackages.map((pkg) => (
+                              <option key={pkg.id} value={pkg.id}>
+                                {pkg.name} (Bespoke Itinerary)
+                              </option>
+                            ))
+                          ) : (
+                            BESPOKE_FALLBACKS.map((d) => (
+                              <option key={d.id} value={d.id}>
+                                {d.name} (Bespoke Itinerary)
+                              </option>
+                            ))
+                          )}
+                        </optgroup>
+                      </select>
+                    )}
                   </div>
                   {errors.packageId && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.packageId}</span>}
                 </div>
+
+                {formData.departureId && (
+                  <div className="sm:col-span-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 animate-fade-in">
+                    <Sparkles className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-xs text-amber-800 leading-relaxed font-light">
+                      <span className="font-semibold block mb-0.5">Upcoming Trip Selected</span>
+                      You are booking a slot on the scheduled group departure. The travel dates for this departure are fixed from <span className="font-semibold">{formatDateDisplay(formData.startDate)}</span> to <span className="font-semibold">{formatDateDisplay(formData.endDate)}</span>.
+                    </div>
+                  </div>
+                )}
 
                 {/* Custom Destination input text field if Other Destination is chosen */}
                 {formData.packageId === 'custom-other' && (
@@ -688,7 +953,7 @@ export default function BookingPage({ packages, selectedPackage }) {
                         name="customDestination"
                         value={formData.customDestination || ''}
                         onChange={handleChange}
-                        placeholder="e.g. Italy, Switzerland, Bali, Dubai..."
+                        placeholder={inquiryType === 'corporate' ? 'e.g. Goa, Switzerland, Vietnam...' : 'e.g. Italy, Switzerland, Bali, Dubai...'}
                         className={`w-full h-12 bg-[#FAF9F5] border ${errors.customDestination ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
                           } rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}
                       />
@@ -710,9 +975,10 @@ export default function BookingPage({ packages, selectedPackage }) {
                       name="startDate"
                       value={formData.startDate}
                       min={new Date().toISOString().split('T')[0]}
-                      onChange={handleChange}
-                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.startDate ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
-                        } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all cursor-pointer`}
+                      onChange={isStartDateLocked ? undefined : handleChange}
+                      disabled={isStartDateLocked}
+                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.startDate ? 'border-rose-400' : 'border-stone-200'} ${isStartDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer'
+                        } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all`}
                     />
                   </div>
                   {errors.startDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.startDate}</span>}
@@ -743,53 +1009,28 @@ export default function BookingPage({ packages, selectedPackage }) {
                 {/* Guests Count */}
                 <div className="sm:col-span-2">
                   <label htmlFor="bk-guests" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    Number of Travellers
+                    {inquiryType === 'corporate' ? 'Estimated Attendees' : 'Number of Travellers'}
                   </label>
                   <div className="relative">
                     <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                    {!showExactGuests ? (
-                      <select
-                        id="bk-guests"
-                        name="guests"
-                        value={formData.guests}
-                        onChange={handleChange}
-                        className="w-full h-12 bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer"
-                      >
-                        {[1, 2, 3, 4, 5].map(n => (
-                          <option key={n} value={String(n)}>{n} Traveller{n > 1 ? 's' : ''}</option>
-                        ))}
-                        <option value="6+">6+ Travellers</option>
-                      </select>
-                    ) : (
-                      <input
-                        type="number"
-                        min="6"
-                        max="99"
-                        value={exactGuestCount}
-                        onChange={(e) => {
-                          const val = Math.max(6, Math.min(99, parseInt(e.target.value) || 6))
-                          setExactGuestCount(val)
-                          syncGroupMembers(val)
-                          setGuestSectionOpen(true)
-                        }}
-                        className="w-full h-12 bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all"
-                      />
-                    )}
+                    <input
+                      id="bk-guests"
+                      type="number"
+                      name="guests"
+                      min="1"
+                      max={inquiryType === 'corporate' ? undefined : '25'}
+                      value={formData.guests}
+                      onChange={handleChange}
+                      placeholder={inquiryType === 'corporate' ? 'e.g. 50' : 'e.g. 1'}
+                      className="w-full h-12 bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all"
+                    />
                   </div>
-                  {showExactGuests && (
-                    <button
-                      type="button"
-                      onClick={() => setShowExactGuests(false)}
-                      className="text-[10px] text-amber-700 hover:text-amber-600 font-semibold mt-1"
-                    >
-                      ← Pick from list
-                    </button>
-                  )}
+                  {errors.guests && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.guests}</span>}
                 </div>
               </div>
 
-              {/* Traveller Details Section — shown when guests > 1 */}
-              {guestCount > 1 && (
+              {/* Traveller Details Section — shown when guests > 1 (Leisure only) */}
+              {inquiryType !== 'corporate' && guestCount > 1 && (
                 <div className="border-t border-stone-200/60 pt-6 animate-fade-in">
                   <button
                     type="button"
@@ -831,11 +1072,11 @@ export default function BookingPage({ packages, selectedPackage }) {
                         const actualIndex = idx + 1
                         return (
                           <GuestCard
-                            key={actualIndex}
-                            index={actualIndex}
-                            data={member}
-                            onChange={handleMemberChange}
-                            errors={memberErrors}
+                              key={actualIndex}
+                              index={actualIndex}
+                              data={member}
+                              onChange={handleMemberChange}
+                              errors={memberErrors}
                           />
                         )
                       })}
@@ -853,7 +1094,7 @@ export default function BookingPage({ packages, selectedPackage }) {
               {/* Special Notes / Preferences */}
               <div>
                 <label htmlFor="bk-notes" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                  Special Requests / Dietary / Preferences
+                  {inquiryType === 'corporate' ? 'Special Retreat Requirements / Event Details' : 'Special Requests / Dietary / Preferences'}
                 </label>
                 <div className="relative">
                   <MessageSquare className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400 pointer-events-none" />
@@ -863,7 +1104,7 @@ export default function BookingPage({ packages, selectedPackage }) {
                     rows="4"
                     value={formData.notes}
                     onChange={handleChange}
-                    placeholder="e.g. Prefer high floor suites, vegetarian meals, airport speedboats..."
+                    placeholder={inquiryType === 'corporate' ? 'e.g. Conference facilities, room count, AV production, team building activities...' : 'e.g. Prefer high floor suites, vegetarian meals, airport speedboats...'}
                     className="w-full bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-2xl py-3 pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all resize-none"
                   />
                 </div>
@@ -879,9 +1120,9 @@ export default function BookingPage({ packages, selectedPackage }) {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 disabled:bg-stone-300 disabled:cursor-not-allowed text-white rounded-full text-sm font-semibold shadow-md shadow-amber-900/15 active:scale-[0.98] transition-all duration-300 text-center"
+                  className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 disabled:bg-stone-300 disabled:cursor-not-allowed text-white rounded-full text-sm font-semibold shadow-md shadow-amber-900/15 active:scale-[0.98] transition-all duration-300 text-center cursor-pointer"
                 >
-                  {submitting ? 'Submitting inquiry…' : `Submit inquiry for ${guestCount} traveller${guestCount > 1 ? 's' : ''}`}
+                  {submitting ? 'Submitting inquiry…' : (inquiryType === 'corporate' ? 'Submit Retreat Inquiry' : `Submit inquiry for ${guestCount} traveller${guestCount > 1 ? 's' : ''}`)}
                 </button>
               </div>
             </form>
