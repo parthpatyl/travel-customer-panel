@@ -3,6 +3,7 @@ import { formatINR, formatUSD } from '../utils/currency'
 import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Building2 } from 'lucide-react'
 import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
+import CalendarPopup from './CalendarPopup'
 import { getDefaultDialCode } from '../utils/dialCodes'
 
 const BESPOKE_FALLBACKS = []
@@ -42,8 +43,13 @@ function toDateObject(str) {
 
 function parseDurationDays(duration) {
   if (!duration) return null
-  const match = String(duration).match(/(\d+)\s*Days?/i)
-  return match ? parseInt(match[1]) : null
+  const str = String(duration)
+  const dayMatch = str.match(/(\d+)\s*Days?/i)
+  if (dayMatch) return parseInt(dayMatch[1])
+  const nightMatch = str.match(/(\d+)\s*Nights?/i)
+  if (nightMatch) return parseInt(nightMatch[1]) + 1
+  const num = parseInt(str)
+  return !isNaN(num) ? num : null
 }
 
 function GuestCard({ index, data, onChange, errors }) {
@@ -136,7 +142,7 @@ export default function BookingPage({ packages, selectedPackage }) {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
     fetch(`${API_URL}/api/corporate-packages`)
       .then(res => res.ok ? res.json() : [])
-      .then(data => setCorporatePackages(data))
+      .then(data => setCorporatePackages(data.map(p => ({ ...p, id: String(p.id), name: p.destination }))))
       .catch(err => console.warn('Failed to load corporate packages:', err))
   }, [])
 
@@ -195,6 +201,7 @@ export default function BookingPage({ packages, selectedPackage }) {
   const [submitting, setSubmitting] = useState(false)
   const [submissionAttempted, setSubmissionAttempted] = useState(false)
   const [toast, setToast] = useState(null)
+  const [openCalendar, setOpenCalendar] = useState(null)
 
   useEffect(() => {
     if (!toast) return
@@ -215,7 +222,7 @@ export default function BookingPage({ packages, selectedPackage }) {
   const computedEndDate = (() => {
     if (!selectedPkg || !formData.startDate) return ''
     const days = inquiryType === 'corporate'
-      ? (selectedPkg.nights ? selectedPkg.nights + 1 : null)
+      ? parseDurationDays(selectedPkg.nights)
       : parseDurationDays(selectedPkg.duration)
     if (!days) return ''
     const start = toDateObject(formData.startDate)
@@ -226,7 +233,11 @@ export default function BookingPage({ packages, selectedPackage }) {
   })()
 
   const isStartDateLocked = !!formData.departureId
-  const isEndDateLocked = (inquiryType !== 'corporate' && isStandardPackage && !!computedEndDate) || !!formData.departureId
+  const isEndDateLocked = (
+    (inquiryType !== 'corporate' && isStandardPackage && !!computedEndDate) ||
+    (inquiryType === 'corporate' && formData.packageId && formData.packageId !== 'custom-other' && !!computedEndDate) ||
+    !!formData.departureId
+  )
   const effectiveEndDate = isEndDateLocked
     ? (formData.departureId ? formData.endDate : computedEndDate)
     : formData.endDate
@@ -307,7 +318,17 @@ export default function BookingPage({ packages, selectedPackage }) {
         setFormData((prev) => ({ ...prev, guests: value }))
       }
     } else if (name === 'startDate' || name === 'endDate') {
-      setFormData((prev) => ({ ...prev, [name]: value }))
+      const digits = value.replace(/\D/g, '').slice(0, 8)
+      let formatted = ''
+      if (digits.length > 4) {
+        formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4)
+      } else if (digits.length > 2) {
+        formatted = digits.slice(0, 2) + '/' + digits.slice(2)
+      } else {
+        formatted = digits
+      }
+      const iso = parseDateDisplay(formatted)
+      setFormData((prev) => ({ ...prev, [name]: iso || formatted }))
       if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }))
       return
     } else if (name === 'packageId') {
@@ -883,11 +904,24 @@ ${formData.notes || 'No special requests specified.'}
                           } rounded-full pl-10 pr-10 text-sm text-stone-900 outline-none transition-all appearance-none cursor-pointer`}
                       >
                         <option value="" disabled>Choose a corporate package</option>
-                        {corporatePackages.map((pkg) => (
-                          <option key={pkg.id} value={pkg.id}>
-                            {pkg.name} ({pkg.nights} Nights{pkg.starting_price ? ` - from ${formatINR(pkg.starting_price)}` : ''})
-                          </option>
-                        ))}
+                        {corporatePackages.filter(p => p.category === 'india').length > 0 && (
+                          <optgroup label="India">
+                            {corporatePackages.filter(p => p.category === 'india').map(pkg => (
+                              <option key={pkg.id} value={pkg.id}>
+                                {pkg.destination} ({pkg.nights} Nights{pkg.starting_price ? ` - from ${formatINR(pkg.starting_price)}` : ''})
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {corporatePackages.filter(p => p.category === 'international').length > 0 && (
+                          <optgroup label="International">
+                            {corporatePackages.filter(p => p.category === 'international').map(pkg => (
+                              <option key={pkg.id} value={pkg.id}>
+                                {pkg.destination} ({pkg.nights} Nights{pkg.starting_price ? ` - from ${formatINR(pkg.starting_price)}` : ''})
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                         <option value="custom-other">Custom Destination / Other</option>
                       </select>
                     ) : (
@@ -962,70 +996,104 @@ ${formData.notes || 'No special requests specified.'}
                   </div>
                 )}
 
-                {/* Start Date */}
-                <div className="sm:col-span-2">
-                  <label htmlFor="bk-start" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    Start Date <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                    <input
-                      id="bk-start"
-                      type="date"
-                      name="startDate"
-                      value={formData.startDate}
-                      min={new Date().toISOString().split('T')[0]}
-                      onChange={isStartDateLocked ? undefined : handleChange}
-                      disabled={isStartDateLocked}
-                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.startDate ? 'border-rose-400' : 'border-stone-200'} ${isStartDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer'
-                        } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all`}
-                    />
-                  </div>
-                  {errors.startDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.startDate}</span>}
-                </div>
+                {/* Trip Dates & Attendees */}
+                <div className="sm:col-span-6 bg-[#FAF9F5] border border-stone-200/60 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.15em]">
+                    {inquiryType === 'corporate' ? 'Retreat Dates & Attendees' : 'Trip Dates & Travellers'}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Start Date */}
+                    <div>
+                      <label htmlFor="bk-start" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
+                        Start Date <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none z-10" />
+                        <input
+                          id="bk-start"
+                          type="text"
+                          name="startDate"
+                          value={formatDateDisplay(formData.startDate)}
+                          placeholder="DD/MM/YYYY"
+                          onChange={isStartDateLocked ? undefined : handleChange}
+                          onFocus={() => !isStartDateLocked && setOpenCalendar('start')}
+                          disabled={isStartDateLocked}
+                          className={`w-full h-12 bg-white border ${errors.startDate ? 'border-rose-400' : 'border-stone-200'} ${isStartDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer'
+                            } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all`}
+                        />
+                        {openCalendar === 'start' && (
+                          <CalendarPopup
+                            value={formData.startDate}
+                            onChange={(iso) => {
+                              setFormData((prev) => ({ ...prev, startDate: iso }))
+                              if (errors.startDate) setErrors((prev) => ({ ...prev, startDate: null }))
+                              setOpenCalendar(null)
+                            }}
+                            onClose={() => setOpenCalendar(null)}
+                            minDate={new Date().toISOString().split('T')[0]}
+                          />
+                        )}
+                      </div>
+                      {errors.startDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.startDate}</span>}
+                    </div>
 
-                {/* End Date */}
-                <div className="sm:col-span-2">
-                  <label htmlFor="bk-end" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    End Date <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                    <input
-                      id="bk-end"
-                      type="date"
-                      name="endDate"
-                      value={effectiveEndDate}
-                      min={formData.startDate || new Date().toISOString().split('T')[0]}
-                      onChange={isEndDateLocked ? undefined : handleChange}
-                      disabled={isEndDateLocked}
-                      className={`w-full h-12 bg-[#FAF9F5] border ${errors.endDate ? 'border-rose-400' : 'border-stone-200'} ${isEndDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer'
-                        } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all`}
-                    />
-                  </div>
-                  {!isEndDateLocked && errors.endDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.endDate}</span>}
-                </div>
+                    {/* End Date */}
+                    <div>
+                      <label htmlFor="bk-end" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
+                        End Date <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none z-10" />
+                        <input
+                          id="bk-end"
+                          type="text"
+                          name="endDate"
+                          value={formatDateDisplay(effectiveEndDate)}
+                          placeholder="DD/MM/YYYY"
+                          onChange={isEndDateLocked ? undefined : handleChange}
+                          onFocus={() => !isEndDateLocked && setOpenCalendar('end')}
+                          disabled={isEndDateLocked}
+                          className={`w-full h-12 bg-white border ${errors.endDate ? 'border-rose-400' : 'border-stone-200'} ${isEndDateLocked ? 'cursor-not-allowed opacity-60' : 'focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer'
+                            } rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all`}
+                        />
+                        {openCalendar === 'end' && !isEndDateLocked && (
+                          <CalendarPopup
+                            value={effectiveEndDate}
+                            onChange={(iso) => {
+                              setFormData((prev) => ({ ...prev, endDate: iso }))
+                              if (errors.endDate) setErrors((prev) => ({ ...prev, endDate: null }))
+                              setOpenCalendar(null)
+                            }}
+                            onClose={() => setOpenCalendar(null)}
+                            minDate={formData.startDate || new Date().toISOString().split('T')[0]}
+                          />
+                        )}
+                      </div>
+                      {!isEndDateLocked && errors.endDate && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.endDate}</span>}
+                    </div>
 
-                {/* Guests Count */}
-                <div className="sm:col-span-2">
-                  <label htmlFor="bk-guests" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
-                    {inquiryType === 'corporate' ? 'Estimated Attendees' : 'Number of Travellers'}
-                  </label>
-                  <div className="relative">
-                    <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                    <input
-                      id="bk-guests"
-                      type="number"
-                      name="guests"
-                      min="1"
-                      max={inquiryType === 'corporate' ? undefined : '25'}
-                      value={formData.guests}
-                      onChange={handleChange}
-                      placeholder={inquiryType === 'corporate' ? 'e.g. 50' : 'e.g. 1'}
-                      className="w-full h-12 bg-[#FAF9F5] border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all"
-                    />
+                    {/* Guests Count */}
+                    <div>
+                      <label htmlFor="bk-guests" className="block text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mb-2">
+                        {inquiryType === 'corporate' ? 'Estimated Attendees' : 'Number of Travellers'}
+                      </label>
+                      <div className="relative">
+                        <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                        <input
+                          id="bk-guests"
+                          type="number"
+                          name="guests"
+                          min="1"
+                          max={inquiryType === 'corporate' ? undefined : '25'}
+                          value={formData.guests}
+                          onChange={handleChange}
+                          placeholder={inquiryType === 'corporate' ? 'e.g. 50' : 'e.g. 1'}
+                          className="w-full h-12 bg-white border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full pl-10 pr-4 text-sm text-stone-900 outline-none transition-all"
+                        />
+                      </div>
+                      {errors.guests && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.guests}</span>}
+                    </div>
                   </div>
-                  {errors.guests && <span className="text-xs text-rose-600 mt-1.5 block font-semibold">{errors.guests}</span>}
                 </div>
               </div>
 

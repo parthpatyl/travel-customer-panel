@@ -12,6 +12,7 @@ import BookingPage from './components/BookingPage'
 import LuxuryExperiences from './components/LuxuryExperiences'
 import CorporateTours from './components/CorporateTours'
 import UpcomingTrips from './components/UpcomingTrips'
+import EnquiryPage from './components/EnquiryPage'
 import staticPackages from './data/packages'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -19,6 +20,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 function App() {
   const [activePage, setActivePage] = useState('home')
   const [selectedPackage, setSelectedPackage] = useState(null)
+  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null)
   const [initialRegion, setInitialRegion] = useState('All')
 
   const [packages, setPackages] = useState(staticPackages)
@@ -36,7 +38,7 @@ function App() {
     agencyEmail: 'concierge@kraftyourtrip.com'
   })
 
-  // Load dynamic data from backend API
+  // Load dynamic data from backend API & check deep links
   useEffect(() => {
     const loadDynamicData = async () => {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -69,30 +71,51 @@ function App() {
       }
     }
     loadDynamicData()
+
+    // Handle initial deep links (e.g. /enquiry/ENQ-XXXX)
+    const path = window.location.pathname;
+    const match = path.match(/^\/enquiry\/([\w-]+)$/);
+    if (match) {
+      const enquiryId = match[1];
+      setActivePage('enquiry');
+      setSelectedEnquiryId(enquiryId);
+      window.history.replaceState({ page: 'enquiry', pkgId: null, region: 'All', search: '', enquiryId }, '')
+    }
   }, [])
 
   // Push a history entry and update state together
-  const navigate = useCallback((page, pkg = null, region = 'All', search = '') => {
-    window.history.pushState({ page, pkgId: pkg?.id ?? null, region, search }, '')
+  const navigate = useCallback((page, pkg = null, region = 'All', search = '', enquiryId = null) => {
+    // Update path in window location when navigating
+    const newPath = page === 'enquiry' && enquiryId ? `/enquiry/${enquiryId}` : '/';
+    window.history.pushState({ page, pkgId: pkg?.id ?? null, region, search, enquiryId }, '', newPath)
     setActivePage(page)
     setSelectedPackage(pkg)
     setInitialRegion(region)
     setInitialSearch(search)
+    setSelectedEnquiryId(enquiryId)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
   // Handle browser back / forward
   useEffect(() => {
-    window.history.replaceState({ page: 'home', pkgId: null, region: 'All', search: '' }, '')
+    // If starting on an enquiry page, ensure history state matches
+    const path = window.location.pathname;
+    const match = path.match(/^\/enquiry\/([\w-]+)$/);
+    if (match) {
+      window.history.replaceState({ page: 'enquiry', pkgId: null, region: 'All', search: '', enquiryId: match[1] }, '')
+    } else {
+      window.history.replaceState({ page: 'home', pkgId: null, region: 'All', search: '' }, '')
+    }
 
     const onPop = (e) => {
       const state = e.state ?? { page: 'home', pkgId: null, region: 'All', search: '' }
-      const { page, pkgId, region, search } = state
+      const { page, pkgId, region, search, enquiryId } = state
       const pkg = pkgId ? packages.find(p => p.id === pkgId) ?? null : null
       setActivePage(page)
       setSelectedPackage(pkg)
       setInitialRegion(region)
       setInitialSearch(search ?? '')
+      setSelectedEnquiryId(enquiryId ?? null)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
@@ -211,6 +234,13 @@ function App() {
             pkg={selectedPackage}
             onBack={handleExplore}
             onBook={handleBook}
+          />
+        )}
+
+        {activePage === 'enquiry' && selectedEnquiryId && (
+          <EnquiryPage
+            enquiryId={selectedEnquiryId}
+            onBackToHome={() => navigate('home')}
           />
         )}
       </main>
