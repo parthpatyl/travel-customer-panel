@@ -77,33 +77,33 @@ export default function MegaMenu({ label, columns, onNavigate, isMobile = false,
   return (
     <div className="relative" onMouseEnter={open} onMouseLeave={close}>
       <button
-        className={`rounded-full font-medium transition-all duration-300 flex items-center gap-1 ${
-          compact ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'
+        className={`rounded-lg font-medium transition-all duration-200 flex items-center gap-1 text-xs sm:text-sm tracking-wide ${
+          compact ? 'px-3 py-1.5' : 'px-3.5 py-2'
         } ${
           isOpen
-            ? 'text-amber-700 bg-amber-50'
-            : 'text-stone-700 hover:text-stone-950 hover:bg-stone-100'
+            ? 'text-amber-400 bg-white/10'
+            : 'text-stone-200 hover:text-white hover:bg-white/10'
         }`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {label}
-        <ChevronDown className={`transition-transform duration-200 w-4 h-4 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`transition-transform duration-200 w-3.5 h-3.5 ${isOpen ? 'rotate-180 text-amber-400' : 'text-stone-400'}`} />
       </button>
 
       {isOpen && (
         <div
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-20"
+          className="absolute top-full left-0 mt-1 z-50 animate-slide-down"
           onMouseEnter={open}
           onMouseLeave={close}
         >
-          <div className="bg-white border border-stone-200 rounded-2xl shadow-2xl shadow-stone-900/10 p-5 w-max max-w-[95vw] animate-slide-down">
-            <div className="flex gap-6">
+          <div className="bg-white border border-stone-200/90 rounded-2xl shadow-2xl shadow-stone-950/20 p-6 w-max max-w-[92vw] max-h-[80vh] overflow-y-auto">
+            <div className="flex gap-6 sm:gap-8 flex-wrap">
               {columns.map(col => (
-                <div key={col.heading} className="min-w-[170px]">
+                <div key={col.heading} className="min-w-[160px] max-w-[220px]">
                   {col.sections ? (
                     col.sections.map((sec, i) => (
-                      <div key={sec.subheading} className={i > 0 ? 'mt-3 pt-3 border-t border-stone-100' : ''}>
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-2">
+                      <div key={sec.subheading} className={i > 0 ? 'mt-4 pt-3 border-t border-stone-100' : ''}>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D4ED8] mb-2.5">
                           {sec.subheading}
                         </h4>
                         <ul className="space-y-1">
@@ -111,7 +111,7 @@ export default function MegaMenu({ label, columns, onNavigate, isMobile = false,
                             <li key={link.label}>
                               <button
                                 onClick={() => handleLinkClick(link)}
-                                className="text-sm text-stone-600 hover:text-amber-700 transition-colors py-0.5 block whitespace-nowrap"
+                                className="text-xs sm:text-sm text-stone-600 hover:text-[#1D4ED8] transition-colors py-0.5 block w-full text-left font-normal hover:font-medium leading-snug"
                               >
                                 {link.label}
                               </button>
@@ -122,7 +122,7 @@ export default function MegaMenu({ label, columns, onNavigate, isMobile = false,
                     ))
                   ) : (
                     <>
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D4ED8] mb-2.5">
                         {col.heading}
                       </h4>
                       <ul className="space-y-1">
@@ -130,7 +130,7 @@ export default function MegaMenu({ label, columns, onNavigate, isMobile = false,
                           <li key={link.label}>
                             <button
                               onClick={() => handleLinkClick(link)}
-                              className="text-sm text-stone-600 hover:text-amber-700 transition-colors py-0.5 block whitespace-nowrap"
+                              className="text-xs sm:text-sm text-stone-600 hover:text-[#1D4ED8] transition-colors py-0.5 block w-full text-left font-normal hover:font-medium leading-snug"
                             >
                               {link.label}
                             </button>

@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
+import { getImgUrl, handleImageError } from '../utils/image'
 import {
   Search,
   SlidersHorizontal,
@@ -11,8 +12,7 @@ import {
 } from 'lucide-react'
 import Markdown from 'react-markdown'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
+const imgUrl = getImgUrl
 
 const MarkdownInline = ({ children, className }) => (
   <Markdown
@@ -141,6 +141,16 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   const [selectedAvail, setSelectedAvail] = useState('all')
   const [sortBy, setSortBy] = useState('default')
   const [showFilters, setShowFilters] = useState(false)
+  const [categories, setCategories] = useState([])
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/speciality-categories`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setCategories(data))
+      .catch(() => {})
+  }, [])
 
   // Sync when parent sends a different initialRegion (e.g. back-nav then new category click)
   if (initialRegion !== prevInitialRegion) {
@@ -201,10 +211,18 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
       if (selectedAvail === 'open' && spotsLeft <= 5) return false
 
       // Search
-      const q = searchQuery.toLowerCase()
+      const q = searchQuery.toLowerCase().trim()
       if (q) {
-        const haystack = [pkg.name, pkg.description, pkg.region, ...(pkg.highlights || [])].join(' ').toLowerCase()
-        if (!haystack.includes(q)) return false
+        const matchingCatIds = categories
+          .filter(c => c.name.toLowerCase().includes(q) || c.keyword.toLowerCase().includes(q))
+          .map(c => c.id)
+
+        const isTagged = Array.isArray(pkg.categoryIds) && pkg.categoryIds.some(cid => matchingCatIds.includes(cid))
+
+        const haystack = [pkg.name, pkg.description, pkg.region, pkg.category, ...(pkg.highlights || []), ...(pkg.inclusions || [])].join(' ').toLowerCase()
+        const textMatch = haystack.includes(q)
+
+        if (!isTagged && !textMatch) return false
       }
 
       return true
@@ -217,7 +235,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
     else if (sortBy === 'avail') result = [...result].sort((a, b) => (b.slots.total - b.slots.booked) - (a.slots.total - a.slots.booked))
 
     return result
-  }, [packages, searchQuery, selectedRegion, selectedType, selectedDuration, selectedBudget, selectedAvail, sortBy])
+  }, [packages, searchQuery, selectedRegion, selectedType, selectedDuration, selectedBudget, selectedAvail, sortBy, categories])
 
   return (
     <section className="py-10 sm:py-14 bg-[#FDFCF7]">
@@ -415,6 +433,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                   <div className="relative aspect-[16/9] sm:aspect-[16/9] lg:aspect-[2.2/1] w-full overflow-hidden shrink-0 bg-stone-100">
                     <img
                       src={imgUrl(pkg.cardImage)}
+                      onError={handleImageError}
                       alt={pkg.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />

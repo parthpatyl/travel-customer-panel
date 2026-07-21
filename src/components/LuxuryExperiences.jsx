@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { ArrowRight, Sparkles, Search } from 'lucide-react'
 import { formatINR, formatUSD } from '../utils/currency'
+import { API_URL, getImgUrl, handleImageError } from '../utils/image'
 import Markdown from 'react-markdown'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
+const imgUrl = getImgUrl
 
 const MarkdownInline = ({ children, className }) => (
   <Markdown
@@ -125,6 +125,7 @@ export default function LuxuryExperiences({ onViewPackage, onBook }) {
                 <div className="relative aspect-[4/3] w-full overflow-hidden shrink-0 bg-stone-100">
                   <img
                     src={imgUrl(pkg.cardImage)}
+                    onError={handleImageError}
                     alt={pkg.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />

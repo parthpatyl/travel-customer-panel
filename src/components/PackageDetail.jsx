@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
+import { API_URL, getImgUrl, handleImageError, DEFAULT_HERO_IMAGE } from '../utils/image'
 import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane } from 'lucide-react'
 import Markdown from 'react-markdown'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
+const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
 
 const mdComponents = {
   strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
@@ -49,7 +49,6 @@ export default function PackageDetail({ pkg, onBook }) {
   }, [pkg.id])
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     fetch(`${API_URL}/api/weather`)
       .then(r => r.json())
       .then(d => {
@@ -207,6 +206,7 @@ export default function PackageDetail({ pkg, onBook }) {
       <div className="relative h-[47vh] md:h-[55vh] overflow-hidden">
         <img
           src={imgUrl(pkg.heroImage)}
+          onError={(e) => handleImageError(e, DEFAULT_HERO_IMAGE)}
           alt={pkg.name}
           className="w-full h-full object-cover"
         />

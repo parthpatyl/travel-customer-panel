@@ -13,6 +13,7 @@ import LuxuryExperiences from './components/LuxuryExperiences'
 import CorporateTours from './components/CorporateTours'
 import UpcomingTrips from './components/UpcomingTrips'
 import EnquiryPage from './components/EnquiryPage'
+import SpecialityCategories from './components/SpecialityCategories'
 import staticPackages from './data/packages'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -138,7 +139,7 @@ function App() {
       />
 
       {/* Main Content Pages */}
-      <main className="flex-grow pt-[56px] lg:pt-[78px]">
+      <main className="flex-grow pt-[56px] lg:pt-[106px]">
         {activePage === 'home' && (
           <div className="animate-fade-in">
             {/* Hero Banner */}
@@ -146,17 +147,24 @@ function App() {
               onExplore={handleExplore}
               onBook={() => handleBook(null)}
               stats={stats}
+              heroSettings={settings.heroSection}
             />
 
             {/* Destination Categories Strip */}
             <DestinationCategories onExplore={handleExplore} />
+
+            {/* Speciality Tour Categories Grid */}
+            <SpecialityCategories
+              packages={packages}
+              onSelectCategory={(name, keyword) => navigate('destinations', null, 'All', keyword)}
+            />
 
             {/* Featured Luxury Packages */}
             <FeaturedPackages
               packages={packages}
               onViewPackage={handleViewPackage}
               settings={settings}
-        onNavigate={(page, pkg, region, search) => navigate(page, pkg, region, search)}
+              onNavigate={(page, pkg, region, search) => navigate(page, pkg, region, search)}
             />
 
             {/* Upcoming Group Departures */}
@@ -169,7 +177,13 @@ function App() {
             <section className="py-20 sm:py-24 text-center relative overflow-hidden bg-stone-900 text-white">
               <div className="absolute inset-0">
                 <img
-                  src={`${API_URL}/assets/unsplash-app-hero.jpg`}
+                  src={
+                    settings.ctaSection?.bgImage
+                      ? (settings.ctaSection.bgImage.startsWith('http') || settings.ctaSection.bgImage.startsWith('data:')
+                          ? settings.ctaSection.bgImage
+                          : `${API_URL}${settings.ctaSection.bgImage.startsWith('/') ? '' : '/'}${settings.ctaSection.bgImage}`)
+                      : `${API_URL}/assets/unsplash-app-hero.jpg`
+                  }
                   alt="CTA background image"
                   className="w-full h-full object-cover opacity-40"
                 />
@@ -178,19 +192,21 @@ function App() {
               </div>
 
               <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-5">
-                <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">Your Next Chapter</span>
+                <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
+                  {settings.ctaSection?.badgeText || 'Your Next Chapter'}
+                </span>
                 <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white tracking-[-0.02em] leading-[1.1]">
-                  Ready to start planning your escape?
+                  {settings.ctaSection?.heading || 'Ready to start planning your escape?'}
                 </h2>
-                <p className="text-sm sm:text-base text-stone-300 max-w-xl mx-auto leading-relaxed font-light">
-                  Get in touch with our expert luxury travel specialists. We will customize every detail of your itinerary to build your perfect journey.
+                <p className="text-sm sm:text-base text-stone-300 max-w-xl mx-auto leading-relaxed font-light whitespace-pre-line">
+                  {settings.ctaSection?.description || 'Get in touch with our expert luxury travel specialists. We will customize every detail of your itinerary to build your perfect journey.'}
                 </p>
                 <div className="pt-3">
                   <button
                     onClick={() => handleBook(null)}
                     className="px-7 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold shadow-lg shadow-amber-900/30 transition-all duration-300 active:scale-[0.98]"
                   >
-                    Request custom quote
+                    {settings.ctaSection?.buttonText || 'Request custom quote'}
                   </button>
                 </div>
               </div>
