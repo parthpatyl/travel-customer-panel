@@ -76,17 +76,17 @@ export default function CorporateTours({ onNavigate }) {
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-amber-900 text-white">
         <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${corporateHero})` }} />
-        <div className="relative max-w-7xl mx-auto px-4 py-20 sm:py-28 lg:py-36">
+        <div className="relative max-w-7xl mx-auto px-4 py-8 sm:py-10 lg:py-12">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm text-amber-200 mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm text-amber-200 mb-4">
               <Building2 className="w-4 h-4" />
               Corporate & MICE Travel
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4">
               Elevate Your
               <span className="text-amber-400"> Corporate Events</span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-300 mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl text-gray-300 mb-6 leading-relaxed">
               From board retreats to large-scale conferences — we design end-to-end corporate travel
               experiences that inspire teams and impress stakeholders.
             </p>
@@ -111,7 +111,7 @@ export default function CorporateTours({ onNavigate }) {
       </section>
 
       {/* Packages Grid */}
-      <section id="packages" className="py-16">
+      <section id="packages" className="py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Corporate Packages</h2>
@@ -186,7 +186,7 @@ export default function CorporateTours({ onNavigate }) {
 
       {/* Corporate Testimonials Carousel */}
       {corporateTestimonials.length > 0 && (
-        <section className="py-16 bg-gray-50 overflow-hidden">
+        <section className="py-8 bg-gray-50 overflow-hidden">
           <div className="max-w-4xl mx-auto px-4">
             <h2 className="text-2xl sm:text-3xl font-bold text-center text-slate-900 mb-3">What Our Clients Say</h2>
             <p className="text-slate-500 text-center mb-10">Trusted by corporate leaders across industries</p>

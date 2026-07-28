@@ -250,6 +250,7 @@ function App() {
             pkg={selectedPackage}
             onBack={handleExplore}
             onBook={handleBook}
+            settings={settings}
           />
         )}
 

@@ -7,6 +7,15 @@ import { useAgencySettings } from '../context/AgencyContext'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const POPULAR_SEARCHES = ['Kashmir', 'Bali', 'Greece', 'Safari', 'Switzerland', 'Kerala', 'Dubai', 'Tuscany']
+const SEARCH_PLACEHOLDERS = [
+  'Search "Eiffel Tower"...',
+  'Search "Kashmir"...',
+  'Search "Dubai"...',
+  'Search "Maldives"...',
+  'Search "Bali Safari"...',
+  'Search "Switzerland"...',
+  'Search "Tuscany"...'
+]
 
 export default function Navbar({ activePage, onNavigate, settings = {} }) {
   const { settings: contextSettings } = useAgencySettings()
@@ -15,9 +24,20 @@ export default function Navbar({ activePage, onNavigate, settings = {} }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [packages, setPackages] = useState([])
   const [categories, setCategories] = useState([])
   const searchRef = useRef(null)
+
+  // Cycle animated placeholder text when not typing/focused
+  useEffect(() => {
+    if (isSearchFocused || searchQuery) return
+    const interval = setInterval(() => {
+      setPlaceholderIdx(prev => (prev + 1) % SEARCH_PLACEHOLDERS.length)
+    }, 2600)
+    return () => clearInterval(interval)
+  }, [isSearchFocused, searchQuery])
 
   useEffect(() => {
     // Fetch live packages and categories for live search
@@ -101,20 +121,33 @@ export default function Navbar({ activePage, onNavigate, settings = {} }) {
             </button>
 
             {/* Pill Search Bar with Live Autocomplete Dropdown (Center) */}
-            <div ref={searchRef} className="flex-1 max-w-xl relative">
+            <div
+              ref={searchRef}
+              className={`relative transition-all duration-300 ease-out ${
+                isSearchFocused || searchOpen || searchQuery
+                  ? 'flex-1 w-full max-w-xl'
+                  : 'w-44 sm:w-56'
+              }`}
+            >
               <form onSubmit={handleSearchSubmit} className="relative">
                 <div className="relative flex items-center">
                   <Search className="w-4 h-4 text-stone-400 absolute left-4 pointer-events-none" />
                   <input
                     type="text"
                     value={searchQuery}
-                    onFocus={() => setSearchOpen(true)}
+                    onFocus={() => {
+                      setIsSearchFocused(true)
+                      setSearchOpen(true)
+                    }}
+                    onBlur={() => {
+                      setIsSearchFocused(false)
+                    }}
                     onChange={(e) => {
                       setSearchQuery(e.target.value)
                       setSearchOpen(true)
                     }}
-                    placeholder='Search "Eiffel Tower", "Kashmir", "Dubai", "Safari"...'
-                    className="w-full bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/15 focus:border-amber-400 rounded-full py-2 pl-11 pr-9 text-xs sm:text-sm text-white placeholder-stone-400 outline-none transition-all duration-200"
+                    placeholder={isSearchFocused ? 'Type destination, package or keyword...' : SEARCH_PLACEHOLDERS[placeholderIdx]}
+                    className="w-full bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/15 focus:border-amber-400 rounded-full py-2 pl-11 pr-9 text-xs sm:text-sm text-white placeholder-stone-400 outline-none transition-all duration-300 shadow-sm"
                   />
                   {searchQuery && (
                     <button

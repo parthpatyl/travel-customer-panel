@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
 import { API_URL, getImgUrl, handleImageError, DEFAULT_HERO_IMAGE } from '../utils/image'
-import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane } from 'lucide-react'
+import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane, Printer } from 'lucide-react'
 import Markdown from 'react-markdown'
+import PackageBrochureModal from './PackageBrochureModal'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
 
@@ -23,10 +24,11 @@ function MarkdownInline({ children, className }) {
   )
 }
 
-export default function PackageDetail({ pkg, onBook }) {
+export default function PackageDetail({ pkg, onBook, settings = {} }) {
   const [activeTab, setActiveTab] = useState('itinerary') // tabs: itinerary, inclusions
   const [weather, setWeather] = useState(null)
   const [groupDepartures, setGroupDepartures] = useState([])
+  const [isBrochureOpen, setIsBrochureOpen] = useState(false)
 
   const spotsLeft = pkg.slots.total - pkg.slots.booked
 
@@ -215,14 +217,23 @@ export default function PackageDetail({ pkg, onBook }) {
 
         {/* Navigation / Header content */}
         <div className="absolute inset-x-0 bottom-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 flex flex-col justify-end h-full">
-          {/* Back button */}
-          <button
-            onClick={() => window.history.back()}
-            className="self-start mb-5 inline-flex items-center gap-2 px-4 py-2 bg-white/95 backdrop-blur-sm text-stone-900 hover:bg-white shadow-sm border border-white/40 rounded-full text-xs font-semibold transition-all"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Destinations
-          </button>
+          {/* Back & Download buttons */}
+          <div className="self-start mb-5 flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => window.history.back()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/95 backdrop-blur-sm text-stone-900 hover:bg-white shadow-sm border border-white/40 rounded-full text-xs font-semibold transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Destinations
+            </button>
+            <button
+              onClick={() => setIsBrochureOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900/90 hover:bg-stone-900 text-amber-300 border border-amber-500/40 backdrop-blur-sm shadow-sm rounded-full text-xs font-semibold transition-all cursor-pointer"
+            >
+              <Printer className="w-4 h-4 text-amber-400" />
+              Download Itinerary (PDF)
+            </button>
+          </div>
           {/* Name */}
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white tracking-[-0.02em] leading-[1.05]">
             {pkg.name}
@@ -323,7 +334,7 @@ export default function PackageDetail({ pkg, onBook }) {
                           <h4 className="font-display text-base text-stone-900 mb-1.5">
                             {dayItem.title}
                           </h4>
-                          <div className="text-sm text-stone-600 leading-relaxed font-light markdown-body">
+                          <div className="text-sm text-stone-600 leading-relaxed font-light markdown-body whitespace-pre-line">
                             <Markdown components={mdComponents}>{dayItem.desc}</Markdown>
                           </div>
                         </div>
@@ -392,10 +403,13 @@ export default function PackageDetail({ pkg, onBook }) {
                 <div>
                   <span className="text-xs text-stone-500 font-semibold uppercase tracking-[0.15em] block">Price Per Person</span>
                   <div className="flex items-baseline justify-between gap-1 mt-1.5">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="font-display text-3xl text-stone-900 tabular-nums">{formatINR(pkg.price)}</span>
-                      <span className="text-xs text-stone-400 font-medium">INR</span>
-                      {pkg.usdPrice != null && <span className="text-sm text-stone-400 font-medium ml-1">{formatUSD(pkg.usdPrice)}</span>}
+                    <div>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="font-display text-3xl text-stone-900 tabular-nums">{formatINR(pkg.price)}</span>
+                        <span className="text-xs text-stone-400 font-medium">INR</span>
+                        {pkg.usdPrice != null && <span className="text-sm text-stone-400 font-medium ml-1">{formatUSD(pkg.usdPrice)}</span>}
+                      </div>
+                      <span className="text-[11px] font-bold text-red-600 tracking-wider uppercase block mt-0.5">T&C apply</span>
                     </div>
                     {/* Icons next to the price */}
                     <div className="flex items-center gap-1.5 text-stone-500 bg-stone-50 px-2 py-1 rounded-full border border-stone-200">
@@ -529,17 +543,27 @@ export default function PackageDetail({ pkg, onBook }) {
                 </div>
               )}
 
-              {/* Booking CTA Button */}
-              <button
-                onClick={() => onBook(pkg)}
-                className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold shadow-md shadow-amber-900/15 active:scale-[0.98] transition-all duration-300 text-center cursor-pointer"
-              >
-                {pkg.isBespoke
-                  ? 'Inquire for Custom Quote'
-                  : groupDepartures.length > 0
-                  ? 'Book Private / Custom Tour'
-                  : 'Inquire for Booking'}
-              </button>
+              {/* Booking & Download CTA Buttons */}
+              <div className="space-y-2.5">
+                <button
+                  onClick={() => onBook(pkg)}
+                  className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold shadow-md shadow-amber-900/15 active:scale-[0.98] transition-all duration-300 text-center cursor-pointer"
+                >
+                  {pkg.isBespoke
+                    ? 'Inquire for Custom Quote'
+                    : groupDepartures.length > 0
+                    ? 'Book Private / Custom Tour'
+                    : 'Inquire for Booking'}
+                </button>
+
+                <button
+                  onClick={() => setIsBrochureOpen(true)}
+                  className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-full text-xs font-semibold transition-all text-center flex items-center justify-center gap-2 cursor-pointer border border-stone-200"
+                >
+                  <Printer className="w-4 h-4 text-amber-700" />
+                  <span>Download Itinerary (PDF)</span>
+                </button>
+              </div>
 
               <p className="text-xs text-center text-stone-500 leading-relaxed font-light">
                 Submitting an inquiry is not a final booking. Our travel specialist will contact you within 24 hours.
@@ -603,7 +627,14 @@ export default function PackageDetail({ pkg, onBook }) {
           </div>
         </div>
       </div>
-    </section>
 
+      {/* Brochure Modal for Printing / Download */}
+      <PackageBrochureModal
+        pkg={pkg}
+        isOpen={isBrochureOpen}
+        onClose={() => setIsBrochureOpen(false)}
+        settings={settings}
+      />
+    </section>
   )
 }

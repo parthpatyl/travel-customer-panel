@@ -129,6 +129,13 @@ function FilterBadge({ label, onRemove }) {
   )
 }
 
+const DEST_PLACEHOLDERS = [
+  'Search destinations, highlights...',
+  'Search "Kashmir", "Paris", "Bali"...',
+  'Search "Scuba diving", "Safari"...',
+  'Search "Honeymoon", "Overwater"...'
+]
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function DestinationsPage({ packages, onViewPackage, initialRegion = 'All', initialSearch = '', onBook }) {
   const [searchQuery, setSearchQuery] = useState(initialSearch)
@@ -142,8 +149,18 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   const [sortBy, setSortBy] = useState('default')
   const [showFilters, setShowFilters] = useState(false)
   const [categories, setCategories] = useState([])
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const [destPlaceholderIdx, setDestPlaceholderIdx] = useState(0)
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
+  useEffect(() => {
+    if (isSearchFocused || searchQuery) return
+    const interval = setInterval(() => {
+      setDestPlaceholderIdx(prev => (prev + 1) % DEST_PLACEHOLDERS.length)
+    }, 2600)
+    return () => clearInterval(interval)
+  }, [isSearchFocused, searchQuery])
 
   useEffect(() => {
     fetch(`${API_URL}/api/speciality-categories`)
@@ -261,16 +278,18 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
           <div className="flex flex-col sm:flex-row gap-3 p-4 sm:p-5 sm:items-center">
 
             {/* Search */}
-            <div className="relative w-full sm:w-1/2">
+            <div className={`relative transition-all duration-300 ease-out ${isSearchFocused || searchQuery ? 'w-full sm:w-80 max-w-md' : 'w-full sm:w-44 max-w-[200px]'}`}>
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
                 <Search className="h-4 w-4" />
               </span>
               <input
                 type="text"
-                placeholder="Search destinations, highlights..."
+                placeholder={isSearchFocused ? 'Type to search...' : DEST_PLACEHOLDERS[destPlaceholderIdx]}
                 value={searchQuery}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-stone-50 border border-stone-200 focus:border-amber-500 rounded-full py-2.5 pl-9 pr-4 text-sm text-stone-800 placeholder-stone-400 outline-none focus:ring-2 focus:ring-amber-200 transition-all"
+                className="w-full bg-stone-50 border border-stone-200 focus:border-amber-500 rounded-full py-2.5 pl-9 pr-4 text-sm text-stone-800 placeholder-stone-400 outline-none focus:ring-2 focus:ring-amber-200 transition-all duration-300"
               />
             </div>
 

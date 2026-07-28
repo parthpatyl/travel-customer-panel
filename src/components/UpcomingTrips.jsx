@@ -24,7 +24,7 @@ export default function UpcomingTrips({ onBook }) {
   const [departures, setDepartures] = useState([])
   const [packages, setPackages] = useState([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('scheduled')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,7 +95,7 @@ export default function UpcomingTrips({ onBook }) {
             </div>
           </div>
           <div className="ml-auto flex gap-2">
-            {['all', 'scheduled', 'confirmed', 'departed'].map(s => (
+            {['scheduled'].map(s => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -105,7 +105,7 @@ export default function UpcomingTrips({ onBook }) {
                     : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
                 }`}
               >
-                {s === 'all' ? 'All' : s}
+                Scheduled
               </button>
             ))}
           </div>
