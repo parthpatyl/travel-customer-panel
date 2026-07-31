@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Printer, X, Check, CheckCircle2, Phone, Mail, MapPin, Hotel, Compass, User, Car, Plane } from 'lucide-react'
+import { Printer, X, Check, CheckCircle2, Phone, Mail, MapPin, Hotel, Compass, User, Car, Plane, Ship } from 'lucide-react'
 import Markdown from 'react-markdown'
 import { formatINR, formatUSD } from '../utils/currency'
 import { getImgUrl, handleImageError, DEFAULT_HERO_IMAGE } from '../utils/image'
@@ -168,14 +168,14 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
             </div>
 
             {/* Key Facts & Pricing Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-stone-50 border border-stone-200 rounded-xl print-break-inside-avoid">
-              <div className="space-y-1">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 bg-stone-50 border border-stone-200 rounded-xl print-break-inside-avoid min-w-0">
+              <div className="sm:col-span-4 space-y-1 min-w-0">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block">Pricing Details</span>
                 {pkg.isBespoke ? (
                   <span className="font-display text-lg font-bold text-amber-800">Custom Quote</span>
                 ) : (
                   <div>
-                    <div className="flex items-baseline gap-1.5">
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="font-display text-xl font-bold text-stone-900">{formatINR(pkg.price)}</span>
                       <span className="text-xs text-stone-500 font-medium">INR / person</span>
                       {pkg.usdPrice != null && <span className="text-xs text-stone-400">({formatUSD(pkg.usdPrice)})</span>}
@@ -185,37 +185,42 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
                 )}
               </div>
 
-              <div className="space-y-1">
+              <div className="sm:col-span-3 space-y-1 min-w-0">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block">Duration & Region</span>
                 <p className="text-sm font-semibold text-stone-800">{pkg.duration} · {pkg.region}</p>
               </div>
 
-              <div className="space-y-1">
+              <div className="sm:col-span-5 space-y-1 min-w-0">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block">Included Amenities</span>
-                <div className="flex items-center gap-2 text-stone-700 pt-0.5">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-stone-700 pt-0.5 min-w-0 overflow-hidden">
                   {pkg.inclusionsSelection?.hotel && (
-                    <span className="flex items-center gap-1 text-xs font-medium" title="Hotel">
-                      <Hotel className="w-3.5 h-3.5 text-amber-700" /> Hotel
+                    <span className="inline-flex items-center gap-1 text-xs font-medium shrink-0" title="Hotel">
+                      <Hotel className="w-3.5 h-3.5 text-amber-700 shrink-0" /> Hotel
                     </span>
                   )}
                   {pkg.inclusionsSelection?.sightseeing && (
-                    <span className="flex items-center gap-1 text-xs font-medium" title="Sightseeing">
-                      <Compass className="w-3.5 h-3.5 text-amber-700" /> Tours
+                    <span className="inline-flex items-center gap-1 text-xs font-medium shrink-0" title="Sightseeing">
+                      <Compass className="w-3.5 h-3.5 text-amber-700 shrink-0" /> Tours
                     </span>
                   )}
                   {pkg.inclusionsSelection?.guide && (
-                    <span className="flex items-center gap-1 text-xs font-medium" title="Guide">
-                      <User className="w-3.5 h-3.5 text-amber-700" /> Guide
+                    <span className="inline-flex items-center gap-1 text-xs font-medium shrink-0" title="Guide">
+                      <User className="w-3.5 h-3.5 text-amber-700 shrink-0" /> Guide
                     </span>
                   )}
                   {pkg.inclusionsSelection?.airportTransfer && (
-                    <span className="flex items-center gap-1 text-xs font-medium" title="Transfers">
-                      <Car className="w-3.5 h-3.5 text-amber-700" /> Transfer
+                    <span className="inline-flex items-center gap-1 text-xs font-medium shrink-0" title="Transfers">
+                      <Car className="w-3.5 h-3.5 text-amber-700 shrink-0" /> Transfer
                     </span>
                   )}
                   {pkg.inclusionsSelection?.flight && (
-                    <span className="flex items-center gap-1 text-xs font-medium" title="Flight">
-                      <Plane className="w-3.5 h-3.5 text-amber-700" /> Flight
+                    <span className="inline-flex items-center gap-1 text-xs font-medium shrink-0" title="Flight">
+                      <Plane className="w-3.5 h-3.5 text-amber-700 shrink-0" /> Flight
+                    </span>
+                  )}
+                  {pkg.inclusionsSelection?.cruise && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium shrink-0" title="Cruise">
+                      <Ship className="w-3.5 h-3.5 text-amber-700 shrink-0" /> Cruise
                     </span>
                   )}
                 </div>
@@ -230,6 +235,18 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
                 </h3>
                 <div className="text-sm text-stone-600 leading-relaxed font-light whitespace-pre-line">
                   <Markdown components={mdComponents}>{pkg.description}</Markdown>
+                </div>
+              </div>
+            )}
+
+            {/* Terms & Conditions */}
+            {(pkg.termsAndConditions || pkg.terms_and_conditions) && (
+              <div className="space-y-2 print-break-inside-avoid">
+                <h3 className="font-display text-base font-bold text-stone-900 border-b border-stone-200 pb-1">
+                  Terms & Conditions
+                </h3>
+                <div className="text-xs text-stone-600 leading-relaxed font-light bg-stone-50 p-3 rounded-xl border border-stone-200">
+                  <Markdown components={mdComponents}>{pkg.termsAndConditions || pkg.terms_and_conditions}</Markdown>
                 </div>
               </div>
             )}

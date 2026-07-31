@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
 import { API_URL, getImgUrl, handleImageError, DEFAULT_HERO_IMAGE } from '../utils/image'
-import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane, Printer } from 'lucide-react'
+import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane, Ship, Printer } from 'lucide-react'
 import Markdown from 'react-markdown'
 import PackageBrochureModal from './PackageBrochureModal'
 
@@ -375,6 +375,18 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                         ))}
                       </ul>
                     </div>
+
+                    {/* Terms & Conditions */}
+                    {pkg.termsAndConditions && (
+                      <div className="md:col-span-2 pt-4 border-t border-stone-100 space-y-2">
+                        <h4 className="text-xs font-bold text-stone-900 uppercase tracking-[0.15em] flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> Terms & Conditions
+                        </h4>
+                        <div className="p-4 bg-amber-50/60 border border-amber-200/70 rounded-xl text-xs text-stone-700 leading-relaxed">
+                          <Markdown>{pkg.termsAndConditions}</Markdown>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -397,6 +409,7 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                     {pkg.inclusionsSelection?.guide && <User className="w-4 h-4 text-stone-600" title="Guide Included" />}
                     {pkg.inclusionsSelection?.airportTransfer && <Car className="w-4 h-4 text-stone-600" title="Airport Transfer Included" />}
                     {pkg.inclusionsSelection?.flight && <Plane className="w-4 h-4 text-stone-600" title="Flight Included" />}
+                    {pkg.inclusionsSelection?.cruise && <Ship className="w-4 h-4 text-stone-600" title="Cruise Included" />}
                   </div>
                 </div>
               ) : (
@@ -418,6 +431,7 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                       {pkg.inclusionsSelection?.guide && <User className="w-4 h-4 text-stone-600" title="Guide Included" />}
                       {pkg.inclusionsSelection?.airportTransfer && <Car className="w-4 h-4 text-stone-600" title="Airport Transfer Included" />}
                       {pkg.inclusionsSelection?.flight && <Plane className="w-4 h-4 text-stone-600" title="Flight Included" />}
+                      {pkg.inclusionsSelection?.cruise && <Ship className="w-4 h-4 text-stone-600" title="Cruise Included" />}
                     </div>
                   </div>
                 </div>

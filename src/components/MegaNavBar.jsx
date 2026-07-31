@@ -7,50 +7,267 @@ const MEGA_MENU_CONFIG = [
   {
     id: 'india',
     label: 'India',
-    columns: [
+    isSplit: true,
+    topTabs: [
+      { label: 'Top Recommended Destinations', continentId: 'north' },
+      { label: 'North India', continentId: 'north' },
+      { label: 'South India', continentId: 'south' },
+      { label: 'West & Central', continentId: 'west-central' },
+      { label: 'East & North-East', continentId: 'east-ne' },
+      { label: 'Islands & UTs', continentId: 'islands' },
+    ],
+    continents: [
       {
-        heading: 'North India',
-        links: [
-          { label: 'Kashmir', region: 'Asia', search: 'Kashmir' },
-          { label: 'Himachal Pradesh', region: 'Asia', search: 'Himachal' },
-          { label: 'Ladakh', region: 'Asia', search: 'Ladakh' },
-          { label: 'Uttarakhand', region: 'Asia', search: 'Uttarakhand' },
-          { label: 'Punjab', region: 'Asia', search: 'Punjab' },
-          { label: 'Golden Triangle', region: 'Asia', search: 'Golden Triangle' },
+        id: 'north',
+        name: 'North India',
+        allLink: { label: 'All of North India', region: 'Asia', search: 'North India' },
+        countries: [
+          {
+            name: 'Jammu & Kashmir',
+            cities: [
+              { label: 'Srinagar', search: 'Srinagar' },
+              { label: 'Gulmarg', search: 'Gulmarg' },
+              { label: 'Pahalgam', search: 'Pahalgam' },
+              { label: 'Sonamarg', search: 'Sonamarg' }
+            ]
+          },
+          {
+            name: 'Himachal Pradesh',
+            cities: [
+              { label: 'Manali', search: 'Manali' },
+              { label: 'Shimla', search: 'Shimla' },
+              { label: 'Dharamshala', search: 'Dharamshala' },
+              { label: 'Dalhousie', search: 'Dalhousie' },
+              { label: 'Spiti Valley', search: 'Spiti' }
+            ]
+          },
+          {
+            name: 'Ladakh',
+            cities: [
+              { label: 'Leh', search: 'Leh' },
+              { label: 'Nubra Valley', search: 'Nubra' },
+              { label: 'Pangong Tso', search: 'Pangong' }
+            ]
+          },
+          {
+            name: 'Uttarakhand',
+            cities: [
+              { label: 'Rishikesh', search: 'Rishikesh' },
+              { label: 'Nainital', search: 'Nainital' },
+              { label: 'Mussoorie', search: 'Mussoorie' },
+              { label: 'Auli', search: 'Auli' },
+              { label: 'Jim Corbett', search: 'Corbett' }
+            ]
+          },
+          {
+            name: 'Punjab & Delhi',
+            cities: [
+              { label: 'Amritsar', search: 'Amritsar' },
+              { label: 'New Delhi', search: 'Delhi' },
+              { label: 'Chandigarh', search: 'Chandigarh' }
+            ]
+          },
+          {
+            name: 'Rajasthan',
+            cities: [
+              { label: 'Jaipur', search: 'Jaipur' },
+              { label: 'Udaipur', search: 'Udaipur' },
+              { label: 'Jaisalmer', search: 'Jaisalmer' },
+              { label: 'Jodhpur', search: 'Jodhpur' },
+              { label: 'Pushkar', search: 'Pushkar' }
+            ]
+          },
+          {
+            name: 'Uttar Pradesh',
+            cities: [
+              { label: 'Varanasi', search: 'Varanasi' },
+              { label: 'Agra', search: 'Agra' },
+              { label: 'Lucknow', search: 'Lucknow' },
+              { label: 'Ayodhya', search: 'Ayodhya' }
+            ]
+          }
         ]
       },
       {
-        heading: 'West & Central',
-        links: [
-          { label: 'Rajasthan Heritage', region: 'Asia', search: 'Rajasthan' },
-          { label: 'Goa Beaches', region: 'Asia', search: 'Goa' },
-          { label: 'Gujarat Cultural', region: 'Asia', search: 'Gujarat' },
-          { label: 'Madhya Pradesh Wildlife', region: 'Asia', search: 'Madhya Pradesh' },
-          { label: 'Maharashtra', region: 'Asia', search: 'Maharashtra' },
+        id: 'south',
+        name: 'South India',
+        allLink: { label: 'All of South India', region: 'Asia', search: 'South India' },
+        countries: [
+          {
+            name: 'Kerala',
+            cities: [
+              { label: 'Munnar', search: 'Munnar' },
+              { label: 'Alleppey', search: 'Alleppey' },
+              { label: 'Kochi', search: 'Kochi' },
+              { label: 'Wayanad', search: 'Wayanad' },
+              { label: 'Kovalam', search: 'Kovalam' }
+            ]
+          },
+          {
+            name: 'Karnataka',
+            cities: [
+              { label: 'Coorg', search: 'Coorg' },
+              { label: 'Mysore', search: 'Mysore' },
+              { label: 'Bengaluru', search: 'Bangalore' },
+              { label: 'Hampi', search: 'Hampi' },
+              { label: 'Chikmagalur', search: 'Chikmagalur' }
+            ]
+          },
+          {
+            name: 'Tamil Nadu',
+            cities: [
+              { label: 'Ooty', search: 'Ooty' },
+              { label: 'Kodaikanal', search: 'Kodaikanal' },
+              { label: 'Rameswaram', search: 'Rameswaram' },
+              { label: 'Madurai', search: 'Madurai' },
+              { label: 'Mahabalipuram', search: 'Mahabalipuram' }
+            ]
+          },
+          {
+            name: 'Andhra & Telangana',
+            cities: [
+              { label: 'Hyderabad', search: 'Hyderabad' },
+              { label: 'Visakhapatnam', search: 'Vizag' },
+              { label: 'Tirupati', search: 'Tirupati' },
+              { label: 'Araku Valley', search: 'Araku' }
+            ]
+          }
         ]
       },
       {
-        heading: 'South India',
-        links: [
-          { label: 'Kerala Backwaters', region: 'Asia', search: 'Kerala' },
-          { label: 'Karnataka Hills', region: 'Asia', search: 'Karnataka' },
-          { label: 'Tamil Nadu Temples', region: 'Asia', search: 'Tamil Nadu' },
-          { label: 'Andaman Islands', region: 'Asia', search: 'Andaman' },
-          { label: 'Lakshadweep', region: 'Asia', search: 'Lakshadweep' },
-          { label: 'Pondicherry', region: 'Asia', search: 'Pondicherry' },
+        id: 'west-central',
+        name: 'West & Central',
+        allLink: { label: 'All of West & Central', region: 'Asia', search: 'West India' },
+        countries: [
+          {
+            name: 'Goa',
+            cities: [
+              { label: 'North Goa', search: 'North Goa' },
+              { label: 'South Goa', search: 'South Goa' },
+              { label: 'Panaji', search: 'Panaji' },
+              { label: 'Dudhsagar', search: 'Dudhsagar' }
+            ]
+          },
+          {
+            name: 'Maharashtra',
+            cities: [
+              { label: 'Mumbai', search: 'Mumbai' },
+              { label: 'Lonavala', search: 'Lonavala' },
+              { label: 'Mahabaleshwar', search: 'Mahabaleshwar' },
+              { label: 'Nashik', search: 'Nashik' },
+              { label: 'Ajanta & Ellora', search: 'Ellora' }
+            ]
+          },
+          {
+            name: 'Gujarat',
+            cities: [
+              { label: 'Rann of Kutch', search: 'Kutch' },
+              { label: 'Gir National Park', search: 'Gir' },
+              { label: 'Statue of Unity', search: 'Statue of Unity' },
+              { label: 'Ahmedabad', search: 'Ahmedabad' }
+            ]
+          },
+          {
+            name: 'Madhya Pradesh',
+            cities: [
+              { label: 'Khajuraho', search: 'Khajuraho' },
+              { label: 'Bandhavgarh', search: 'Bandhavgarh' },
+              { label: 'Kanha', search: 'Kanha' },
+              { label: 'Pachmarhi', search: 'Pachmarhi' },
+              { label: 'Ujjain', search: 'Ujjain' }
+            ]
+          }
         ]
       },
       {
-        heading: 'East & North-East',
-        links: [
-          { label: 'Sikkim & Darjeeling', region: 'Asia', search: 'Sikkim' },
-          { label: 'Meghalaya', region: 'Asia', search: 'Meghalaya' },
-          { label: 'Assam', region: 'Asia', search: 'Assam' },
-          { label: 'Arunachal Pradesh', region: 'Asia', search: 'Arunachal' },
-          { label: 'Nagaland', region: 'Asia', search: 'Nagaland' },
-          { label: 'Varanasi Spiritual', region: 'Asia', search: 'Varanasi' },
+        id: 'east-ne',
+        name: 'East & North-East',
+        allLink: { label: 'All of East & North-East', region: 'Asia', search: 'North East' },
+        countries: [
+          {
+            name: 'Sikkim',
+            cities: [
+              { label: 'Gangtok', search: 'Gangtok' },
+              { label: 'Pelling', search: 'Pelling' },
+              { label: 'Lachen & Lachung', search: 'Lachung' },
+              { label: 'Nathula Pass', search: 'Nathula' }
+            ]
+          },
+          {
+            name: 'West Bengal',
+            cities: [
+              { label: 'Darjeeling', search: 'Darjeeling' },
+              { label: 'Kolkata', search: 'Kolkata' },
+              { label: 'Sundarbans', search: 'Sundarbans' },
+              { label: 'Kalimpong', search: 'Kalimpong' }
+            ]
+          },
+          {
+            name: 'Meghalaya',
+            cities: [
+              { label: 'Shillong', search: 'Shillong' },
+              { label: 'Cherrapunji', search: 'Cherrapunji' },
+              { label: 'Dawki', search: 'Dawki' }
+            ]
+          },
+          {
+            name: 'Assam',
+            cities: [
+              { label: 'Guwahati', search: 'Guwahati' },
+              { label: 'Kaziranga', search: 'Kaziranga' },
+              { label: 'Majuli', search: 'Majuli' }
+            ]
+          },
+          {
+            name: 'Arunachal & Nagaland',
+            cities: [
+              { label: 'Tawang', search: 'Tawang' },
+              { label: 'Ziro Valley', search: 'Ziro' },
+              { label: 'Kohima', search: 'Kohima' }
+            ]
+          },
+          {
+            name: 'Odisha',
+            cities: [
+              { label: 'Puri', search: 'Puri' },
+              { label: 'Bhubaneswar', search: 'Bhubaneswar' },
+              { label: 'Chilika Lake', search: 'Chilika' }
+            ]
+          }
         ]
       },
+      {
+        id: 'islands',
+        name: 'Islands & UTs',
+        allLink: { label: 'All Islands & UTs', region: 'Asia', search: 'Andaman' },
+        countries: [
+          {
+            name: 'Andaman & Nicobar',
+            cities: [
+              { label: 'Port Blair', search: 'Port Blair' },
+              { label: 'Havelock Island', search: 'Havelock' },
+              { label: 'Neil Island', search: 'Neil Island' },
+              { label: 'Baratang', search: 'Baratang' }
+            ]
+          },
+          {
+            name: 'Lakshadweep',
+            cities: [
+              { label: 'Agatti Island', search: 'Agatti' },
+              { label: 'Bangaram Island', search: 'Bangaram' },
+              { label: 'Kavaratti', search: 'Kavaratti' }
+            ]
+          },
+          {
+            name: 'Puducherry & Daman',
+            cities: [
+              { label: 'Pondicherry', search: 'Pondicherry' },
+              { label: 'Auroville', search: 'Auroville' },
+              { label: 'Daman & Diu', search: 'Daman' }
+            ]
+          }
+        ]
+      }
     ]
   },
   {
