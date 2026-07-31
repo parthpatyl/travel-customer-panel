@@ -3,27 +3,6 @@ import MegaMenu from './MegaMenu'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-const DEFAULT_SPECIALITY_COLUMNS = [
-  {
-    heading: 'Speciality Categories',
-    links: [
-      { label: 'Adventure', page: 'destinations', region: 'All', search: 'Adventure' },
-      { label: 'Wellness', page: 'destinations', region: 'All', search: 'Wellness' },
-      { label: 'Honeymoon', page: 'destinations', region: 'All', search: 'Honeymoon' },
-      { label: 'Wildlife', page: 'destinations', region: 'All', search: 'Wildlife' },
-    ]
-  },
-  {
-    heading: 'Unique Experiences',
-    links: [
-      { label: 'Culinary', page: 'destinations', region: 'All', search: 'Culinary' },
-      { label: 'Cruises', page: 'destinations', region: 'All', search: 'Cruise' },
-      { label: 'Photography', page: 'destinations', region: 'All', search: 'Photography' },
-      { label: 'Group Tours', page: 'destinations', region: 'All', search: 'Group' },
-    ]
-  }
-]
-
 const MEGA_MENU_CONFIG = [
   {
     id: 'india',
@@ -77,164 +56,369 @@ const MEGA_MENU_CONFIG = [
   {
     id: 'international',
     label: 'International',
-    columns: [
+    isSplit: true,
+    topTabs: [
+      { label: 'Top Recommended Destinations', continentId: 'europe' },
+      { label: 'Europe', continentId: 'europe' },
+      { label: 'South East Asia', continentId: 'asia' },
+      { label: 'Australia New Zealand', continentId: 'australia' },
+      { label: 'America', continentId: 'america' },
+      { label: 'Africa', continentId: 'africa' },
+      { label: 'Japan China Korea Taiwan', continentId: 'asia' },
+    ],
+    continents: [
       {
-        heading: 'Asia',
-        links: [
-          { label: 'Thailand', region: 'Asia', search: 'Thailand' },
-          { label: 'Bali (Indonesia)', region: 'Asia', search: 'Bali' },
-          { label: 'Vietnam', region: 'Asia', search: 'Vietnam' },
-          { label: 'Singapore', region: 'Asia', search: 'Singapore' },
-          { label: 'Malaysia', region: 'Asia', search: 'Malaysia' },
-          { label: 'Philippines', region: 'Asia', search: 'Philippines' },
-          { label: 'Cambodia', region: 'Asia', search: 'Cambodia' },
-          { label: 'Myanmar', region: 'Asia', search: 'Myanmar' },
-          { label: 'Laos', region: 'Asia', search: 'Laos' },
-          { label: 'Sri Lanka', region: 'Asia', search: 'Sri Lanka' },
-          { label: 'Maldives', region: 'Asia', search: 'Maldives' },
-          { label: 'Nepal', region: 'Asia', search: 'Nepal' },
-          { label: 'Bhutan', region: 'Asia', search: 'Bhutan' },
-          { label: 'Japan', region: 'Asia', search: 'Japan' },
-          { label: 'South Korea', region: 'Asia', search: 'South Korea' },
-          { label: 'China', region: 'Asia', search: 'China' },
-          { label: 'Hong Kong', region: 'Asia', search: 'Hong Kong' },
-          { label: 'Macau', region: 'Asia', search: 'Macau' },
-          { label: 'Taiwan', region: 'Asia', search: 'Taiwan' },
-          { label: 'Mongolia', region: 'Asia', search: 'Mongolia' },
-          { label: 'UAE – Dubai', region: 'Asia', search: 'Dubai' },
-          { label: 'Abu Dhabi', region: 'Asia', search: 'Abu Dhabi' },
-          { label: 'Saudi Arabia', region: 'Asia', search: 'Saudi' },
-          { label: 'Oman', region: 'Asia', search: 'Oman' },
-          { label: 'Jordan', region: 'Asia', search: 'Jordan' },
-          { label: 'Israel', region: 'Asia', search: 'Israel' },
-          { label: 'Qatar', region: 'Asia', search: 'Qatar' },
-          { label: 'Bahrain', region: 'Asia', search: 'Bahrain' },
-          { label: 'Georgia', region: 'Asia', search: 'Georgia' },
-          { label: 'Azerbaijan', region: 'Asia', search: 'Azerbaijan' },
-          { label: 'Armenia', region: 'Asia', search: 'Armenia' },
-          { label: 'Uzbekistan', region: 'Asia', search: 'Uzbekistan' },
-          { label: 'Kazakhstan', region: 'Asia', search: 'Kazakhstan' },
-          { label: 'Singapore + Malaysia', region: 'Asia', search: 'Singapore' },
-          { label: 'Singapore + Bali', region: 'Asia', search: 'Bali' },
-          { label: 'Japan + South Korea', region: 'Asia', search: 'Japan' },
-          { label: 'Israel + Jordan', region: 'Asia', search: 'Israel' },
+        id: 'africa',
+        name: 'Africa',
+        allLink: { label: 'All of Africa', region: 'Africa', search: 'Africa' },
+        countries: [
+          {
+            name: 'Egypt',
+            cities: [
+              { label: 'Alexandria', search: 'Alexandria' },
+              { label: 'Aswan', search: 'Aswan' },
+              { label: 'Cairo', search: 'Cairo' },
+              { label: 'Hurghada', search: 'Hurghada' },
+              { label: 'Luxor', search: 'Luxor' },
+              { label: 'Nile Cruise', search: 'Nile Cruise' }
+            ]
+          },
+          {
+            name: 'Kenya',
+            cities: [
+              { label: 'Masai Mara', search: 'Masai Mara' }
+            ]
+          },
+          {
+            name: 'Mauritius',
+            cities: [
+              { label: 'Port Louis', search: 'Port Louis' }
+            ]
+          },
+          {
+            name: 'Seychelles',
+            cities: []
+          },
+          {
+            name: 'South Africa',
+            cities: [
+              { label: 'Cape Town', search: 'Cape Town' },
+              { label: 'George', search: 'George' },
+              { label: 'Johannesburg', search: 'Johannesburg' },
+              { label: 'Knysna', search: 'Knysna' },
+              { label: 'Mossel Bay', search: 'Mossel Bay' },
+              { label: 'Oudtshoorn', search: 'Oudtshoorn' },
+              { label: 'Pilanesberg National Park', search: 'Pilanesberg' },
+              { label: 'Port Elizabeth (Gqeberha)', search: 'Port Elizabeth' },
+              { label: 'Stellenbosch', search: 'Stellenbosch' },
+              { label: 'Sun City', search: 'Sun City' }
+            ]
+          },
+          {
+            name: 'Tanzania',
+            cities: []
+          },
+          {
+            name: 'Zimbabwe',
+            cities: [
+              { label: 'Victoria Falls', search: 'Victoria Falls' }
+            ]
+          }
         ]
       },
       {
-        heading: 'Europe',
-        links: [
-          { label: 'Switzerland', region: 'Europe', search: 'Switzerland' },
-          { label: 'France', region: 'Europe', search: 'France' },
-          { label: 'Italy', region: 'Europe', search: 'Italy' },
-          { label: 'Spain', region: 'Europe', search: 'Spain' },
-          { label: 'Portugal', region: 'Europe', search: 'Portugal' },
-          { label: 'Germany', region: 'Europe', search: 'Germany' },
-          { label: 'Netherlands', region: 'Europe', search: 'Netherlands' },
-          { label: 'Belgium', region: 'Europe', search: 'Belgium' },
-          { label: 'Austria', region: 'Europe', search: 'Austria' },
-          { label: 'United Kingdom', region: 'Europe', search: 'UK' },
-          { label: 'Scotland', region: 'Europe', search: 'Scotland' },
-          { label: 'Ireland', region: 'Europe', search: 'Ireland' },
-          { label: 'Greece', region: 'Europe', search: 'Greece' },
-          { label: 'Turkey', region: 'Europe', search: 'Turkey' },
-          { label: 'Croatia', region: 'Europe', search: 'Croatia' },
-          { label: 'Czech Republic', region: 'Europe', search: 'Czech' },
-          { label: 'Hungary', region: 'Europe', search: 'Hungary' },
-          { label: 'Poland', region: 'Europe', search: 'Poland' },
-          { label: 'Russia', region: 'Europe', search: 'Russia' },
-          { label: 'Romania', region: 'Europe', search: 'Romania' },
-          { label: 'Bulgaria', region: 'Europe', search: 'Bulgaria' },
-          { label: 'Baltic States', region: 'Europe', search: 'Baltic' },
-          { label: 'Norway', region: 'Europe', search: 'Norway' },
-          { label: 'Iceland', region: 'Europe', search: 'Iceland' },
-          { label: 'Finland', region: 'Europe', search: 'Finland' },
-          { label: 'Sweden', region: 'Europe', search: 'Sweden' },
-          { label: 'Denmark', region: 'Europe', search: 'Denmark' },
-          { label: 'Switzerland + Paris', region: 'Europe', search: 'Paris' },
-          { label: 'UK + Scotland', region: 'Europe', search: 'Scotland' },
-          { label: 'Greece + Turkey', region: 'Europe', search: 'Greece' },
-          { label: 'Scandinavia Circuit', region: 'Europe', search: 'Scandinavia' },
-          { label: 'All of Europe', region: 'Europe', search: 'Europe' },
-          { label: 'All of Eastern Europe', region: 'Europe', search: 'East Europe' },
+        id: 'america',
+        name: 'America',
+        allLink: { label: 'All of America', region: 'North America', search: 'America' },
+        countries: [
+          {
+            name: 'USA',
+            cities: [
+              { label: 'New York', search: 'New York' },
+              { label: 'Los Angeles', search: 'Los Angeles' },
+              { label: 'Las Vegas', search: 'Las Vegas' },
+              { label: 'Orlando', search: 'Orlando' },
+              { label: 'San Francisco', search: 'San Francisco' },
+              { label: 'Miami', search: 'Miami' },
+              { label: 'Hawaii', search: 'Hawaii' },
+              { label: 'Alaska', search: 'Alaska' }
+            ]
+          },
+          {
+            name: 'Canada',
+            cities: [
+              { label: 'Toronto', search: 'Toronto' },
+              { label: 'Vancouver', search: 'Vancouver' },
+              { label: 'Montreal', search: 'Montreal' },
+              { label: 'Banff', search: 'Banff' }
+            ]
+          },
+          {
+            name: 'Mexico & Central America',
+            cities: [
+              { label: 'Cancun', search: 'Cancun' },
+              { label: 'Mexico City', search: 'Mexico City' },
+              { label: 'Costa Rica', search: 'Costa Rica' },
+              { label: 'Panama', search: 'Panama' }
+            ]
+          },
+          {
+            name: 'South America',
+            cities: [
+              { label: 'Rio de Janeiro', search: 'Rio de Janeiro' },
+              { label: 'Buenos Aires', search: 'Buenos Aires' },
+              { label: 'Cusco (Machu Picchu)', search: 'Machu Picchu' },
+              { label: 'Patagonia', search: 'Patagonia' }
+            ]
+          }
         ]
       },
       {
-        heading: 'Africa',
-        links: [
-          { label: 'South Africa', region: 'Africa', search: 'South Africa' },
-          { label: 'Kenya', region: 'Africa', search: 'Kenya' },
-          { label: 'Tanzania', region: 'Africa', search: 'Tanzania' },
-          { label: 'Morocco', region: 'Africa', search: 'Morocco' },
-          { label: 'Egypt', region: 'Africa', search: 'Egypt' },
-          { label: 'Mauritius', region: 'Africa', search: 'Mauritius' },
-          { label: 'Seychelles', region: 'Africa', search: 'Seychelles' },
-          { label: 'Madagascar', region: 'Africa', search: 'Madagascar' },
-          { label: 'Zimbabwe', region: 'Africa', search: 'Zimbabwe' },
-          { label: 'Zambia', region: 'Africa', search: 'Zambia' },
-          { label: 'Botswana', region: 'Africa', search: 'Botswana' },
-          { label: 'Namibia', region: 'Africa', search: 'Namibia' },
-          { label: 'Rwanda', region: 'Africa', search: 'Rwanda' },
-          { label: 'Ethiopia', region: 'Africa', search: 'Ethiopia' },
-          { label: 'Tunisia', region: 'Africa', search: 'Tunisia' },
+        id: 'asia',
+        name: 'Asia',
+        allLink: { label: 'All of Asia', region: 'Asia', search: 'Asia' },
+        countries: [
+          {
+            name: 'Thailand',
+            cities: [
+              { label: 'Bangkok', search: 'Bangkok' },
+              { label: 'Phuket', search: 'Phuket' },
+              { label: 'Pattaya', search: 'Pattaya' },
+              { label: 'Chiang Mai', search: 'Chiang Mai' },
+              { label: 'Krabi', search: 'Krabi' }
+            ]
+          },
+          {
+            name: 'Indonesia (Bali)',
+            cities: [
+              { label: 'Ubud', search: 'Ubud' },
+              { label: 'Seminyak', search: 'Seminyak' },
+              { label: 'Nusa Penida', search: 'Nusa Penida' },
+              { label: 'Kuta', search: 'Kuta' }
+            ]
+          },
+          {
+            name: 'Vietnam & Cambodia',
+            cities: [
+              { label: 'Hanoi', search: 'Hanoi' },
+              { label: 'Ha Long Bay', search: 'Ha Long' },
+              { label: 'Da Nang', search: 'Da Nang' },
+              { label: 'Siem Reap', search: 'Siem Reap' }
+            ]
+          },
+          {
+            name: 'Singapore & Malaysia',
+            cities: [
+              { label: 'Singapore', search: 'Singapore' },
+              { label: 'Kuala Lumpur', search: 'Kuala Lumpur' },
+              { label: 'Langkawi', search: 'Langkawi' },
+              { label: 'Penang', search: 'Penang' }
+            ]
+          },
+          {
+            name: 'Japan & East Asia',
+            cities: [
+              { label: 'Tokyo', search: 'Tokyo' },
+              { label: 'Kyoto', search: 'Kyoto' },
+              { label: 'Osaka', search: 'Osaka' },
+              { label: 'Seoul', search: 'Seoul' },
+              { label: 'Beijing', search: 'Beijing' },
+              { label: 'Hong Kong', search: 'Hong Kong' },
+              { label: 'Taipei', search: 'Taipei' }
+            ]
+          },
+          {
+            name: 'South Asia & Island Havens',
+            cities: [
+              { label: 'Sri Lanka', search: 'Sri Lanka' },
+              { label: 'Maldives', search: 'Maldives' },
+              { label: 'Nepal', search: 'Nepal' },
+              { label: 'Bhutan', search: 'Bhutan' }
+            ]
+          }
         ]
       },
       {
-        heading: 'North America',
-        links: [
-          { label: 'USA', region: 'North America', search: 'USA' },
-          { label: 'Canada', region: 'North America', search: 'Canada' },
-          { label: 'Alaska', region: 'North America', search: 'Alaska' },
-          { label: 'Hawaii', region: 'North America', search: 'Hawaii' },
-          { label: 'Mexico', region: 'North America', search: 'Mexico' },
-          { label: 'Costa Rica', region: 'North America', search: 'Costa Rica' },
-          { label: 'Cuba', region: 'North America', search: 'Cuba' },
-          { label: 'Caribbean', region: 'North America', search: 'Caribbean' },
-          { label: 'Panama', region: 'North America', search: 'Panama' },
-          { label: 'Jamaica', region: 'North America', search: 'Jamaica' },
-          { label: 'Bahamas', region: 'North America', search: 'Bahamas' },
+        id: 'australia',
+        name: 'Australia & New Zealand',
+        allLink: { label: 'All of Australia & NZ', region: 'Australia', search: 'Australia' },
+        countries: [
+          {
+            name: 'Australia',
+            cities: [
+              { label: 'Sydney', search: 'Sydney' },
+              { label: 'Melbourne', search: 'Melbourne' },
+              { label: 'Gold Coast', search: 'Gold Coast' },
+              { label: 'Cairns & Reef', search: 'Cairns' },
+              { label: 'Perth', search: 'Perth' }
+            ]
+          },
+          {
+            name: 'New Zealand',
+            cities: [
+              { label: 'Auckland', search: 'Auckland' },
+              { label: 'Queenstown', search: 'Queenstown' },
+              { label: 'Christchurch', search: 'Christchurch' },
+              { label: 'Rotorua', search: 'Rotorua' }
+            ]
+          },
+          {
+            name: 'Pacific Islands',
+            cities: [
+              { label: 'Fiji', search: 'Fiji' },
+              { label: 'Bora Bora', search: 'Bora Bora' },
+              { label: 'Tahiti', search: 'Tahiti' }
+            ]
+          }
         ]
       },
       {
-        heading: 'South America',
-        links: [
-          { label: 'Brazil', region: 'South America', search: 'Brazil' },
-          { label: 'Argentina', region: 'South America', search: 'Argentina' },
-          { label: 'Peru', region: 'South America', search: 'Peru' },
-          { label: 'Chile', region: 'South America', search: 'Chile' },
-          { label: 'Colombia', region: 'South America', search: 'Colombia' },
-          { label: 'Ecuador & Galápagos', region: 'South America', search: 'Ecuador' },
-          { label: 'Bolivia', region: 'South America', search: 'Bolivia' },
-          { label: 'Uruguay', region: 'South America', search: 'Uruguay' },
-          { label: 'Venezuela', region: 'South America', search: 'Venezuela' },
-          { label: 'Patagonia', region: 'South America', search: 'Patagonia' },
+        id: 'europe',
+        name: 'Europe',
+        allLink: { label: 'All of Europe', region: 'Europe', search: 'Europe' },
+        countries: [
+          {
+            name: 'Switzerland & Alps',
+            cities: [
+              { label: 'Zurich', search: 'Zurich' },
+              { label: 'Geneva', search: 'Geneva' },
+              { label: 'Interlaken', search: 'Interlaken' },
+              { label: 'Lucerne', search: 'Lucerne' },
+              { label: 'Zermatt', search: 'Zermatt' }
+            ]
+          },
+          {
+            name: 'France',
+            cities: [
+              { label: 'Paris', search: 'Paris' },
+              { label: 'Nice', search: 'Nice' },
+              { label: 'Lyon', search: 'Lyon' },
+              { label: 'French Riviera', search: 'French Riviera' }
+            ]
+          },
+          {
+            name: 'Italy',
+            cities: [
+              { label: 'Rome', search: 'Rome' },
+              { label: 'Florence', search: 'Florence' },
+              { label: 'Venice', search: 'Venice' },
+              { label: 'Milan', search: 'Milan' },
+              { label: 'Amalfi Coast', search: 'Amalfi' },
+              { label: 'Tuscany', search: 'Tuscany' }
+            ]
+          },
+          {
+            name: 'Spain & Portugal',
+            cities: [
+              { label: 'Barcelona', search: 'Barcelona' },
+              { label: 'Madrid', search: 'Madrid' },
+              { label: 'Seville', search: 'Seville' },
+              { label: 'Ibiza', search: 'Ibiza' },
+              { label: 'Lisbon', search: 'Lisbon' }
+            ]
+          },
+          {
+            name: 'United Kingdom & Ireland',
+            cities: [
+              { label: 'London', search: 'London' },
+              { label: 'Edinburgh', search: 'Edinburgh' },
+              { label: 'Highlands', search: 'Scotland' },
+              { label: 'Dublin', search: 'Dublin' }
+            ]
+          },
+          {
+            name: 'Greece & Turkey',
+            cities: [
+              { label: 'Athens', search: 'Athens' },
+              { label: 'Santorini', search: 'Santorini' },
+              { label: 'Mykonos', search: 'Mykonos' },
+              { label: 'Istanbul', search: 'Istanbul' },
+              { label: 'Cappadocia', search: 'Cappadocia' }
+            ]
+          },
+          {
+            name: 'Nordics & Iceland',
+            cities: [
+              { label: 'Reykjavik', search: 'Reykjavik' },
+              { label: 'Oslo', search: 'Oslo' },
+              { label: 'Stockholm', search: 'Stockholm' },
+              { label: 'Copenhagen', search: 'Copenhagen' },
+              { label: 'Lapland', search: 'Lapland' }
+            ]
+          }
         ]
       },
       {
-        heading: 'Australia & Oceania',
-        links: [
-          { label: 'Australia', region: 'Australia', search: 'Australia' },
-          { label: 'New Zealand', region: 'Australia', search: 'New Zealand' },
-          { label: 'Fiji', region: 'Australia', search: 'Fiji' },
-          { label: 'Bora Bora', region: 'Australia', search: 'Bora Bora' },
-          { label: 'Tahiti', region: 'Australia', search: 'Tahiti' },
-          { label: 'Papua New Guinea', region: 'Australia', search: 'Papua New Guinea' },
-          { label: 'Samoa', region: 'Australia', search: 'Samoa' },
-          { label: 'Australia + New Zealand', region: 'Australia', search: 'Australia' },
-          { label: 'Fiji + Bora Bora', region: 'Australia', search: 'Fiji' },
+        id: 'middle_east',
+        name: 'Middle East',
+        allLink: { label: 'All of Middle East', region: 'Asia', search: 'Middle East' },
+        countries: [
+          {
+            name: 'United Arab Emirates',
+            cities: [
+              { label: 'Dubai', search: 'Dubai' },
+              { label: 'Abu Dhabi', search: 'Abu Dhabi' },
+              { label: 'Sharjah', search: 'Sharjah' },
+              { label: 'Ras Al Khaimah', search: 'Ras Al Khaimah' }
+            ]
+          },
+          {
+            name: 'Oman & Jordan',
+            cities: [
+              { label: 'Muscat', search: 'Muscat' },
+              { label: 'Salalah', search: 'Salalah' },
+              { label: 'Petra', search: 'Petra' },
+              { label: 'Amman', search: 'Amman' },
+              { label: 'Dead Sea', search: 'Dead Sea' }
+            ]
+          },
+          {
+            name: 'Saudi Arabia & Qatar',
+            cities: [
+              { label: 'Riyadh', search: 'Riyadh' },
+              { label: 'Jeddah', search: 'Jeddah' },
+              { label: 'AlUla', search: 'AlUla' },
+              { label: 'Doha', search: 'Doha' }
+            ]
+          },
+          {
+            name: 'Georgia & Caucasus',
+            cities: [
+              { label: 'Tbilisi', search: 'Tbilisi' },
+              { label: 'Batumi', search: 'Batumi' },
+              { label: 'Baku', search: 'Baku' },
+              { label: 'Yerevan', search: 'Yerevan' }
+            ]
+          }
         ]
       },
       {
-        heading: 'Antarctica',
-        links: [
-          { label: 'Antarctica Expedition', region: 'Antarctica', search: 'Antarctica' },
-          { label: 'South Georgia Voyage', region: 'Antarctica', search: 'South Georgia' },
-          { label: 'Arctic & Svalbard', region: 'Antarctica', search: 'Arctic' },
-          { label: 'Antarctic Peninsula', region: 'Antarctica', search: 'Antarctic Peninsula' },
-          { label: 'Ross Sea Explorer', region: 'Antarctica', search: 'Ross Sea' },
+        id: 'antarctica',
+        name: 'Antarctica',
+        allLink: { label: 'All Expeditions', region: 'Antarctica', search: 'Antarctica' },
+        countries: [
+          {
+            name: 'Antarctica Voyages',
+            cities: [
+              { label: 'Antarctica Expedition', search: 'Antarctica' },
+              { label: 'South Georgia Island', search: 'South Georgia' },
+              { label: 'Falkland Islands', search: 'Falkland' },
+              { label: 'Antarctic Peninsula', search: 'Antarctic Peninsula' },
+              { label: 'Ross Sea Explorer', search: 'Ross Sea' }
+            ]
+          },
+          {
+            name: 'Arctic & Polar Expeditions',
+            cities: [
+              { label: 'Svalbard', search: 'Svalbard' },
+              { label: 'Greenland', search: 'Greenland' },
+              { label: 'North Pole Expedition', search: 'North Pole' }
+            ]
+          }
         ]
       }
     ]
-  },
+  }
 ]
 
 export default function MegaNavBar({ activePage, onNavigate, isMobile = false, compact = false }) {
@@ -294,6 +478,9 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
             key={cat.id}
             label={cat.label}
             columns={cat.columns}
+            isSplit={cat.isSplit}
+            topTabs={cat.topTabs}
+            continents={cat.continents}
             onNavigate={onNavigate}
             isMobile
           />
@@ -321,6 +508,9 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
           key={cat.id}
           label={cat.label}
           columns={cat.columns}
+          isSplit={cat.isSplit}
+          topTabs={cat.topTabs}
+          continents={cat.continents}
           onNavigate={onNavigate}
           compact={compact}
         />
