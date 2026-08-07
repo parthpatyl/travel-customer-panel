@@ -709,8 +709,14 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
           isMobile
         />
         <NavLink
-          active={activePage === 'booking'}
-          onClick={() => onNavigate('booking')}
+          active={activePage === 'gallery'}
+          onClick={() => onNavigate('gallery')}
+          label="Stories & Gallery"
+          isMobile
+        />
+        <NavLink
+          active={activePage === 'giftcards'}
+          onClick={() => onNavigate('giftcards')}
           label="Gift Cards"
           isMobile
         />
@@ -739,8 +745,14 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
         compact={compact}
       />
       <NavLink
-        active={activePage === 'booking'}
-        onClick={() => onNavigate('booking')}
+        active={activePage === 'gallery'}
+        onClick={() => onNavigate('gallery')}
+        label="Stories & Gallery"
+        compact={compact}
+      />
+      <NavLink
+        active={activePage === 'giftcards'}
+        onClick={() => onNavigate('giftcards')}
         label="Gift Cards"
         compact={compact}
       />

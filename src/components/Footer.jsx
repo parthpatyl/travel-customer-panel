@@ -113,6 +113,8 @@ export default function Footer({ onNavigate }) {
             <span className="text-stone-600">•</span>
             <button onClick={() => handleNav('corporate')} className="hover:text-amber-400 transition-colors">Corporate Travel</button>
             <span className="text-stone-600">•</span>
+            <button onClick={() => handleNav('gallery')} className="hover:text-amber-400 transition-colors">Stories & Gallery</button>
+            <span className="text-stone-600">•</span>
             <button onClick={() => handleNav('booking')} className="hover:text-amber-400 transition-colors">Book A Trip</button>
           </div>
         </div>

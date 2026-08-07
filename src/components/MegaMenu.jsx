@@ -169,39 +169,28 @@ export default function MegaMenu({
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-0.5 z-50 animate-slide-down"
+          className={`z-[100] animate-slide-down ${
+            isSplit ? 'fixed left-1/2 -translate-x-1/2 top-[106px]' : 'absolute top-full left-0 mt-2'
+          }`}
           onMouseEnter={open}
           onMouseLeave={close}
         >
           {isSplit ? (
-            /* ── Multi-tier Sidebar Mega Menu (Continents & Countries - Non-scrollable layout) ── */
-            <div className="bg-white border border-stone-200/90 rounded-2xl shadow-2xl shadow-stone-950/20 overflow-hidden w-[960px] max-w-[96vw] text-stone-900">
-              {/* Top Quick Bar (Fit cleanly without scroll) */}
-              {topTabs && topTabs.length > 0 && (
-                <div className="flex items-center justify-between gap-3 px-5 py-2 bg-[#f8fafc] border-b border-stone-200 text-[12.5px] font-semibold text-stone-600 overflow-hidden whitespace-nowrap">
-                  {topTabs.map((tab, idx) => {
-                    const isTabActive = activeContinentId === tab.continentId
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          if (tab.continentId) setActiveContinentId(tab.continentId)
-                        }}
-                        className={`transition-colors cursor-pointer hover:text-stone-900 py-0.5 ${
-                          isTabActive ? 'font-bold text-stone-950 border-b-2 border-stone-900 -mb-[9px] pb-1.5' : ''
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    )
-                  })}
+            /* ── Responsive Viewport-Centered Split Mega Menu ── */
+            <div className="bg-white border border-stone-200/90 rounded-2xl shadow-2xl shadow-stone-950/20 overflow-hidden w-[90vw] max-w-5xl max-h-[76vh] flex flex-col text-stone-900">
+              {/* Header Title Bar */}
+              <div className="flex items-center justify-between px-5 py-2.5 bg-stone-50 border-b border-stone-200/80 shrink-0">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-bold text-stone-800 uppercase tracking-wider">International Destinations</span>
                 </div>
-              )}
+                <span className="text-[11px] text-stone-400 font-semibold">Hover continent to explore destinations</span>
+              </div>
 
               {/* Main Body: Left Continents Sidebar + Right Countries Grid */}
-              <div className="flex overflow-hidden">
+              <div className="flex flex-1 min-h-0 overflow-hidden">
                 {/* Left Sidebar */}
-                <div className="w-52 shrink-0 bg-[#f4f6fa] border-r border-stone-200/90 py-1.5 flex flex-col">
+                <div className="w-52 sm:w-56 shrink-0 bg-[#f4f6fa] border-r border-stone-200/90 py-2 flex flex-col overflow-y-auto min-h-0">
                   {continents.map((cont) => {
                     const isActive = cont.id === activeContinentId
                     return (
@@ -209,48 +198,48 @@ export default function MegaMenu({
                         key={cont.id}
                         onMouseEnter={() => setActiveContinentId(cont.id)}
                         onClick={() => setActiveContinentId(cont.id)}
-                        className={`w-full text-left px-4.5 py-2.5 text-[14px] font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                        className={`w-full text-left px-4 py-2.5 text-[13.5px] font-semibold flex items-center justify-between transition-all cursor-pointer ${
                           isActive
-                            ? 'bg-white text-stone-900 border-l-4 border-amber-500 shadow-sm pl-3.5 font-bold'
+                            ? 'bg-white text-stone-900 border-l-4 border-amber-500 shadow-sm pl-3 font-bold'
                             : 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'
                         }`}
                       >
                         <span>{cont.name}</span>
-                        <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'text-stone-900 font-bold' : 'text-stone-400'}`} />
+                        <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'text-amber-600 font-bold' : 'text-stone-400'}`} />
                       </button>
                     )
                   })}
                 </div>
 
-                {/* Right Panel (Compact multi-column layout, zero scrolling) */}
-                <div className="flex-1 bg-white p-5 md:p-6 overflow-hidden">
+                {/* Right Panel (Responsive Multi-Column Grid) */}
+                <div className="flex-1 bg-white p-5 md:p-6 overflow-y-auto min-h-0">
                   {activeContinent && (
-                    <div>
+                    <div className="space-y-4">
                       {activeContinent.allLink && (
-                        <div className="mb-3.5">
+                        <div className="pb-2 border-b border-stone-100">
                           <button
                             onClick={() => handleLinkClick(activeContinent.allLink)}
-                            className="group text-[14.5px] font-extrabold text-stone-900 hover:text-indigo-600 inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            className="group text-[14.5px] font-extrabold text-stone-900 hover:text-amber-600 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <span>{activeContinent.allLink.label}</span>
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform text-stone-600" />
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform text-amber-600" />
                           </button>
                         </div>
                       )}
 
-                      <div className="grid grid-cols-3 gap-x-6 gap-y-4 items-start">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 items-start">
                         {activeContinent.countries?.map((country) => {
                           const isLarge = country.cities && country.cities.length > 5
                           return (
-                            <div key={country.name} className={`space-y-1 ${isLarge ? 'col-span-2' : 'col-span-1'}`}>
+                            <div key={country.name} className={`space-y-1.5 ${isLarge ? 'col-span-1 sm:col-span-2' : 'col-span-1'}`}>
                               <button
                                 onClick={() => handleLinkClick({ page: 'destinations', region: activeContinent.name, search: country.name })}
-                                className="text-[13.5px] font-bold text-stone-900 hover:text-indigo-600 transition-colors pb-0.5 border-b border-stone-200 block text-left w-full cursor-pointer"
+                                className="text-[13px] font-bold text-stone-900 hover:text-amber-600 transition-colors pb-1 border-b border-stone-200/80 block text-left w-full cursor-pointer"
                               >
                                 {country.name}
                               </button>
                               {country.cities && country.cities.length > 0 && (
-                                <div className={isLarge ? 'grid grid-cols-2 gap-x-3 gap-y-0.5' : 'space-y-0.5'}>
+                                <div className={isLarge ? 'grid grid-cols-2 gap-x-3 gap-y-1' : 'space-y-1'}>
                                   {country.cities.map((city) => {
                                     const cityLabel = typeof city === 'string' ? city : city.label
                                     const searchVal = typeof city === 'string' ? city : (city.search || city.label)
@@ -258,7 +247,7 @@ export default function MegaMenu({
                                       <button
                                         key={cityLabel}
                                         onClick={() => handleLinkClick({ page: 'destinations', region: activeContinent.name, search: searchVal })}
-                                        className="text-[12.5px] text-stone-600 hover:text-stone-950 block text-left w-full py-0.5 transition-colors font-medium cursor-pointer hover:underline truncate"
+                                        className="text-[12px] text-stone-600 hover:text-stone-950 block text-left w-full py-0.5 transition-colors font-medium cursor-pointer hover:underline truncate"
                                       >
                                         {cityLabel}
                                       </button>
@@ -277,9 +266,9 @@ export default function MegaMenu({
             </div>
           ) : (
             /* ── Standard Column Mega Menu ── */
-            <div className="bg-white/[0.98] backdrop-blur-2xl border border-stone-200/90 rounded-xl shadow-2xl shadow-stone-950/25 px-3.5 py-2.5 w-max max-w-[97vw]">
+            <div className="bg-white/[0.98] backdrop-blur-2xl border border-stone-200/90 rounded-xl shadow-2xl shadow-stone-950/25 p-4 w-max max-w-[95vw]">
               {/* Menu title bar */}
-              <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-stone-150">
+              <div className="flex items-center justify-between gap-3 mb-3 pb-2 border-b border-stone-150">
                 <div className="flex items-center gap-1.5">
                   <Globe className="w-3.5 h-3.5 text-amber-600" />
                   <span className="text-[12px] font-bold text-stone-700 uppercase tracking-wider">{label} Destinations</span>
@@ -287,7 +276,7 @@ export default function MegaMenu({
                 <span className="text-[11px] text-stone-400 font-medium">Explore Destinations</span>
               </div>
 
-              <div className="flex gap-3 sm:gap-4 flex-wrap items-start">
+              <div className="flex gap-5 sm:gap-6 flex-wrap items-start">
                 {columns?.map(col => {
                   const totalLinks = col.sections
                     ? col.sections.reduce((acc, s) => acc + s.links.length, 0)
@@ -297,33 +286,33 @@ export default function MegaMenu({
 
                   const widthClass =
                     colsCount === 3
-                      ? 'min-w-[420px] max-w-[510px]'
+                      ? 'min-w-[560px] max-w-[680px]'
                       : colsCount === 2
-                      ? 'min-w-[280px] max-w-[350px]'
-                      : 'min-w-[130px] max-w-[170px]'
+                      ? 'min-w-[420px] max-w-[520px]'
+                      : 'min-w-[210px] max-w-[260px]'
 
                   const gridClass =
                     colsCount === 3
-                      ? 'grid grid-cols-3 gap-x-2 gap-y-0'
+                      ? 'grid grid-cols-3 gap-x-4 gap-y-1'
                       : colsCount === 2
-                      ? 'grid grid-cols-2 gap-x-2 gap-y-0'
-                      : 'space-y-0'
+                      ? 'grid grid-cols-2 gap-x-4 gap-y-1'
+                      : 'space-y-1'
 
                   return (
                     <div key={col.heading} className={widthClass}>
                       {col.sections ? (
                         col.sections.map((sec, i) => (
-                          <div key={sec.subheading} className={i > 0 ? 'mt-1.5 pt-1 border-t border-stone-100' : ''}>
-                            <h4 className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-indigo-600 mb-0.5 flex items-center gap-1">
+                          <div key={sec.subheading} className={i > 0 ? 'mt-2 pt-2 border-t border-stone-100' : ''}>
+                            <h4 className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-indigo-600 mb-1 flex items-center gap-1">
                               <MapPin className="w-3 h-3 shrink-0" />
                               {sec.subheading}
                             </h4>
-                            <ul className={sec.links.length > 24 ? 'grid grid-cols-3 gap-x-2 gap-y-0' : sec.links.length > 12 ? 'grid grid-cols-2 gap-x-2 gap-y-0' : 'space-y-0'}>
+                            <ul className={sec.links.length > 24 ? 'grid grid-cols-3 gap-x-4 gap-y-1' : sec.links.length > 12 ? 'grid grid-cols-2 gap-x-4 gap-y-1' : 'space-y-1'}>
                               {sec.links.map(link => (
                                 <li key={link.label}>
                                   <button
                                     onClick={() => handleLinkClick(link)}
-                                    className="text-[15px] text-stone-600 hover:text-indigo-600 hover:bg-indigo-50/70 transition-all py-0 px-1 -ml-1 rounded block w-full text-left font-normal hover:font-medium leading-snug truncate"
+                                    className="text-[13.5px] text-stone-600 hover:text-indigo-600 hover:bg-indigo-50/70 transition-all py-1 px-1.5 -ml-1.5 rounded block w-full text-left font-normal hover:font-medium leading-snug whitespace-normal break-words cursor-pointer"
                                     title={link.label}
                                   >
                                     {link.label}
@@ -335,7 +324,7 @@ export default function MegaMenu({
                         ))
                       ) : (
                         <>
-                          <h4 className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-indigo-600 mb-0.5 flex items-center gap-1">
+                          <h4 className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-indigo-600 mb-1 flex items-center gap-1">
                             <MapPin className="w-3 h-3 shrink-0" />
                             {col.heading}
                           </h4>
@@ -344,7 +333,7 @@ export default function MegaMenu({
                               <li key={link.label}>
                                 <button
                                   onClick={() => handleLinkClick(link)}
-                                  className="text-[15px] text-stone-600 hover:text-indigo-600 hover:bg-indigo-50/70 transition-all py-0 px-1 -ml-1 rounded block w-full text-left font-normal hover:font-medium leading-snug truncate"
+                                  className="text-[13.5px] text-stone-600 hover:text-indigo-600 hover:bg-indigo-50/70 transition-all py-1 px-1.5 -ml-1.5 rounded block w-full text-left font-normal hover:font-medium leading-snug whitespace-normal break-words cursor-pointer"
                                   title={link.label}
                                 >
                                   {link.label}

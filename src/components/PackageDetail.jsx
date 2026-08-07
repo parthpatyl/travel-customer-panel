@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
 import { API_URL, getImgUrl, handleImageError, DEFAULT_HERO_IMAGE } from '../utils/image'
 import { ArrowLeft, Check, CheckCircle2, X, Phone, Mail, Clock, Globe, Flame, MapPin, Hotel, Compass, User, Car, Plane, Ship, Printer } from 'lucide-react'
-import Markdown from 'react-markdown'
+import { SmartMarkdown, SmartMarkdownInline, flattenBulletedItems } from '../utils/markdownUtils'
 import PackageBrochureModal from './PackageBrochureModal'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
@@ -273,21 +273,19 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
             {/* Overview */}
             <div className="bg-white border border-stone-200/80 rounded-2xl p-6 md:p-8 shadow-sm">
               <h2 className="font-display text-xl text-stone-900 mb-3 tracking-tight">Overview</h2>
-              <div className="text-sm text-stone-600 leading-relaxed font-light markdown-body">
-                <Markdown components={mdComponents}>{pkg.description}</Markdown>
-              </div>
+              <SmartMarkdown content={pkg.description} className="text-sm text-stone-600 leading-relaxed font-light" />
             </div>
 
             {/* Highlights Grid */}
             <div className="bg-[#FAF9F5] border border-stone-200/70 rounded-2xl p-6 md:p-8">
               <h2 className="font-display text-xl text-stone-900 mb-4 tracking-tight">Trip Highlights</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {pkg.highlights.map((item, idx) => (
+                {flattenBulletedItems(pkg.highlights).map((item, idx) => (
                   <div key={idx} className="flex gap-3 items-start">
                     <span className="w-5 h-5 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
                       <Check className="w-3 h-3" strokeWidth={3} />
                     </span>
-                    <MarkdownInline className="text-sm text-stone-700 font-light leading-relaxed">{item}</MarkdownInline>
+                    <SmartMarkdownInline className="text-sm text-stone-700 font-light leading-relaxed">{item}</SmartMarkdownInline>
                   </div>
                 ))}
               </div>
@@ -334,9 +332,7 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                           <h4 className="font-display text-base text-stone-900 mb-1.5">
                             {dayItem.title}
                           </h4>
-                          <div className="text-sm text-stone-600 leading-relaxed font-light markdown-body whitespace-pre-line">
-                            <Markdown components={mdComponents}>{dayItem.desc}</Markdown>
-                          </div>
+                          <SmartMarkdown content={dayItem.desc} className="text-sm text-stone-600 leading-relaxed font-light" />
                         </div>
                       </div>
                     ))}
@@ -352,10 +348,10 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> What's Included
                       </h4>
                       <ul className="space-y-3">
-                        {pkg.inclusions.map((inc, i) => (
+                        {flattenBulletedItems(pkg.inclusions).map((inc, i) => (
                           <li key={i} className="flex gap-2.5 items-start text-sm text-stone-700 leading-relaxed font-light">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                            <MarkdownInline>{inc}</MarkdownInline>
+                            <SmartMarkdownInline>{inc}</SmartMarkdownInline>
                           </li>
                         ))}
                       </ul>
@@ -367,10 +363,10 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                         <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" /> What's Excluded
                       </h4>
                       <ul className="space-y-3">
-                        {pkg.exclusions.map((exc, i) => (
+                        {flattenBulletedItems(pkg.exclusions).map((exc, i) => (
                           <li key={i} className="flex gap-2.5 items-start text-sm text-stone-700 leading-relaxed font-light">
                             <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                            <MarkdownInline>{exc}</MarkdownInline>
+                            <SmartMarkdownInline>{exc}</SmartMarkdownInline>
                           </li>
                         ))}
                       </ul>
@@ -383,7 +379,7 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                           <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> Terms & Conditions
                         </h4>
                         <div className="p-4 bg-amber-50/60 border border-amber-200/70 rounded-xl text-xs text-stone-700 leading-relaxed">
-                          <Markdown>{pkg.termsAndConditions}</Markdown>
+                          <SmartMarkdown content={pkg.termsAndConditions} />
                         </div>
                       </div>
                     )}

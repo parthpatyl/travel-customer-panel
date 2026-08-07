@@ -14,6 +14,8 @@ import CorporateTours from './components/CorporateTours'
 import UpcomingTrips from './components/UpcomingTrips'
 import EnquiryPage from './components/EnquiryPage'
 import SpecialityCategories from './components/SpecialityCategories'
+import GiftCardsPage from './components/GiftCardsPage'
+import TripStoriesPage from './components/TripStoriesPage'
 import staticPackages from './data/packages'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -258,6 +260,18 @@ function App() {
           <EnquiryPage
             enquiryId={selectedEnquiryId}
             onBackToHome={() => navigate('home')}
+          />
+        )}
+
+        {activePage === 'giftcards' && (
+          <GiftCardsPage onNavigate={(page, pkg, region, search) => navigate(page, pkg, region, search)} />
+        )}
+
+        {activePage === 'gallery' && (
+          <TripStoriesPage
+            testimonials={testimonials}
+            packages={packages}
+            onStorySubmitted={(newStory) => setTestimonials(prev => [newStory, ...prev])}
           />
         )}
       </main>

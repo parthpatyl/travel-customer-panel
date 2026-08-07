@@ -1,29 +1,11 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Printer, X, Check, CheckCircle2, Phone, Mail, MapPin, Hotel, Compass, User, Car, Plane, Ship } from 'lucide-react'
-import Markdown from 'react-markdown'
 import { formatINR, formatUSD } from '../utils/currency'
 import { getImgUrl, handleImageError, DEFAULT_HERO_IMAGE } from '../utils/image'
+import { SmartMarkdown, SmartMarkdownInline, flattenBulletedItems } from '../utils/markdownUtils'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
-
-const mdComponents = {
-  strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
-}
-
-function MarkdownInline({ children, className }) {
-  if (!children) return null
-  return (
-    <Markdown
-      components={{
-        p: ({ children }) => <span className={className}>{children}</span>,
-        strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
-      }}
-    >
-      {children}
-    </Markdown>
-  )
-}
 
 export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = {} }) {
   useEffect(() => {
@@ -233,21 +215,7 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
                 <h3 className="font-display text-base font-bold text-stone-900 border-b border-stone-200 pb-1">
                   Trip Overview
                 </h3>
-                <div className="text-sm text-stone-600 leading-relaxed font-light whitespace-pre-line">
-                  <Markdown components={mdComponents}>{pkg.description}</Markdown>
-                </div>
-              </div>
-            )}
-
-            {/* Terms & Conditions */}
-            {(pkg.termsAndConditions || pkg.terms_and_conditions) && (
-              <div className="space-y-2 print-break-inside-avoid">
-                <h3 className="font-display text-base font-bold text-stone-900 border-b border-stone-200 pb-1">
-                  Terms & Conditions
-                </h3>
-                <div className="text-xs text-stone-600 leading-relaxed font-light bg-stone-50 p-3 rounded-xl border border-stone-200">
-                  <Markdown components={mdComponents}>{pkg.termsAndConditions || pkg.terms_and_conditions}</Markdown>
-                </div>
+                <SmartMarkdown content={pkg.description} className="text-sm text-stone-600 leading-relaxed font-light" />
               </div>
             )}
 
@@ -258,12 +226,12 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
                   Trip Highlights
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {pkg.highlights.map((item, idx) => (
+                  {flattenBulletedItems(pkg.highlights).map((item, idx) => (
                     <div key={idx} className="flex items-start gap-2.5 text-xs text-stone-700">
                       <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
                         <Check className="w-2.5 h-2.5" strokeWidth={3} />
                       </span>
-                      <MarkdownInline className="leading-snug">{item}</MarkdownInline>
+                      <SmartMarkdownInline className="leading-snug">{item}</SmartMarkdownInline>
                     </div>
                   ))}
                 </div>
@@ -287,9 +255,7 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
                           {dayItem.title}
                         </h4>
                       </div>
-                      <div className="text-xs text-stone-600 leading-relaxed font-light whitespace-pre-line pl-1">
-                        <Markdown components={mdComponents}>{dayItem.desc}</Markdown>
-                      </div>
+                      <SmartMarkdown content={dayItem.desc} className="text-xs text-stone-600 leading-relaxed font-light pl-1" />
                     </div>
                   ))}
                 </div>
@@ -304,10 +270,10 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
                     <span className="w-2 h-2 bg-emerald-500 rounded-full" /> What's Included
                   </h4>
                   <ul className="space-y-1.5">
-                    {pkg.inclusions.map((inc, i) => (
+                    {flattenBulletedItems(pkg.inclusions).map((inc, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs text-stone-700">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                        <MarkdownInline>{inc}</MarkdownInline>
+                        <SmartMarkdownInline>{inc}</SmartMarkdownInline>
                       </li>
                     ))}
                   </ul>
@@ -320,16 +286,28 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
                     <span className="w-2 h-2 bg-rose-500 rounded-full" /> What's Excluded
                   </h4>
                   <ul className="space-y-1.5">
-                    {pkg.exclusions.map((exc, i) => (
+                    {flattenBulletedItems(pkg.exclusions).map((exc, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs text-stone-700">
                         <span className="w-3.5 h-3.5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">✕</span>
-                        <MarkdownInline>{exc}</MarkdownInline>
+                        <SmartMarkdownInline>{exc}</SmartMarkdownInline>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
             </div>
+
+            {/* Terms & Conditions */}
+            {(pkg.termsAndConditions || pkg.terms_and_conditions) && (
+              <div className="space-y-2 print-break-inside-avoid">
+                <h3 className="font-display text-base font-bold text-stone-900 border-b border-stone-200 pb-1">
+                  Terms & Conditions
+                </h3>
+                <div className="text-xs text-stone-600 leading-relaxed font-light bg-stone-50 p-3 rounded-xl border border-stone-200">
+                  <SmartMarkdown content={pkg.termsAndConditions || pkg.terms_and_conditions} />
+                </div>
+              </div>
+            )}
 
             {/* Footer Contact & Booking Note */}
             <div className="pt-3 border-t-2 border-stone-200 text-center space-y-2 print-break-inside-avoid">
