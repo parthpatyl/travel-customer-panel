@@ -7,30 +7,15 @@ import PackageBrochureModal from './PackageBrochureModal'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
 
-const mdComponents = {
-  strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
-}
-
-function MarkdownInline({ children, className }) {
-  return (
-    <Markdown
-      components={{
-        p: ({ children }) => <span className={className}>{children}</span>,
-        strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
-      }}
-    >
-      {children}
-    </Markdown>
-  )
-}
-
 export default function PackageDetail({ pkg, onBook, settings = {} }) {
   const [activeTab, setActiveTab] = useState('itinerary') // tabs: itinerary, inclusions
   const [weather, setWeather] = useState(null)
   const [groupDepartures, setGroupDepartures] = useState([])
   const [isBrochureOpen, setIsBrochureOpen] = useState(false)
 
-  const spotsLeft = pkg.slots.total - pkg.slots.booked
+  const totalSlots = pkg?.slots?.total ?? pkg?.slotsTotal ?? 20
+  const bookedSlots = pkg?.slots?.booked ?? pkg?.slotsBooked ?? 0
+  const spotsLeft = totalSlots - bookedSlots
 
   useEffect(() => {
     const fetchGroupDepartures = async () => {
@@ -512,7 +497,9 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                   </span>
                   <div className="space-y-2">
                     {groupDepartures.map((dep) => {
-                      const depSpotsLeft = dep.slots.total - dep.slots.booked
+                      const depTotal = dep.slots?.total ?? dep.slotsTotal ?? 20
+                      const depBooked = dep.slots?.booked ?? dep.slotsBooked ?? 0
+                      const depSpotsLeft = depTotal - depBooked
                       const isFull = depSpotsLeft <= 0
                       return (
                         <div key={dep.id} className="flex items-center justify-between p-3 bg-stone-50 border border-stone-200/70 rounded-xl text-xs">

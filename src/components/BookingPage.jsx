@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { formatINR, formatUSD } from '../utils/currency'
 import { API_URL, getImgUrl, handleImageError } from '../utils/image'
-import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Building2, Search, Plus, Minus, ArrowRight, X } from 'lucide-react'
+import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, AlertCircle, CheckCircle2, Building2, Search, Plus, Minus, ArrowRight, X } from 'lucide-react'
 import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
 import CalendarPopup from './CalendarPopup'
@@ -70,7 +70,7 @@ function GuestPreferenceCard({ index, data, onChange, errors }) {
         {index > 0 && (
           <div>
             <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">
-              Guest Full Name <span className="text-rose-500">*</span>
+              Guest Full Name <span className="text-stone-400 font-normal">(Optional)</span>
             </label>
             <input
               type="text"
@@ -79,10 +79,15 @@ function GuestPreferenceCard({ index, data, onChange, errors }) {
                 const filtered = e.target.value.replace(/[^a-zA-Z\s]/g, '')
                 onChange(index, 'name', filtered)
               }}
-              placeholder="e.g. Jane Doe"
-              className={`w-full bg-white border ${errors?.[index]?.name ? 'border-rose-400' : 'border-stone-200'} focus:border-amber-500 rounded-lg py-2 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none`}
+              placeholder={`e.g. Guest ${index + 1}`}
+              className={`w-full bg-white border ${errors?.[index]?.name ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200' : 'border-stone-200 focus:border-amber-500'} rounded-lg py-2 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none`}
             />
-            {errors?.[index]?.name && <span className="text-[10px] text-rose-600 font-medium mt-0.5 block">{errors[index].name}</span>}
+            {errors?.[index]?.name && (
+              <span className="text-[10px] text-rose-600 font-semibold mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                {errors[index].name}
+              </span>
+            )}
           </div>
         )}
         <div>
@@ -299,93 +304,193 @@ export default function BookingPage({ packages, selectedPackage }) {
     }
   }
 
+  const validateField = (fieldName, value, currentFormData = formData) => {
+    const data = { ...currentFormData, [fieldName]: value }
+    const todayStr = new Date().toISOString().split('T')[0]
+
+    switch (fieldName) {
+      case 'name': {
+        const nameVal = (value || '').trim()
+        if (!nameVal) return 'Full name is required'
+        if (!NAME_REGEX.test(nameVal)) return 'Name should contain letters and spaces only (e.g. Jane Doe)'
+        if (nameVal.length < 2) return 'Name must be at least 2 characters'
+        return null
+      }
+      case 'email': {
+        const emailVal = (value || '').trim()
+        if (!emailVal) {
+          return inquiryType === 'corporate' 
+            ? 'Work email is required (e.g. name@company.com)' 
+            : 'Email address is required (e.g. name@example.com)'
+        }
+        if (!/\S+@\S+\.\S+/.test(emailVal)) {
+          return 'Please enter a valid email address (e.g. name@example.com)'
+        }
+        return null
+      }
+      case 'phone': {
+        const phoneVal = (value || '').trim()
+        const cc = data.countryCode || defaultCode?.code || '+1'
+        if (!phoneVal) return 'Phone number is required'
+        if (!cc) return 'Please select a country dial code'
+        const full = `${cc}${phoneVal}`
+        try {
+          const parsed = parsePhoneNumber(full)
+          if (!parsed?.isValid()) {
+            if (cc === '+91') return 'Please enter a valid 10-digit Indian mobile number (+91)'
+            if (cc === '+1') return 'Please enter a valid 10-digit US/Canada phone number (+1)'
+            if (cc === '+44') return 'Please enter a valid UK phone number (+44)'
+            return `Invalid phone number format${parsed?.country ? ` for ${parsed.country}` : ''}`
+          }
+        } catch {
+          if (cc === '+91' && phoneVal.length !== 10) return 'Please enter a valid 10-digit Indian mobile number (+91)'
+          return 'Invalid phone number format'
+        }
+        return null
+      }
+      case 'countryCode': {
+        if (!value) return 'Please select a country dial code'
+        if (data.phone) {
+          const full = `${value}${data.phone}`
+          try {
+            const parsed = parsePhoneNumber(full)
+            if (!parsed?.isValid()) {
+              if (value === '+91') return 'Please enter a valid 10-digit Indian mobile number (+91)'
+              if (value === '+1') return 'Please enter a valid 10-digit US/Canada phone number (+1)'
+              return `Invalid phone number format${parsed?.country ? ` for ${parsed.country}` : ''}`
+            }
+          } catch {
+            return 'Invalid phone number format'
+          }
+        }
+        return null
+      }
+      case 'companyName': {
+        if (inquiryType === 'corporate' && (!value || !value.trim())) {
+          return 'Company name is required for corporate inquiries'
+        }
+        return null
+      }
+      case 'packageId': {
+        if (!value) return 'Please select a destination package or enter a custom destination'
+        return null
+      }
+      case 'customDestination': {
+        if (data.packageId === 'custom-other' && (!value || !value.trim())) {
+          return 'Please enter your custom destination city or country'
+        }
+        return null
+      }
+      case 'startDate': {
+        if (!value) return 'Start date is required'
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'Please enter a valid date'
+        if (value < todayStr) return 'Start date cannot be in the past'
+        return null
+      }
+      case 'endDate': {
+        if (!isEndDateLocked) {
+          if (!value) return 'End date is required'
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'Please enter a valid date'
+          if (data.startDate && value < todayStr) return 'End date cannot be in the past'
+          if (data.startDate && value < data.startDate) return 'Return date cannot be before start date'
+        }
+        return null
+      }
+      default:
+        return null
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
+    let filteredValue = value
     if (name === 'name') {
-      const filtered = value.replace(/[^a-zA-Z\s]/g, '')
-      setFormData((prev) => ({ ...prev, name: filtered }))
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }))
+      filteredValue = value.replace(/[^a-zA-Z\s]/g, '')
     }
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }))
+
+    const updatedFormData = { ...formData, [name]: filteredValue }
+    setFormData(updatedFormData)
+
+    if (submissionAttempted) {
+      const fieldError = validateField(name, filteredValue, updatedFormData)
+      setErrors(prev => {
+        const next = { ...prev }
+        if (fieldError) {
+          next[name] = fieldError
+        } else {
+          delete next[name]
+        }
+        if (name === 'countryCode' || name === 'phone') {
+          const phoneErr = validateField('phone', updatedFormData.phone, updatedFormData)
+          if (phoneErr) next.phone = phoneErr
+          else delete next.phone
+        }
+        return next
+      })
+    } else if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }))
     }
   }
 
   const validate = () => {
     const newErrors = {}
+    const newMemberErrors = {}
 
-    const nameVal = formData.name.trim()
-    if (!nameVal) {
-      newErrors.name = 'Full name is required'
-    } else if (!NAME_REGEX.test(nameVal)) {
-      newErrors.name = 'Name should only contain letters and spaces'
-    }
+    const nameErr = validateField('name', formData.name, formData)
+    if (nameErr) newErrors.name = nameErr
 
-    if (!formData.email.trim()) {
-      newErrors.email = inquiryType === 'corporate' ? 'Work email is required' : 'Email address is required'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
-    }
+    const emailErr = validateField('email', formData.email, formData)
+    if (emailErr) newErrors.email = emailErr
 
-    if (!formData.phone) {
-      newErrors.phone = 'Phone number is required'
-    } else if (!formData.countryCode) {
-      newErrors.phone = 'Please select a country code'
-    } else {
-      const full = `${formData.countryCode}${formData.phone}`
-      try {
-        const parsed = parsePhoneNumber(full)
-        if (!parsed?.isValid()) {
-          newErrors.phone = `Invalid phone number${parsed?.country ? ` for ${parsed.country}` : ''}`
-        }
-      } catch {
-        newErrors.phone = 'Invalid phone number format'
-      }
-    }
+    const phoneErr = validateField('phone', formData.phone, formData)
+    if (phoneErr) newErrors.phone = phoneErr
 
     if (inquiryType === 'corporate') {
-      if (!formData.companyName || !formData.companyName.trim()) {
-        newErrors.companyName = 'Company name is required'
-      }
+      const compErr = validateField('companyName', formData.companyName, formData)
+      if (compErr) newErrors.companyName = compErr
     }
 
-    if (!formData.packageId) newErrors.packageId = 'Please select a destination or package'
-    if (formData.packageId === 'custom-other' && !formData.customDestination?.trim()) {
-      newErrors.customDestination = 'Please enter your custom destination'
+    const pkgErr = validateField('packageId', formData.packageId, formData)
+    if (pkgErr) newErrors.packageId = pkgErr
+
+    if (formData.packageId === 'custom-other') {
+      const custErr = validateField('customDestination', formData.customDestination, formData)
+      if (custErr) newErrors.customDestination = custErr
     }
 
-    const todayStr = new Date().toISOString().split('T')[0]
-    const startISO = formData.startDate
-    if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required'
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(startISO)) {
-      newErrors.startDate = 'Please enter a valid date'
-    } else if (startISO < todayStr) {
-      newErrors.startDate = 'Start date cannot be in the past'
-    }
+    const startErr = validateField('startDate', formData.startDate, formData)
+    if (startErr) newErrors.startDate = startErr
 
-    const endISO = isEndDateLocked ? null : formData.endDate
     if (!isEndDateLocked) {
-      if (!formData.endDate) {
-        newErrors.endDate = 'End date is required'
-      } else if (!/^\d{4}-\d{2}-\d{2}$/.test(endISO)) {
-        newErrors.endDate = 'Please enter a valid date'
-      } else if (formData.startDate && endISO < todayStr) {
-        newErrors.endDate = 'End date cannot be in the past'
-      } else if (formData.startDate && /^\d{4}-\d{2}-\d{2}$/.test(startISO) && endISO < startISO) {
-        newErrors.endDate = 'End date cannot be before start date'
+      const endErr = validateField('endDate', formData.endDate, formData)
+      if (endErr) newErrors.endDate = endErr
+    }
+
+    if (inquiryType !== 'corporate' && guestCount > 1) {
+      for (let i = 1; i < guestCount; i++) {
+        const member = groupMembers[i]
+        if (member?.name && member.name.trim() && !NAME_REGEX.test(member.name.trim())) {
+          newMemberErrors[i] = { name: 'Name should contain letters and spaces only' }
+        }
       }
+    }
+
+    if (Object.keys(newMemberErrors).length > 0) {
+      setGuestSectionOpen(true)
     }
 
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setMemberErrors(newMemberErrors)
+    return Object.keys(newErrors).length === 0 && Object.keys(newMemberErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmissionAttempted(true)
-    if (!validate()) return
+    if (!validate()) {
+      setSubmitError('Please fill in the required fields marked above.')
+      return
+    }
 
     setSubmitting(true)
     setSubmitError('')
@@ -751,8 +856,18 @@ ${formData.notes || 'No special requests specified.'}
                         <div
                           key={opt.id}
                           onClick={() => {
-                            setFormData(prev => ({ ...prev, packageId: opt.id }))
-                            if (errors.packageId) setErrors(prev => ({ ...prev, packageId: null }))
+                            const updated = { ...formData, packageId: opt.id }
+                            setFormData(updated)
+                            if (submissionAttempted) {
+                              setErrors(prev => {
+                                const next = { ...prev }
+                                delete next.packageId
+                                if (opt.id !== 'custom-other') delete next.customDestination
+                                return next
+                              })
+                            } else if (errors.packageId) {
+                              setErrors(prev => ({ ...prev, packageId: null }))
+                            }
                             setDropdownOpen(false)
                             setSearchQuery('')
                           }}
@@ -795,7 +910,7 @@ ${formData.notes || 'No special requests specified.'}
 
             {/* Custom Destination Text Input */}
             {formData.packageId === 'custom-other' && (
-              <div className="pt-2 animate-fade-in">
+              <div className="pt-2 animate-fade-in space-y-1">
                 <input
                   type="text"
                   name="customDestination"
@@ -803,16 +918,22 @@ ${formData.notes || 'No special requests specified.'}
                   onChange={handleChange}
                   placeholder="Enter custom destination name (e.g. Switzerland, Tokyo)..."
                   className={`w-full bg-stone-50 border ${
-                    errors.customDestination ? 'border-rose-400' : 'border-stone-200'
-                  } focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-xs text-stone-900 placeholder-stone-400 outline-none`}
+                    errors.customDestination ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200 bg-rose-50/20' : 'border-stone-200 focus:border-amber-500'
+                  } rounded-xl py-2.5 px-3.5 text-xs text-stone-900 placeholder-stone-400 outline-none transition-all`}
                 />
                 {errors.customDestination && (
-                  <span className="text-[10px] text-rose-600 font-semibold mt-1 block">{errors.customDestination}</span>
+                  <span className="text-[10px] text-rose-600 font-semibold flex items-center gap-1.5 pl-1 animate-fade-in">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                    {errors.customDestination}
+                  </span>
                 )}
               </div>
             )}
             {errors.packageId && (
-              <span className="text-[10px] text-rose-600 font-semibold mt-1 block">{errors.packageId}</span>
+              <span className="text-[10px] text-rose-600 font-semibold flex items-center gap-1.5 pl-1 animate-fade-in">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                {errors.packageId}
+              </span>
             )}
           </div>
 
@@ -828,7 +949,7 @@ ${formData.notes || 'No special requests specified.'}
                 <div
                   onClick={() => setOpenCalendar(openCalendar ? null : 'start')}
                   className={`bg-stone-50 border ${
-                    errors.startDate || errors.endDate ? 'border-rose-400' : 'border-stone-200'
+                    errors.startDate || errors.endDate ? 'border-rose-400 ring-1 ring-rose-200 bg-rose-50/20' : 'border-stone-200'
                   } hover:border-stone-300 rounded-2xl p-3 flex items-center justify-between cursor-pointer transition-all shadow-sm`}
                 >
                   <div className="flex items-center gap-3">
@@ -849,12 +970,24 @@ ${formData.notes || 'No special requests specified.'}
                   <CalendarPopup
                     value={formData.startDate}
                     onChange={(selectedIso) => {
-                      setFormData(prev => ({
-                        ...prev,
+                      const updated = {
+                        ...formData,
                         startDate: selectedIso,
-                        ...(isEndDateLocked ? {} : { endDate: prev.endDate || selectedIso })
-                      }))
-                      if (errors.startDate) setErrors(prev => ({ ...prev, startDate: null }))
+                        ...(isEndDateLocked ? {} : { endDate: formData.endDate || selectedIso })
+                      }
+                      setFormData(updated)
+                      if (submissionAttempted) {
+                        setErrors(prev => {
+                          const next = { ...prev }
+                          delete next.startDate
+                          if (updated.endDate && updated.endDate >= selectedIso) {
+                            delete next.endDate
+                          }
+                          return next
+                        })
+                      } else if (errors.startDate) {
+                        setErrors(prev => ({ ...prev, startDate: null }))
+                      }
                       setOpenCalendar(null)
                     }}
                     onClose={() => setOpenCalendar(null)}
@@ -899,7 +1032,8 @@ ${formData.notes || 'No special requests specified.'}
             </div>
 
             {(errors.startDate || errors.endDate) && (
-              <span className="text-[10px] text-rose-600 font-semibold block">
+              <span className="text-[10px] text-rose-600 font-semibold flex items-center gap-1.5 pl-1 animate-fade-in">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
                 {errors.startDate || errors.endDate}
               </span>
             )}
@@ -923,10 +1057,15 @@ ${formData.notes || 'No special requests specified.'}
                   onChange={handleChange}
                   placeholder="e.g. Jane Doe"
                   className={`w-full bg-stone-50/60 border ${
-                    errors.name ? 'border-rose-400' : 'border-stone-200'
-                  } focus:border-amber-500 rounded-xl py-2.5 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none`}
+                    errors.name ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200 bg-rose-50/20' : 'border-stone-200 focus:border-amber-500'
+                  } rounded-xl py-2.5 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none transition-all`}
                 />
-                {errors.name && <span className="text-[10px] text-rose-600 font-semibold mt-0.5 block">{errors.name}</span>}
+                {errors.name && (
+                  <span className="text-[10px] text-rose-600 font-semibold mt-1 flex items-center gap-1.5 pl-1 animate-fade-in">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                    {errors.name}
+                  </span>
+                )}
               </div>
 
               <div>
@@ -940,10 +1079,15 @@ ${formData.notes || 'No special requests specified.'}
                   onChange={handleChange}
                   placeholder={inquiryType === 'corporate' ? 'jane@company.com' : 'jane@example.com'}
                   className={`w-full bg-stone-50/60 border ${
-                    errors.email ? 'border-rose-400' : 'border-stone-200'
-                  } focus:border-amber-500 rounded-xl py-2.5 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none`}
+                    errors.email ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200 bg-rose-50/20' : 'border-stone-200 focus:border-amber-500'
+                  } rounded-xl py-2.5 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none transition-all`}
                 />
-                {errors.email && <span className="text-[10px] text-rose-600 font-semibold mt-0.5 block">{errors.email}</span>}
+                {errors.email && (
+                  <span className="text-[10px] text-rose-600 font-semibold mt-1 flex items-center gap-1.5 pl-1 animate-fade-in">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                    {errors.email}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -972,10 +1116,15 @@ ${formData.notes || 'No special requests specified.'}
                     onChange={handleChange}
                     placeholder="e.g. Acme Corporation"
                     className={`w-full bg-stone-50/60 border ${
-                      errors.companyName ? 'border-rose-400' : 'border-stone-200'
-                    } focus:border-amber-500 rounded-xl py-2.5 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none`}
+                      errors.companyName ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200 bg-rose-50/20' : 'border-stone-200 focus:border-amber-500'
+                    } rounded-xl py-2.5 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none transition-all`}
                   />
-                  {errors.companyName && <span className="text-[10px] text-rose-600 font-semibold mt-0.5 block">{errors.companyName}</span>}
+                  {errors.companyName && (
+                    <span className="text-[10px] text-rose-600 font-semibold mt-1 flex items-center gap-1.5 pl-1 animate-fade-in">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                      {errors.companyName}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

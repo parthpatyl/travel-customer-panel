@@ -136,18 +136,22 @@ export default function UpcomingTrips({ onBook }) {
               <span className="text-lg font-bold text-stone-900">{packagesCount}</span>
             </div>
           </div>
-          <div className="ml-auto flex gap-2">
-            {['scheduled'].map(s => (
+          <div className="ml-auto flex flex-wrap gap-2">
+            {[
+              { key: 'all', label: 'All Trips' },
+              { key: 'scheduled', label: 'Scheduled' },
+              { key: 'confirmed', label: 'Confirmed' }
+            ].map(tab => (
               <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border capitalize ${
-                  statusFilter === s
+                key={tab.key}
+                onClick={() => setStatusFilter(tab.key)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border capitalize cursor-pointer ${
+                  statusFilter === tab.key
                     ? 'bg-stone-900 text-white border-stone-900'
                     : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
                 }`}
               >
-                Scheduled
+                {tab.label}
               </button>
             ))}
           </div>
@@ -169,9 +173,11 @@ export default function UpcomingTrips({ onBook }) {
         {/* Departures List */}
         <div className="space-y-4">
           {filtered.map((dep, i) => {
-            const spotsLeft = dep.slots.total - dep.slots.booked
+            const depTotal = dep.slots?.total ?? dep.slotsTotal ?? 20
+            const depBooked = dep.slots?.booked ?? dep.slotsBooked ?? 0
+            const spotsLeft = depTotal - depBooked
             const isAlmostFull = spotsLeft <= 5 && spotsLeft > 0
-            const isFull = spotsLeft === 0
+            const isFull = spotsLeft <= 0
             const depPkg = packages.find(p => p.id === dep.packageId)
             const activeItinerary = (dep.itinerary && dep.itinerary.length > 0)
               ? dep.itinerary
@@ -235,7 +241,7 @@ export default function UpcomingTrips({ onBook }) {
                   <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-2 shrink-0">
                     <div className="text-right">
                       <span className="text-xs text-stone-400">
-                        {isFull ? 'Full' : `${spotsLeft} / ${dep.slots.total} spots`}
+                        {isFull ? 'Full' : `${spotsLeft} / ${depTotal} spots`}
                       </span>
                       {isAlmostFull && !isFull && (
                         <span className="block text-[10px] text-rose-600 font-semibold">Almost full!</span>

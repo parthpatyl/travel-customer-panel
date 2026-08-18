@@ -113,9 +113,9 @@ export default function CalendarPopup({ value, onChange, onClose, minDate }) {
         </button>
       </div>
       <div className="grid grid-cols-7 gap-0.5 mb-1">
-        {DAYS.map((d) => (
+        {DAYS.map((d, idx) => (
           <div
-            key={d}
+            key={`cal-day-${d}-${idx}`}
             className="w-9 h-7 text-[10px] font-bold text-stone-400 uppercase tracking-wider flex items-center justify-center"
           >
             {d}
