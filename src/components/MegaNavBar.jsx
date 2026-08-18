@@ -669,8 +669,9 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
       label: 'Group Tours',
       columns: [
         {
-          heading: 'By Speciality',
+          heading: 'Scheduled Departures',
           links: [
+            { label: 'View All Scheduled Departures', page: 'group-tours', region: 'All' },
             { label: 'Photography Expeditions', page: 'destinations', region: 'All', search: 'Photography' },
             { label: 'Culinary & Wine Trails', page: 'destinations', region: 'All', search: 'Culinary' },
             { label: 'Wildlife & Safari Groups', page: 'destinations', region: 'All', search: 'Wildlife' },
@@ -702,6 +703,12 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
             isMobile
           />
         ))}
+        <NavLink
+          active={activePage === 'group-tours'}
+          onClick={() => onNavigate('group-tours')}
+          label="Scheduled Departures"
+          isMobile
+        />
         <NavLink
           active={activePage === 'corporate'}
           onClick={() => onNavigate('corporate')}

@@ -193,7 +193,7 @@ export default function SpecialityCategories({ packages = [], onSelectCategory }
             return (
               <div
                 key={cat.id}
-                onClick={() => onSelectCategory?.(cat.name, cat.keyword || cat.name)}
+                onClick={() => onSelectCategory?.(cat.name, cat.keyword || cat.name, cat.id)}
                 className="group relative bg-[#132238] border border-stone-800/80 hover:border-amber-500/40 rounded-xl p-4 sm:p-5 flex flex-col items-center text-center shadow-md hover:shadow-xl hover:shadow-stone-950/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
                 style={{ animationDelay: `${idx * 50}ms` }}
               >

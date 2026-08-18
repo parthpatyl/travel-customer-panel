@@ -158,7 +158,13 @@ function App() {
             {/* Speciality Tour Categories Grid */}
             <SpecialityCategories
               packages={packages}
-              onSelectCategory={(name, keyword) => navigate('destinations', null, 'All', keyword)}
+              onSelectCategory={(name, keyword, catId) => {
+                if (catId === 'group-tours' || (name && name.toLowerCase().includes('group'))) {
+                  navigate('group-tours')
+                } else {
+                  navigate('destinations', null, 'All', keyword)
+                }
+              }}
             />
 
             {/* Featured Luxury Packages */}

@@ -26,7 +26,7 @@ export default function UpcomingTrips({ onBook }) {
   const [departures, setDepartures] = useState([])
   const [packages, setPackages] = useState([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState('scheduled')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [selectedDepartureItinerary, setSelectedDepartureItinerary] = useState(null)
 
   useEffect(() => {
@@ -72,8 +72,8 @@ export default function UpcomingTrips({ onBook }) {
   }, [])
 
   const filtered = departures.filter(d => {
-    if (statusFilter === 'all') return true
-    return d.status === statusFilter
+    if (statusFilter === 'all') return d.status !== 'cancelled'
+    return d.status?.toLowerCase() === statusFilter.toLowerCase()
   })
 
   const upcomingCount = departures.filter(d => d.status === 'scheduled' || d.status === 'confirmed').length
