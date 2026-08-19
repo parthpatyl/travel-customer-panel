@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import Markdown from 'react-markdown'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const imgUrl = getImgUrl
 
 const MarkdownInline = ({ children, className }) => (
@@ -152,8 +153,6 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [destPlaceholderIdx, setDestPlaceholderIdx] = useState(0)
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-
   useEffect(() => {
     if (isSearchFocused || searchQuery) return
     const interval = setInterval(() => {
@@ -222,7 +221,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
       else if (selectedBudget === '1lplus' && price < 100000) return false
 
       // Availability
-      const spotsLeft = pkg.slots.total - pkg.slots.booked
+      const spotsLeft = (pkg.slots?.total ?? pkg.slotsTotal ?? 20) - (pkg.slots?.booked ?? pkg.slotsBooked ?? 0)
       if (selectedAvail === 'available' && spotsLeft === 0) return false
       if (selectedAvail === 'limited' && spotsLeft > 5) return false
       if (selectedAvail === 'open' && spotsLeft <= 5) return false
@@ -249,7 +248,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
     if (sortBy === 'price-asc') result = [...result].sort((a, b) => bespokeSortVal(a) - bespokeSortVal(b))
     else if (sortBy === 'price-desc') result = [...result].sort((a, b) => bespokeSortVal(b) - bespokeSortVal(a))
     else if (sortBy === 'dur-asc') result = [...result].sort((a, b) => parseDays(a.duration) - parseDays(b.duration))
-    else if (sortBy === 'avail') result = [...result].sort((a, b) => (b.slots.total - b.slots.booked) - (a.slots.total - a.slots.booked))
+    else if (sortBy === 'avail') result = [...result].sort((a, b) => ((b.slots?.total ?? b.slotsTotal ?? 20) - (b.slots?.booked ?? b.slotsBooked ?? 0)) - ((a.slots?.total ?? a.slotsTotal ?? 20) - (a.slots?.booked ?? a.slotsBooked ?? 0)))
 
     return result
   }, [packages, searchQuery, selectedRegion, selectedType, selectedDuration, selectedBudget, selectedAvail, sortBy, categories])
@@ -439,7 +438,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
         {filteredPackages.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPackages.map((pkg, index) => {
-              const spotsLeft = pkg.slots.total - pkg.slots.booked
+              const spotsLeft = (pkg.slots?.total ?? pkg.slotsTotal ?? 20) - (pkg.slots?.booked ?? pkg.slotsBooked ?? 0)
               const travelType = inferType(pkg)
               return (
                 <article

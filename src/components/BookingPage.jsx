@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { formatINR, formatUSD } from '../utils/currency'
+import { formatINR } from '../utils/currency'
 import { API_URL, getImgUrl, handleImageError } from '../utils/image'
-import { BadgeCheck, User, Mail, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, AlertCircle, CheckCircle2, Building2, Search, Plus, Minus, ArrowRight, X } from 'lucide-react'
+import { BadgeCheck, Calendar, Users, Compass, MessageSquare, Sparkles, ChevronDown, ChevronUp, AlertTriangle, AlertCircle, CheckCircle2, Search, Plus, Minus, ArrowRight, X } from 'lucide-react'
 import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
 import CalendarPopup from './CalendarPopup'
@@ -144,7 +144,11 @@ export default function BookingPage({ packages, selectedPackage }) {
   useEffect(() => {
     fetch(`${API_URL}/api/corporate-packages`)
       .then(res => res.ok ? res.json() : [])
-      .then(data => setCorporatePackages(data.map(p => ({ ...p, id: String(p.id), name: p.destination }))))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCorporatePackages(data.map(p => ({ ...p, id: String(p.id), name: p.destination })))
+        }
+      })
       .catch(err => console.warn('Failed to load corporate packages:', err))
   }, [])
 
@@ -155,6 +159,7 @@ export default function BookingPage({ packages, selectedPackage }) {
     let startDate = ''
     let endDate = ''
     let departureId = ''
+    let priceModifier = 0
 
     if (selectedPackage) {
       if (selectedPackage.id === 'corporate') {
@@ -170,6 +175,7 @@ export default function BookingPage({ packages, selectedPackage }) {
           departureId = selectedPackage.departureId
           startDate = selectedPackage.departureDate || ''
           endDate = selectedPackage.returnDate || ''
+          priceModifier = selectedPackage.priceModifier || 0
         }
       }
     }
@@ -184,11 +190,14 @@ export default function BookingPage({ packages, selectedPackage }) {
       startDate,
       endDate,
       departureId,
+      priceModifier,
       guests: isCorp ? '10' : '2',
       notes: '',
       companyName: ''
     }
   })
+
+
 
   const [groupMembers, setGroupMembers] = useState(() =>
     Array.from({ length: 2 }, () => ({
@@ -700,6 +709,28 @@ ${formData.notes || 'No special requests specified.'}
                 <span className="text-stone-500">Destination</span>
                 <span className="font-semibold text-stone-900 truncate">{getSelectedPackageDisplayName()}</span>
               </div>
+              {formData.departureId && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Trip Type</span>
+                  <span className="font-semibold text-amber-700">Scheduled Group Departure</span>
+                </div>
+              )}
+              {formData.departureId && formData.priceModifier !== 0 && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Departure Adjustment</span>
+                  <span className={`font-semibold ${formData.priceModifier > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                    {formData.priceModifier > 0 ? '+' : ''}{formatINR(formData.priceModifier)} / guest
+                  </span>
+                </div>
+              )}
+              {selectedPkg && !selectedPkg.isBespoke && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Est. Total</span>
+                  <span className="font-semibold text-stone-900">
+                    {formatINR(((selectedPkg.price || selectedPkg.basePrice || 0) + (formData.priceModifier || 0)) * guestCount)}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between gap-4">
                 <span className="text-stone-500">Guests</span>
                 <span className="font-semibold text-stone-900">{guestCount} Guests</span>
@@ -947,10 +978,10 @@ ${formData.notes || 'No special requests specified.'}
               {/* Date Trigger Bar */}
               <div className="relative">
                 <div
-                  onClick={() => setOpenCalendar(openCalendar ? null : 'start')}
+                  onClick={() => !isStartDateLocked && setOpenCalendar(openCalendar ? null : 'start')}
                   className={`bg-stone-50 border ${
                     errors.startDate || errors.endDate ? 'border-rose-400 ring-1 ring-rose-200 bg-rose-50/20' : 'border-stone-200'
-                  } hover:border-stone-300 rounded-2xl p-3 flex items-center justify-between cursor-pointer transition-all shadow-sm`}
+                  } ${isStartDateLocked ? 'cursor-default opacity-90' : 'hover:border-stone-300 cursor-pointer'} rounded-2xl p-3 flex items-center justify-between transition-all shadow-sm`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-white border border-stone-200 flex items-center justify-center text-stone-700 shrink-0">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Building2, Globe, Users, Shield, ArrowRight, CheckCircle2, Send, Quote, ChevronLeft, ChevronRight, Star, Calendar, FileText, X, Check } from 'lucide-react'
+import { Building2, ArrowRight, CheckCircle2, Quote, ChevronLeft, ChevronRight, Star, Calendar, FileText, X } from 'lucide-react'
 import { formatINR } from '../utils/currency'
 import { SmartMarkdown } from '../utils/markdownUtils'
 import PackageBrochureModal from './PackageBrochureModal'
@@ -9,13 +9,6 @@ import corporateHero from '../assets/corporate-hero.jpg'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const imgUrl = (url) => url ? (url.startsWith('http') ? url : `${API_URL}${url}`) : ''
-
-const TRUST_BENEFITS = [
-  { icon: Building2, title: 'Dedicated MICE Desk', text: 'End-to-end planning from venue sourcing to on-ground execution.' },
-  { icon: Globe, title: 'Pan-India & Global', text: 'Coverage across 50+ domestic and international corporate destinations.' },
-  { icon: Users, title: '1000+ Groups Handled', text: 'Proven track record with Fortune 500 companies and growing SMEs.' },
-  { icon: Shield, title: 'Risk-Free Booking', text: 'Flexible cancellation, transparent pricing, and 24/7 support.' },
-]
 
 export default function CorporateTours({ onNavigate }) {
   const [packages, setPackages] = useState([])

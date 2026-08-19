@@ -7,7 +7,7 @@ import PackageBrochureModal from './PackageBrochureModal'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
 
-export default function PackageDetail({ pkg, onBook, settings = {} }) {
+export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   const [activeTab, setActiveTab] = useState('itinerary') // tabs: itinerary, inclusions
   const [weather, setWeather] = useState(null)
   const [groupDepartures, setGroupDepartures] = useState([])
@@ -20,12 +20,10 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
   useEffect(() => {
     const fetchGroupDepartures = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/group-departures`)
+        const res = await fetch(`${API_URL}/api/group-departures?packageId=${pkg.id}`)
         if (res.ok) {
           const data = await res.json()
-          const filtered = data.filter(
-            (d) => d.packageId === pkg.id && (d.status === 'scheduled' || d.status === 'confirmed')
-          )
+          const filtered = data.filter(d => d.status === 'scheduled' || d.status === 'confirmed')
           setGroupDepartures(filtered)
         }
       } catch (err) {
@@ -205,7 +203,7 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
           {/* Back & Download buttons */}
           <div className="self-start mb-5 flex flex-wrap items-center gap-2.5">
             <button
-              onClick={() => window.history.back()}
+              onClick={onBack || (() => window.history.back())}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/95 backdrop-blur-sm text-stone-900 hover:bg-white shadow-sm border border-white/40 rounded-full text-xs font-semibold transition-all cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -465,7 +463,7 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-stone-500 flex items-center gap-1.5">
-                    {pkg.isBespoke || pkg.slots.total >= 999 ? (
+                    {pkg.isBespoke || (pkg.slots?.total ?? pkg.slotsTotal ?? 20) >= 999 ? (
                       spotsLeft > 0 ? (
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                       ) : (
@@ -480,8 +478,8 @@ export default function PackageDetail({ pkg, onBook, settings = {} }) {
                     )}
                     Availability
                   </span>
-                  <span className={`font-semibold ${spotsLeft <= (pkg.isBespoke || pkg.slots.total >= 999 ? 0 : 3) ? 'text-rose-600' : 'text-emerald-600'}`}>
-                    {pkg.isBespoke || pkg.slots.total >= 999 ? (
+                  <span className={`font-semibold ${spotsLeft <= (pkg.isBespoke || (pkg.slots?.total ?? pkg.slotsTotal ?? 20) >= 999 ? 0 : 3) ? 'text-rose-600' : 'text-emerald-600'}`}>
+                    {pkg.isBespoke || (pkg.slots?.total ?? pkg.slotsTotal ?? 20) >= 999 ? (
                       spotsLeft > 0 ? 'Available' : 'Unavailable'
                     ) : (
                       `${spotsLeft} spots remaining`

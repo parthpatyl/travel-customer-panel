@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Star, MapPin, Camera, User, Filter, Search, PlusCircle, ChevronLeft, ChevronRight, X, Sparkles, Quote } from 'lucide-react'
+import { Star, MapPin, Camera, Filter, Search, PlusCircle, ChevronLeft, ChevronRight, X, Sparkles, Quote } from 'lucide-react'
 import SubmitStoryModal from './SubmitStoryModal'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'

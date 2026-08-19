@@ -1,3 +1,4 @@
+/* global global */
 import React from 'react';
 import '@testing-library/jest-dom';
 

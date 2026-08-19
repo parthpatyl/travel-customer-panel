@@ -20,10 +20,20 @@ import staticPackages from './data/packages'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
+function getInitialRoute() {
+  const path = typeof window !== 'undefined' ? window.location.pathname : '/'
+  const match = path.match(/^\/enquiry\/([\w-]+)$/)
+  if (match) {
+    return { page: 'enquiry', enquiryId: match[1] }
+  }
+  return { page: 'home', enquiryId: null }
+}
+
 function App() {
-  const [activePage, setActivePage] = useState('home')
+  const initialRoute = getInitialRoute()
+  const [activePage, setActivePage] = useState(initialRoute.page)
   const [selectedPackage, setSelectedPackage] = useState(null)
-  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null)
+  const [selectedEnquiryId, setSelectedEnquiryId] = useState(initialRoute.enquiryId)
   const [initialRegion, setInitialRegion] = useState('All')
 
   const [packages, setPackages] = useState(staticPackages)
@@ -41,7 +51,7 @@ function App() {
     agencyEmail: 'concierge@kraftyourtrip.com'
   })
 
-  // Load dynamic data from backend API & check deep links
+  // Load dynamic data from backend API
   useEffect(() => {
     const loadDynamicData = async () => {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -74,23 +84,23 @@ function App() {
       }
     }
     loadDynamicData()
-
-    // Handle initial deep links (e.g. /enquiry/ENQ-XXXX)
-    const path = window.location.pathname;
-    const match = path.match(/^\/enquiry\/([\w-]+)$/);
-    if (match) {
-      const enquiryId = match[1];
-      setActivePage('enquiry');
-      setSelectedEnquiryId(enquiryId);
-      window.history.replaceState({ page: 'enquiry', pkgId: null, region: 'All', search: '', enquiryId }, '')
-    }
   }, [])
 
   // Push a history entry and update state together
   const navigate = useCallback((page, pkg = null, region = 'All', search = '', enquiryId = null) => {
     // Update path in window location when navigating
     const newPath = page === 'enquiry' && enquiryId ? `/enquiry/${enquiryId}` : '/';
-    window.history.pushState({ page, pkgId: pkg?.id ?? null, region, search, enquiryId }, '', newPath)
+    window.history.pushState({
+      page,
+      pkgId: pkg?.id ?? null,
+      departureId: pkg?.departureId ?? null,
+      departureDate: pkg?.departureDate ?? null,
+      returnDate: pkg?.returnDate ?? null,
+      priceModifier: pkg?.priceModifier ?? 0,
+      region,
+      search,
+      enquiryId
+    }, '', newPath)
     setActivePage(page)
     setSelectedPackage(pkg)
     setInitialRegion(region)
@@ -105,15 +115,24 @@ function App() {
     const path = window.location.pathname;
     const match = path.match(/^\/enquiry\/([\w-]+)$/);
     if (match) {
-      window.history.replaceState({ page: 'enquiry', pkgId: null, region: 'All', search: '', enquiryId: match[1] }, '')
+      window.history.replaceState({ page: 'enquiry', pkgId: null, departureId: null, departureDate: null, returnDate: null, priceModifier: 0, region: 'All', search: '', enquiryId: match[1] }, '')
     } else {
-      window.history.replaceState({ page: 'home', pkgId: null, region: 'All', search: '' }, '')
+      window.history.replaceState({ page: 'home', pkgId: null, departureId: null, departureDate: null, returnDate: null, priceModifier: 0, region: 'All', search: '' }, '')
     }
 
     const onPop = (e) => {
-      const state = e.state ?? { page: 'home', pkgId: null, region: 'All', search: '' }
-      const { page, pkgId, region, search, enquiryId } = state
-      const pkg = pkgId ? packages.find(p => p.id === pkgId) ?? null : null
+      const state = e.state ?? { page: 'home', pkgId: null, departureId: null, departureDate: null, returnDate: null, priceModifier: 0, region: 'All', search: '' }
+      const { page, pkgId, departureId, departureDate, returnDate, priceModifier, region, search, enquiryId } = state
+      const basePkg = pkgId ? packages.find(p => p.id === pkgId) ?? null : null
+      const pkg = basePkg
+        ? {
+            ...basePkg,
+            departureId: departureId ?? null,
+            departureDate: departureDate ?? null,
+            returnDate: returnDate ?? null,
+            priceModifier: priceModifier ?? 0
+          }
+        : null
       setActivePage(page)
       setSelectedPackage(pkg)
       setInitialRegion(region)
@@ -248,6 +267,7 @@ function App() {
 
         {activePage === 'booking' && (
           <BookingPage
+            key={selectedPackage ? `${selectedPackage.id}-${selectedPackage.departureId || ''}` : 'booking-custom'}
             packages={packages}
             selectedPackage={selectedPackage}
           />

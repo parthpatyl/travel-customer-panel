@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { CalendarDays, MapPin, Users, ArrowRight, Calendar, X, Check, FileText } from 'lucide-react'
+import { CalendarDays, MapPin, Users, ArrowRight, Calendar, X } from 'lucide-react'
 import { formatINR } from '../utils/currency'
 import { SmartMarkdown } from '../utils/markdownUtils'
 
@@ -8,7 +8,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
 
 function formatDate(dateStr) {
+  if (!dateStr) return ''
   const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
   return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 }
 
@@ -81,27 +83,37 @@ export default function UpcomingTrips({ onBook }) {
     departures
       .filter(d => d.status === 'scheduled' || d.status === 'confirmed')
       .map(d => d.packageId)
+      .filter(Boolean)
   ).size
 
   const handleBookDeparture = (dep) => {
+    if (!dep.packageId) {
+      alert('Package data missing. Please refresh and try again.');
+      return;
+    }
     const pkg = packages.find(p => p.id === dep.packageId)
-    onBook(pkg ? {
-      ...pkg,
-      departureId: dep.id,
-      departureDate: dep.departureDate ? dep.departureDate.split('T')[0] : '',
-      returnDate: dep.returnDate ? dep.returnDate.split('T')[0] : '',
-      priceModifier: dep.priceModifier || 0
-    } : {
-      id: dep.packageId,
-      name: dep.packageName,
-      duration: dep.packageDuration,
-      region: dep.packageRegion,
-      price: dep.packageBasePrice,
-      departureId: dep.id,
-      departureDate: dep.departureDate ? dep.departureDate.split('T')[0] : '',
-      returnDate: dep.returnDate ? dep.returnDate.split('T')[0] : '',
-      priceModifier: dep.priceModifier || 0
-    })
+    if (pkg) {
+      onBook({
+        ...pkg,
+        departureId: dep.id,
+        departureDate: dep.departureDate ? dep.departureDate.split('T')[0] : '',
+        returnDate: dep.returnDate ? dep.returnDate.split('T')[0] : '',
+        priceModifier: dep.priceModifier || 0
+      })
+    } else {
+      // Fallback with safe defaults
+      onBook({
+        id: dep.packageId,
+        name: dep.packageName || 'Group Tour',
+        duration: dep.packageDuration || '',
+        region: dep.packageRegion || '',
+        price: dep.packageBasePrice || 0,
+        departureId: dep.id,
+        departureDate: dep.departureDate ? dep.departureDate.split('T')[0] : '',
+        returnDate: dep.returnDate ? dep.returnDate.split('T')[0] : '',
+        priceModifier: dep.priceModifier || 0
+      })
+    }
   }
 
   return (
@@ -259,6 +271,15 @@ export default function UpcomingTrips({ onBook }) {
                         )}
                       </div>
                     )}
+                    {dep.highlights && dep.highlights.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {dep.highlights.slice(0, 3).map((h, i) => (
+                          <span key={i} className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       {activeItinerary.length > 0 && (
                         <button
@@ -313,7 +334,8 @@ export default function UpcomingTrips({ onBook }) {
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs text-stone-300 mt-1.5 font-light">
                     <span className="flex items-center gap-1 text-amber-200 font-medium shrink-0">
                       <CalendarDays className="w-3.5 h-3.5" />
-                      {formatDate(selectedDepartureItinerary.dep.departureDate)} — {formatDate(selectedDepartureItinerary.dep.returnDate)}
+                      {formatDate(selectedDepartureItinerary.dep.departureDate)}
+                      {selectedDepartureItinerary.dep.returnDate && ` — ${formatDate(selectedDepartureItinerary.dep.returnDate)}`}
                     </span>
                     {selectedDepartureItinerary.dep.packageDuration && (
                       <span className="shrink-0">• {selectedDepartureItinerary.dep.packageDuration}</span>
@@ -377,7 +399,7 @@ export default function UpcomingTrips({ onBook }) {
             {/* Modal Footer Actions */}
             <div className="px-4 py-3 sm:px-6 sm:py-4 border-t border-stone-100 bg-stone-50/95 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
               <span className="text-xs text-stone-500 font-medium order-2 sm:order-1">
-                {selectedDepartureItinerary.dep.slots.total - selectedDepartureItinerary.dep.slots.booked} seats remaining
+                {(selectedDepartureItinerary.dep.slots?.total ?? selectedDepartureItinerary.dep.slotsTotal ?? 20) - (selectedDepartureItinerary.dep.slots?.booked ?? selectedDepartureItinerary.dep.slotsBooked ?? 0)} seats remaining
               </span>
               <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end order-1 sm:order-2">
                 <button

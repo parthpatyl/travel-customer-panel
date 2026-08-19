@@ -19,7 +19,7 @@ const iconMap = {
   CalendarRange
 }
 
-export default function HeroSection({ onExplore, onBook, stats, heroSettings }) {
+export default function HeroSection({ onExplore, onBook, heroSettings }) {
   const bgImage = getImgUrl(heroSettings?.bgImage || '/photo-1506929562872-bb421503ef21.jpeg')
   const titleMain = heroSettings?.titleMain ?? 'Kraft your perfect'
   const titleItalic = heroSettings?.titleItalic ?? 'journey.'

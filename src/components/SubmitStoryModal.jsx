@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Star, Upload, Trash2, Camera, User, MapPin, Compass, CheckCircle } from 'lucide-react'
+import { X, Star, Trash2, Camera, User, MapPin, Compass, CheckCircle } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 

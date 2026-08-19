@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -46,7 +47,21 @@ export function AgencyProvider({ children }) {
   }
 
   useEffect(() => {
-    fetchSettings()
+    fetch(`${API_URL}/api/settings`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Not OK'))))
+      .then((data) => {
+        setSettings((prev) => ({
+          ...prev,
+          ...data,
+          socialLinks: { ...prev.socialLinks, ...(data.socialLinks || {}) }
+        }))
+      })
+      .catch((err) => {
+        console.warn('[AgencyContext] Using default settings:', err.message)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
 
   return (

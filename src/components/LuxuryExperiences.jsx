@@ -114,7 +114,7 @@ export default function LuxuryExperiences({ onViewPackage, onBook }) {
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((pkg, i) => {
-            const spotsLeft = pkg.slots.total - pkg.slots.booked
+            const spotsLeft = (pkg.slots?.total ?? pkg.slotsTotal ?? 20) - (pkg.slots?.booked ?? pkg.slotsBooked ?? 0)
             return (
               <article
                 key={pkg.id}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import logo from '../assets/logo.png'
-import { Menu, X, CalendarDays, Search, PhoneCall, ChevronDown, Compass, MapPin, ArrowRight, Sparkles, User } from 'lucide-react'
+import { Menu, X, CalendarDays, Search, PhoneCall, Compass, MapPin, ArrowRight, Sparkles, User } from 'lucide-react'
 import MegaNavBar from './MegaNavBar'
 import { useAgencySettings } from '../context/AgencyContext'
 
@@ -395,20 +395,5 @@ export default function Navbar({ activePage, onNavigate, settings = {} }) {
         </div>
       </div>
     </>
-  )
-}
-
-function NavBtn({ active, onClick, label, icon: Icon }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${active
-          ? 'text-amber-700 bg-amber-50'
-          : 'text-stone-700 hover:text-stone-950 hover:bg-stone-100'
-        }`}
-    >
-      {Icon && <Icon className="w-4 h-4" />}
-      {label}
-    </button>
   )
 }

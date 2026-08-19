@@ -5,7 +5,6 @@ export default function MegaMenu({
   label,
   columns,
   isSplit = false,
-  topTabs = [],
   continents = [],
   onNavigate,
   isMobile = false,
