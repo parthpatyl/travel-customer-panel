@@ -17,16 +17,17 @@ import SpecialityCategories from './components/SpecialityCategories'
 import GiftCardsPage from './components/GiftCardsPage'
 import TripStoriesPage from './components/TripStoriesPage'
 import staticPackages from './data/packages'
+import { fallbackTestimonials } from './data/fallbackData'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 function getInitialRoute() {
-  const path = typeof window !== 'undefined' ? window.location.pathname : '/'
-  const match = path.match(/^\/enquiry\/([\w-]+)$/)
-  if (match) {
-    return { page: 'enquiry', enquiryId: match[1] }
+  const hash = window.location.hash.replace('#', '')
+  if (hash.startsWith('enquiry=')) {
+    return { page: 'booking', enquiryId: hash.replace('enquiry=', '') }
   }
-  return { page: 'home', enquiryId: null }
+  const validPages = ['home', 'destinations', 'about', 'luxury', 'booking', 'group-tours', 'corporate', 'giftcards', 'gallery']
+  return { page: validPages.includes(hash) ? hash : 'home', enquiryId: null }
 }
 
 function App() {
@@ -37,7 +38,7 @@ function App() {
   const [initialRegion, setInitialRegion] = useState('All')
 
   const [packages, setPackages] = useState(staticPackages)
-  const [testimonials, setTestimonials] = useState([])
+  const [testimonials, setTestimonials] = useState(fallbackTestimonials)
   const [initialSearch, setInitialSearch] = useState('')
   const [stats, setStats] = useState({
     tripsCrafted: '500+',
@@ -59,13 +60,17 @@ function App() {
         const pkgRes = await fetch(`${API_URL}/api/packages`)
         if (pkgRes.ok) {
           const pkgData = await pkgRes.json()
-          setPackages(pkgData)
+          if (Array.isArray(pkgData) && pkgData.length > 0) {
+            setPackages(pkgData)
+          }
         }
 
         const testRes = await fetch(`${API_URL}/api/testimonials`)
         if (testRes.ok) {
           const testData = await testRes.json()
-          setTestimonials(testData)
+          if (Array.isArray(testData) && testData.length > 0) {
+            setTestimonials(testData)
+          }
         }
 
         const settingsRes = await fetch(`${API_URL}/api/settings`)

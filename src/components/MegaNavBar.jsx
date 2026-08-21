@@ -647,20 +647,46 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
   ])
 
   useEffect(() => {
-    fetch(`${API_URL}/api/packages`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const groupPkgs = data.slice(0, 5).map((p) => ({
-            label: p.name,
-            page: 'destinations',
-            region: p.region || 'All',
-            search: p.name
-          }))
-          setPopularExpeditions(groupPkgs)
-        }
-      })
-      .catch(() => {})
+    Promise.all([
+      fetch(`${API_URL}/api/group-departures`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+      fetch(`${API_URL}/api/packages`).then((r) => (r.ok ? r.json() : [])).catch(() => [])
+    ]).then(([depData, pkgData]) => {
+      const items = []
+      const seen = new Set()
+
+      if (Array.isArray(depData) && depData.length > 0) {
+        depData.forEach((d) => {
+          const name = d.title || d.packageName
+          if (name && !seen.has(name)) {
+            seen.add(name)
+            items.push({
+              label: name,
+              page: 'group-tours',
+              region: d.packageRegion || 'All',
+              search: d.packageName || d.title
+            })
+          }
+        })
+      }
+
+      if (Array.isArray(pkgData) && pkgData.length > 0) {
+        pkgData.forEach((p) => {
+          if (p.name && !seen.has(p.name)) {
+            seen.add(p.name)
+            items.push({
+              label: p.name,
+              page: 'destinations',
+              region: p.region || 'All',
+              search: p.name
+            })
+          }
+        })
+      }
+
+      if (items.length > 0) {
+        setPopularExpeditions(items.slice(0, 6))
+      }
+    }).catch(() => {})
   }, [])
 
   const navConfig = useMemo(() => {
@@ -668,16 +694,6 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
       id: 'group_tours',
       label: 'Group Tours',
       columns: [
-        {
-          heading: 'Scheduled Departures',
-          links: [
-            { label: 'View All Scheduled Departures', page: 'group-tours', region: 'All' },
-            { label: 'Photography Expeditions', page: 'destinations', region: 'All', search: 'Photography' },
-            { label: 'Culinary & Wine Trails', page: 'destinations', region: 'All', search: 'Culinary' },
-            { label: 'Wildlife & Safari Groups', page: 'destinations', region: 'All', search: 'Wildlife' },
-            { label: 'Cruise Voyages', page: 'destinations', region: 'All', search: 'Cruise' },
-          ]
-        },
         {
           heading: 'Popular Group Expeditions',
           links: popularExpeditions

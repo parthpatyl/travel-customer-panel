@@ -89,6 +89,7 @@ export default function DestinationCategories({ onExplore }) {
                 <button
                   key={dest.id}
                   onClick={() => onExplore(dest.region)}
+                  aria-label={`Explore ${dest.name} destinations`}
                   className="group flex flex-col items-center gap-2.5 snap-start shrink-0 focus:outline-none animate-fade-in-up min-w-[90px] sm:min-w-[106px]"
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
@@ -97,7 +98,7 @@ export default function DestinationCategories({ onExplore }) {
                     <div className="relative w-[80px] h-[80px] sm:w-[96px] sm:h-[96px] rounded-full overflow-hidden bg-stone-100 shadow-md shadow-stone-200/60 ring-1 ring-stone-200/80 transition-all duration-400">
                       <img
                         src={dest.image}
-                        alt=""
+                        alt={`${dest.name} travel destinations`}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         loading="lazy"
                         onError={(e) => {

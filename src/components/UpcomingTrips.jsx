@@ -24,10 +24,13 @@ function getStatusColor(status) {
   }
 }
 
+import { fallbackGroupDepartures } from '../data/fallbackData'
+import defaultPackages from '../data/packages'
+
 export default function UpcomingTrips({ onBook }) {
-  const [departures, setDepartures] = useState([])
-  const [packages, setPackages] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [departures, setDepartures] = useState(fallbackGroupDepartures)
+  const [packages, setPackages] = useState(defaultPackages)
+  const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedDepartureItinerary, setSelectedDepartureItinerary] = useState(null)
 
@@ -50,27 +53,33 @@ export default function UpcomingTrips({ onBook }) {
   }, [selectedDepartureItinerary])
 
   useEffect(() => {
+    let mounted = true
     const fetchData = async () => {
       try {
         const [depRes, pkgRes] = await Promise.all([
           fetch(`${API_URL}/api/group-departures`),
           fetch(`${API_URL}/api/packages`),
         ])
-        if (depRes.ok) {
+        if (mounted && depRes.ok) {
           const depData = await depRes.json()
-          setDepartures(depData)
+          if (Array.isArray(depData) && depData.length > 0) {
+            setDepartures(depData)
+          }
         }
-        if (pkgRes.ok) {
+        if (mounted && pkgRes.ok) {
           const pkgData = await pkgRes.json()
-          setPackages(pkgData)
+          if (Array.isArray(pkgData) && pkgData.length > 0) {
+            setPackages(pkgData)
+          }
         }
       } catch (err) {
         console.warn('Failed to load group departures:', err)
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
     fetchData()
+    return () => { mounted = false }
   }, [])
 
   const filtered = departures.filter(d => {
@@ -183,11 +192,11 @@ export default function UpcomingTrips({ onBook }) {
         )}
 
         {/* Departures List */}
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-5">
           {filtered.map((dep, i) => {
             const depTotal = dep.slots?.total ?? dep.slotsTotal ?? 20
             const depBooked = dep.slots?.booked ?? dep.slotsBooked ?? 0
-            const spotsLeft = depTotal - depBooked
+            const spotsLeft = Math.max(0, depTotal - depBooked)
             const isAlmostFull = spotsLeft <= 5 && spotsLeft > 0
             const isFull = spotsLeft <= 0
             const depPkg = packages.find(p => p.id === dep.packageId)
@@ -195,109 +204,142 @@ export default function UpcomingTrips({ onBook }) {
               ? dep.itinerary
               : (depPkg?.itinerary || [])
 
+            const packageTitle = dep.packageName || depPkg?.name || dep.title || 'Curated Package'
+            const departureBatchTitle = (dep.title && dep.title !== packageTitle) ? dep.title : null
+            const highlights = (dep.highlights && dep.highlights.length > 0)
+              ? dep.highlights
+              : (depPkg?.highlights || [])
+
+            const basePriceNum = Number(dep.packageBasePrice || dep.price || depPkg?.price || depPkg?.basePrice || 0)
+            const modifierNum = Number(dep.priceModifier || 0)
+            const totalPrice = basePriceNum + modifierNum
+
             return (
               <div
                 key={dep.id}
-                className="animate-fade-in-up bg-white border border-stone-200 rounded-2xl p-5 hover:shadow-lg hover:shadow-stone-900/[0.04] transition-all duration-300"
-                style={{ animationDelay: `${i * 60}ms` }}
+                className="animate-fade-in-up bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 hover:shadow-xl hover:shadow-stone-900/[0.04] hover:border-amber-400/40 transition-all duration-300"
+                style={{ animationDelay: `${i * 50}ms` }}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  {/* Package Image */}
-                  <div className="w-full sm:w-24 h-20 rounded-xl overflow-hidden bg-stone-100 shrink-0">
-                    {dep.packageCardImage && (
-                      <img
-                        src={imgUrl(dep.packageCardImage)}
-                        alt={dep.packageName}
-                        className="w-full h-full object-cover"
-                      />
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4 sm:gap-5">
+                  {/* 1. Thumbnail Column */}
+                  <div className="relative w-full sm:w-48 lg:w-44 h-40 sm:h-32 rounded-xl overflow-hidden bg-stone-100 shrink-0 group">
+                    <img
+                      src={imgUrl(dep.packageCardImage || dep.cardImage || depPkg?.cardImage || '/assets/unsplash-pkg-card.jpg')}
+                      alt={packageTitle}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    {dep.ctaBadge && (
+                      <span className="absolute top-2.5 left-2.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-900/85 backdrop-blur-sm text-amber-300 shadow-sm">
+                        {dep.ctaBadge}
+                      </span>
                     )}
                   </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-semibold text-stone-900 truncate">
-                        {dep.packageName || dep.title}
-                      </h3>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${getStatusColor(dep.status)}`}>
-                        {dep.status}
-                      </span>
-                      {dep.title && dep.packageName && (
-                        <span className="text-xs text-stone-400 hidden sm:inline">· {dep.title}</span>
+                  {/* 2. Middle Content Column */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* Title & Status */}
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-base sm:text-lg font-bold text-stone-900 leading-snug">
+                          {packageTitle}
+                        </h3>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shrink-0 ${getStatusColor(dep.status)}`}>
+                          {dep.status}
+                        </span>
+                      </div>
+                      {departureBatchTitle && (
+                        <p className="text-xs text-stone-500 font-medium mt-0.5">
+                          {departureBatchTitle}
+                        </p>
                       )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" />
+
+                    {/* Date, Region, Duration, Itinerary meta */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-stone-600">
+                      <span className="flex items-center gap-1.5 font-medium text-stone-700">
+                        <CalendarDays className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         {formatDate(dep.departureDate)}
                         {dep.returnDate && ` — ${formatDate(dep.returnDate)}`}
                       </span>
-                      {dep.packageRegion && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {dep.packageRegion}
+                      {(dep.packageRegion || depPkg?.region) && (
+                        <span className="flex items-center gap-1 text-stone-500">
+                          <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                          {dep.packageRegion || depPkg?.region}
                         </span>
                       )}
-                      {dep.packageDuration && (
-                        <span>{dep.packageDuration}</span>
+                      {(dep.packageDuration || depPkg?.duration) && (
+                        <span className="text-stone-500 font-medium">
+                          ⏱️ {dep.packageDuration || depPkg?.duration}
+                        </span>
                       )}
                       {activeItinerary.length > 0 && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.2 rounded border border-amber-200/60">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/80">
                           📅 {activeItinerary.length} Days Itinerary
                         </span>
                       )}
                     </div>
-                  </div>
 
-                  {/* Slots & Price & Actions */}
-                  <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-2 shrink-0">
-                    <div className="text-right">
-                      <span className="text-xs text-stone-400">
-                        {isFull ? 'Full' : `${spotsLeft} / ${depTotal} spots`}
-                      </span>
-                      {isAlmostFull && !isFull && (
-                        <span className="block text-[10px] text-rose-600 font-semibold">Almost full!</span>
-                      )}
-                    </div>
-                    {dep.packageBasePrice && (
-                      <div className="text-right">
-                        <span className="text-sm font-semibold text-stone-900 tabular-nums">
-                          {formatINR(dep.packageBasePrice + dep.priceModifier)}
-                        </span>
-                        {dep.priceModifier !== 0 && (
-                          <span className={`block text-[10px] font-medium ${dep.priceModifier > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                            {dep.priceModifier > 0 ? '+' : ''}{formatINR(dep.priceModifier)}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {dep.highlights && dep.highlights.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {dep.highlights.slice(0, 3).map((h, i) => (
-                          <span key={i} className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
+                    {/* Highlights tags */}
+                    {highlights && highlights.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        {highlights.slice(0, 4).map((h, idx) => (
+                          <span key={idx} className="text-[11px] bg-stone-100 text-stone-700 px-2.5 py-0.5 rounded-full border border-stone-200/60 font-medium">
                             {h}
                           </span>
                         ))}
                       </div>
                     )}
+                  </div>
+
+                  {/* 3. Right Pricing, Capacity & Actions */}
+                  <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 lg:gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-stone-100 min-w-[190px]">
+                    {/* Spots & Pricing */}
+                    <div className="text-left lg:text-right">
+                      <div className="flex items-center lg:justify-end gap-1.5">
+                        <span className="text-xs font-medium text-stone-500">
+                          {isFull ? 'Sold Out' : `${spotsLeft} / ${depTotal} spots`}
+                        </span>
+                        {isAlmostFull && !isFull && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700 border border-rose-200">
+                            Almost full!
+                          </span>
+                        )}
+                      </div>
+                      {totalPrice > 0 && (
+                        <div className="mt-0.5">
+                          <span className="text-base sm:text-lg font-bold text-stone-900 tabular-nums">
+                            {formatINR(totalPrice)}
+                          </span>
+                          {modifierNum !== 0 && (
+                            <span className={`block text-[10px] font-semibold ${modifierNum > 0 ? 'text-amber-700' : 'text-emerald-600'}`}>
+                              {modifierNum > 0 ? '+' : ''}{formatINR(modifierNum)} modifier
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
                     <div className="flex items-center gap-2">
                       {activeItinerary.length > 0 && (
                         <button
                           type="button"
                           onClick={() => setSelectedDepartureItinerary({ dep, itinerary: activeItinerary, pkg: depPkg })}
-                          className="px-3 py-1.5 rounded-full text-xs font-semibold border border-stone-200 hover:border-amber-400 text-stone-600 hover:text-amber-700 bg-stone-50 transition-all cursor-pointer flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-full text-xs font-semibold border border-stone-200 hover:border-amber-400 text-stone-700 hover:text-amber-800 bg-white hover:bg-stone-50 transition-all cursor-pointer flex items-center gap-1 shadow-sm"
                         >
                           <Calendar className="w-3 h-3 text-amber-600" />
                           Itinerary
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => handleBookDeparture(dep)}
                         disabled={isFull}
-                        className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                        className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
                           isFull
-                            ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                            : 'bg-stone-900 hover:bg-amber-700 text-white'
+                            ? 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200'
+                            : 'bg-stone-900 hover:bg-amber-600 text-white active:scale-95'
                         }`}
                       >
                         {isFull ? 'Full' : 'Book'}

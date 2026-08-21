@@ -1,8 +1,28 @@
 import { useState, useMemo } from 'react'
 import { Star, MapPin, Camera, Filter, Search, PlusCircle, ChevronLeft, ChevronRight, X, Sparkles, Quote } from 'lucide-react'
 import SubmitStoryModal from './SubmitStoryModal'
+import { API_URL, getImgUrl, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../utils/image'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const DEFAULT_AVATAR = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#e4d5c5" rx="50"/><circle cx="50" cy="38" r="18" fill="#d4c4b5"/><path d="M20 80c0-18 13-32 30-32s30 14 30 32" fill="#d4c4b5"/></svg>'
+)
+
+function parseImageList(images) {
+  if (!images) return []
+  if (Array.isArray(images)) return images.filter(Boolean)
+  if (typeof images === 'string') {
+    try {
+      if (images.trim().startsWith('[')) {
+        const parsed = JSON.parse(images)
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : []
+      }
+      return images.trim() ? [images.trim()] : []
+    } catch {
+      return images.trim() ? [images.trim()] : []
+    }
+  }
+  return []
+}
 
 const ROLE_BADGES = {
   'Customer': { label: 'Traveler', bg: 'bg-amber-500/10 text-amber-700 border-amber-300' },
@@ -56,11 +76,7 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
   }, [testimonials, selectedRole, selectedPackage, searchQuery])
 
   const openLightbox = (images, index, storyTitle) => {
-    const formattedImages = images.map(img =>
-      img.startsWith('http') || img.startsWith('data:')
-        ? img
-        : `${API_URL}${img.startsWith('/') ? '' : '/'}${img}`
-    )
+    const formattedImages = images.map(img => getImgUrl(img, DEFAULT_FALLBACK_IMAGE))
     setLightbox({
       isOpen: true,
       images: formattedImages,
@@ -135,6 +151,8 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-3 w-4 h-4 text-stone-400" />
               <input
+                id="stories-search-input"
+                aria-label="Search stories by destination, guide, or traveler name"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -146,6 +164,8 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
             {/* Destination Package Select Filter */}
             <div className="w-full md:w-64">
               <select
+                id="stories-package-select"
+                aria-label="Filter stories by package"
                 value={selectedPackage}
                 onChange={(e) => setSelectedPackage(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all outline-none text-stone-700 cursor-pointer"
@@ -167,6 +187,7 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
               <button
                 key={roleOpt}
                 onClick={() => setSelectedRole(roleOpt)}
+                aria-label={`Filter by ${roleOpt} role`}
                 className={`px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all ${
                   selectedRole === roleOpt
                     ? 'bg-stone-900 text-white shadow-sm'
@@ -198,9 +219,7 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredStories.map((story) => {
               const roleInfo = ROLE_BADGES[story.role] || ROLE_BADGES['Customer']
-              const imageList = Array.isArray(story.images)
-                ? story.images
-                : (typeof story.images === 'string' ? JSON.parse(story.images || '[]') : [])
+              const imageList = parseImageList(story.images)
               const isLongText = story.text && story.text.length > 220
               const isExpanded = expandedStoryId === story.id
 
@@ -215,13 +234,11 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
                       <div className="flex items-center gap-3">
                         {story.avatar ? (
                           <img
-                            src={
-                              story.avatar.startsWith('http') || story.avatar.startsWith('data:')
-                                ? story.avatar
-                                : `${API_URL}${story.avatar.startsWith('/') ? '' : '/'}${story.avatar}`
-                            }
-                            alt={story.name}
+                            src={getImgUrl(story.avatar, DEFAULT_AVATAR)}
+                            alt={story.name || 'Traveler'}
+                            onError={(e) => handleImageError(e, DEFAULT_AVATAR)}
                             className="w-11 h-11 rounded-full object-cover border-2 border-amber-500/20 shadow-sm"
+                            loading="lazy"
                           />
                         ) : (
                           <div className="w-11 h-11 rounded-full bg-amber-100 text-amber-800 font-semibold flex items-center justify-center text-base border border-amber-200">
@@ -250,7 +267,7 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
 
                     {/* Rating & Package Tag */}
                     <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-100">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1" aria-label={`${story.rating || 5} out of 5 stars`}>
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
@@ -259,6 +276,7 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
                                 ? 'fill-amber-400 text-amber-400'
                                 : 'text-stone-200'
                             }`}
+                            aria-hidden="true"
                           />
                         ))}
                       </div>
@@ -272,14 +290,15 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
 
                     {/* Review Text */}
                     <div className="relative text-stone-700 text-sm leading-relaxed font-normal">
-                      <Quote className="w-5 h-5 text-amber-300/40 absolute -top-1 -left-2 -z-0" />
+                      <Quote className="w-5 h-5 text-amber-300/40 absolute -top-1 -left-2 -z-0" aria-hidden="true" />
                       <p className="relative z-10 whitespace-pre-line">
                         {isExpanded || !isLongText ? story.text : `${story.text.slice(0, 220)}...`}
                       </p>
                       {isLongText && (
                         <button
+                          type="button"
                           onClick={() => setExpandedStoryId(isExpanded ? null : story.id)}
-                          className="mt-1 text-xs font-semibold text-amber-700 hover:underline inline-block"
+                          className="mt-1 text-xs font-semibold text-amber-700 hover:underline inline-block cursor-pointer"
                         >
                           {isExpanded ? 'Show less' : 'Read full story'}
                         </button>
@@ -298,29 +317,31 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
 
                       {/* Image Thumbnail Grid */}
                       <div className={`grid gap-2 ${imageList.length === 1 ? 'grid-cols-1' : (imageList.length === 2 ? 'grid-cols-2' : 'grid-cols-3')}`}>
-                        {imageList.slice(0, 3).map((imgUrl, idx) => {
-                          const src = imgUrl.startsWith('http') || imgUrl.startsWith('data:')
-                            ? imgUrl
-                            : `${API_URL}${imgUrl.startsWith('/') ? '' : '/'}${imgUrl}`
+                        {imageList.slice(0, 3).map((imgItem, idx) => {
+                          const src = getImgUrl(imgItem, DEFAULT_FALLBACK_IMAGE)
                           const isLastThum = idx === 2 && imageList.length > 3
 
                           return (
-                            <div
+                            <button
                               key={idx}
+                              type="button"
                               onClick={() => openLightbox(imageList, idx, story.name)}
-                              className="relative aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-100 cursor-pointer group/img"
+                              className="relative aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-100 cursor-pointer group/img text-left focus:outline-none focus:ring-2 focus:ring-amber-500"
+                              aria-label={`View photo ${idx + 1} from ${story.name}'s trip gallery`}
                             >
                               <img
                                 src={src}
                                 alt={`${story.name} photo ${idx + 1}`}
+                                onError={(e) => handleImageError(e, DEFAULT_FALLBACK_IMAGE)}
                                 className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                                loading="lazy"
                               />
                               {isLastThum && (
                                 <div className="absolute inset-0 bg-stone-900/70 text-white flex items-center justify-center font-semibold text-xs backdrop-blur-[1px]">
                                   +{imageList.length - 3} photos
                                 </div>
                               )}
-                            </div>
+                            </button>
                           )
                         })}
                       </div>

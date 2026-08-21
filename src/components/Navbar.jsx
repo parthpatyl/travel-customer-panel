@@ -133,7 +133,9 @@ export default function Navbar({ activePage, onNavigate, settings = {} }) {
                 <div className="relative flex items-center">
                   <Search className="w-4 h-4 text-stone-400 absolute left-4 pointer-events-none" />
                   <input
+                    id="site-search-input"
                     type="text"
+                    aria-label="Search destinations, packages or keywords"
                     value={searchQuery}
                     onFocus={() => {
                       setIsSearchFocused(true)
@@ -152,6 +154,7 @@ export default function Navbar({ activePage, onNavigate, settings = {} }) {
                   {searchQuery && (
                     <button
                       type="button"
+                      aria-label="Clear search query"
                       onClick={() => {
                         setSearchQuery('')
                         setSearchOpen(false)
