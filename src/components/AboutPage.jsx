@@ -1,30 +1,64 @@
-import { Sparkles, Compass, Sliders, PhoneCall } from 'lucide-react'
+import { Sparkles, Compass, Sliders, PhoneCall, ShieldCheck, HeartHandshake, Award } from 'lucide-react'
+import { useAgencySettings } from '../context/AgencyContext'
+import { getImgUrl } from '../utils/image'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
+const ICON_MAP = {
+  Sparkles,
+  Compass,
+  Sliders,
+  PhoneCall,
+  ShieldCheck,
+  HeartHandshake,
+  Award
+}
+
 export default function AboutPage() {
-  const values = [
+  const { settings } = useAgencySettings()
+  const agencyName = settings.agencyName || 'KRAFT YOUR TRIP'
+
+  const about = settings.aboutSection || {}
+  const banner = about.banner || {
+    badge: 'Our Story',
+    title: 'Curating bespoke travel',
+    description: `Founded on the belief that travel should be art, ${agencyName} transforms ordinary vacations into masterfully tailored luxury itineraries.`,
+    bgImage: '/assets/unsplash-about-hero.jpg'
+  }
+
+  const philosophy = about.philosophy || {
+    badge: 'Our Philosophy',
+    heading: 'Bespoke travel, curated down to the finest detail.',
+    p1: "We understand that the true luxury of travel isn't just the 5-star accommodations or private transport — it's the luxury of peace of mind, of deep local experiences, and of memories created without friction.",
+    p2: "Whether it is exploring Kyoto's historic shrines in traditional dress, trekking the alpine trails facing the Matterhorn, or floating in a private overwater bungalow in the Maldives, our specialists spend months designing, testing, and perfecting each detail to guarantee a perfect trip.",
+    image: '/assets/unsplash-about-section.jpg'
+  }
+
+  const valuesData = about.values || [
     {
       title: 'Bespoke Curation',
       desc: 'No two journeys are the same. Our luxury travel designers create custom-tailored itineraries to meet your exact desires.',
-      icon: Sparkles
+      icon: 'Sparkles'
     },
     {
       title: 'Expert Local Guides',
       desc: 'Gain exclusive access and deep cultural connection through our network of elite professional guides and historians.',
-      icon: Compass
+      icon: 'Compass'
     },
     {
       title: 'Seamless Coordination',
       desc: 'From VIP fast-track airport customs to private jet and helicopter charters, we coordinate every detail flawlessly.',
-      icon: Sliders
+      icon: 'Sliders'
     },
     {
       title: '24/7 Concierge Support',
       desc: 'Travel with absolute confidence. Our operations team and local field agents are on call around the clock to support you.',
-      icon: PhoneCall
+      icon: 'PhoneCall'
     }
   ]
+
+  const heroBg = banner.bgImage ? getImgUrl(banner.bgImage) : `${API_URL}/assets/unsplash-about-hero.jpg`
+  const philosophyImg = philosophy.image ? getImgUrl(philosophy.image) : `${API_URL}/assets/unsplash-about-section.jpg`
 
   return (
     <section className="bg-[#FDFCF7]">
@@ -32,7 +66,7 @@ export default function AboutPage() {
       <div className="relative py-20 sm:py-28 bg-stone-900 overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0">
           <img
-            src={`${API_URL}/assets/unsplash-about-hero.jpg`}
+            src={heroBg}
             alt="Scenic mountain peaks banner"
             className="w-full h-full object-cover opacity-50"
           />
@@ -41,13 +75,13 @@ export default function AboutPage() {
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <span className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-amber-200 text-xs font-semibold uppercase tracking-[0.2em] mb-4 border border-white/15">
-            Our Story
+            {banner.badge || 'Our Story'}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.05] tracking-[-0.02em]">
-            Curating bespoke travel
+            {banner.title || 'Curating bespoke travel'}
           </h1>
-          <p className="text-sm sm:text-base text-white/85 max-w-2xl mx-auto leading-relaxed mt-5 font-light">
-            Founded on the belief that travel should be art, KRAFT YOUR TRIP transforms ordinary vacations into masterfully tailored luxury itineraries.
+          <p className="text-sm sm:text-base text-white/85 max-w-2xl mx-auto leading-relaxed mt-5 font-light whitespace-pre-line">
+            {banner.description || `Founded on the belief that travel should be art, ${agencyName} transforms ordinary vacations into masterfully tailored luxury itineraries.`}
           </p>
         </div>
       </div>
@@ -57,21 +91,25 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="space-y-6 animate-fade-in-up">
             <span className="editorial-mark-start text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
-              Our Philosophy
+              {philosophy.badge || 'Our Philosophy'}
             </span>
             <h2 className="font-display text-3xl sm:text-4xl text-stone-900 tracking-[-0.02em] leading-[1.1]">
-              Bespoke travel, curated down to the finest detail.
+              {philosophy.heading || 'Bespoke travel, curated down to the finest detail.'}
             </h2>
-            <p className="text-sm sm:text-base text-stone-600 leading-relaxed font-light">
-              We understand that the true luxury of travel isn't just the 5-star accommodations or private transport — it's the luxury of peace of mind, of deep local experiences, and of memories created without friction.
-            </p>
-            <p className="text-sm sm:text-base text-stone-600 leading-relaxed font-light">
-              Whether it is exploring Kyoto's historic shrines in traditional dress, trekking the alpine trails facing the Matterhorn, or floating in a private overwater bungalow in the Maldives, our specialists spend months designing, testing, and perfecting each detail to guarantee a perfect trip.
-            </p>
+            {philosophy.p1 && (
+              <p className="text-sm sm:text-base text-stone-600 leading-relaxed font-light whitespace-pre-line">
+                {philosophy.p1}
+              </p>
+            )}
+            {philosophy.p2 && (
+              <p className="text-sm sm:text-base text-stone-600 leading-relaxed font-light whitespace-pre-line">
+                {philosophy.p2}
+              </p>
+            )}
           </div>
           <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-square animate-fade-in-up delay-100">
             <img
-              src={`${API_URL}/assets/unsplash-about-section.jpg`}
+              src={philosophyImg}
               alt="Travel design roadmap"
               className="w-full h-full object-cover"
             />
@@ -92,8 +130,8 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {values.map((v, i) => {
-              const Icon = v.icon
+            {valuesData.map((v, i) => {
+              const Icon = (typeof v.icon === 'string' ? ICON_MAP[v.icon] : v.icon) || Sparkles
               return (
                 <article
                   key={i}

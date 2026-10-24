@@ -184,7 +184,7 @@ export default function BookingPage({ packages, selectedPackage }) {
       name: '',
       email: '',
       phone: '',
-      countryCode: defaultCode?.code ?? '+1',
+      countryCode: defaultCode?.code ?? '+91',
       packageId,
       customDestination,
       startDate,
@@ -339,19 +339,21 @@ export default function BookingPage({ packages, selectedPackage }) {
       }
       case 'phone': {
         const phoneVal = (value || '').trim()
-        const cc = data.countryCode || defaultCode?.code || '+1'
+        const cc = data.countryCode || defaultCode?.code || '+91'
         if (!phoneVal) return 'Phone number is required'
         if (!cc) return 'Please select a country dial code'
         const full = `${cc}${phoneVal}`
         try {
           const parsed = parsePhoneNumber(full)
           if (!parsed?.isValid()) {
+            if (/^\d{10}$/.test(phoneVal)) return null
             if (cc === '+91') return 'Please enter a valid 10-digit Indian mobile number (+91)'
             if (cc === '+1') return 'Please enter a valid 10-digit US/Canada phone number (+1)'
             if (cc === '+44') return 'Please enter a valid UK phone number (+44)'
             return `Invalid phone number format${parsed?.country ? ` for ${parsed.country}` : ''}`
           }
         } catch {
+          if (/^\d{10}$/.test(phoneVal)) return null
           if (cc === '+91' && phoneVal.length !== 10) return 'Please enter a valid 10-digit Indian mobile number (+91)'
           return 'Invalid phone number format'
         }
@@ -990,7 +992,15 @@ ${formData.notes || 'No special requests specified.'}
                     <div>
                       <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Dates</span>
                       <span className="text-xs font-bold text-stone-900 block">
-                        {formData.startDate ? `${formatDateDisplay(formData.startDate)} → ${formatDateDisplay(effectiveEndDate) || 'Flexible'}` : 'Select dates'}
+                        {formData.startDate ? (
+                          effectiveEndDate && effectiveEndDate !== formData.startDate ? (
+                            `${formatDateDisplay(formData.startDate)} → ${formatDateDisplay(effectiveEndDate)}`
+                          ) : (
+                            `${formatDateDisplay(formData.startDate)}`
+                          )
+                        ) : (
+                          'Select dates'
+                        )}
                       </span>
                     </div>
                   </div>
@@ -999,7 +1009,9 @@ ${formData.notes || 'No special requests specified.'}
                 {/* Calendar Popup Integration */}
                 {openCalendar && (
                   <CalendarPopup
-                    value={formData.startDate}
+                    startDate={formData.startDate}
+                    endDate={effectiveEndDate}
+                    isEndDateLocked={isEndDateLocked}
                     onChange={(selectedIso) => {
                       const updated = {
                         ...formData,
@@ -1018,6 +1030,25 @@ ${formData.notes || 'No special requests specified.'}
                         })
                       } else if (errors.startDate) {
                         setErrors(prev => ({ ...prev, startDate: null }))
+                      }
+                      setOpenCalendar(null)
+                    }}
+                    onChangeRange={({ startDate: sDate, endDate: eDate }) => {
+                      const updated = {
+                        ...formData,
+                        startDate: sDate,
+                        endDate: eDate || sDate
+                      }
+                      setFormData(updated)
+                      if (submissionAttempted) {
+                        setErrors(prev => {
+                          const next = { ...prev }
+                          delete next.startDate
+                          delete next.endDate
+                          return next
+                        })
+                      } else {
+                        setErrors(prev => ({ ...prev, startDate: null, endDate: null }))
                       }
                       setOpenCalendar(null)
                     }}

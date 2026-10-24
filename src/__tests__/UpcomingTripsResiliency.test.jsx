@@ -170,8 +170,8 @@ describe('Customer Site Components Resiliency', () => {
       region: 'India',
       price: 45000,
       departureId: 'dep-1',
-      departureDate: '2026-10-15',
-      returnDate: '2026-10-21',
+      departureDate: '2026-11-15',
+      returnDate: '2026-11-21',
       priceModifier: 5000
     };
 

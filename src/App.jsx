@@ -65,7 +65,7 @@ function App() {
           }
         }
 
-        const testRes = await fetch(`${API_URL}/api/testimonials`)
+        const testRes = await fetch(`${API_URL}/api/testimonials?status=approved`)
         if (testRes.ok) {
           const testData = await testRes.json()
           if (Array.isArray(testData) && testData.length > 0) {

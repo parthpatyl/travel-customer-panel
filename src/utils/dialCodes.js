@@ -14,7 +14,7 @@ export const DIAL_CODES = getCountries()
   .sort((a, b) => b.code.length - a.code.length)
 
 export function getDefaultDialCode() {
-  const country = detectCountryFromTimezone()
-  if (country) return DIAL_CODES.find(d => d.country === country) ?? null
-  return null
+  const india = DIAL_CODES.find(d => d.country === 'IN')
+  if (india) return india
+  return { country: 'IN', code: '+91', name: 'India' }
 }

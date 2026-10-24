@@ -285,8 +285,8 @@ describe('Empirical Challenger 2 - Milestone 2 In-Depth Verification', () => {
         name: 'Swiss Alps Expedition',
         price: 150000,
         departureId: 'dep-err-1',
-        departureDate: '2026-10-10',
-        returnDate: '2026-10-17',
+        departureDate: '2026-11-10',
+        returnDate: '2026-11-17',
         priceModifier: 0
       };
 
@@ -328,8 +328,8 @@ describe('Empirical Challenger 2 - Milestone 2 In-Depth Verification', () => {
         name: 'Swiss Alps Expedition',
         price: 150000,
         departureId: 'dep-net-err',
-        departureDate: '2026-10-10',
-        returnDate: '2026-10-17',
+        departureDate: '2026-11-10',
+        returnDate: '2026-11-17',
         priceModifier: 0
       };
 

@@ -11,7 +11,7 @@ function detectFromNumber(raw) {
 
 export default function PhoneInput({ countryCode, phone, onChange, error }) {
   const defaultCode = getDefaultDialCode()
-  const currentCode = countryCode || defaultCode?.code || '+1'
+  const currentCode = countryCode || defaultCode?.code || '+91'
 
   const getPlaceholder = (code) => {
     switch (code) {
