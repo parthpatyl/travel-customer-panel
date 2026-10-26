@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft, CheckCircle2, Calendar, Users, MapPin, Phone, Mail, Compass, ShieldAlert, Clock, RefreshCw } from 'lucide-react'
+import { useAgencySettings } from '../context/AgencyContext'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 export default function EnquiryPage({ enquiryId, onBackToHome }) {
+  const { settings } = useAgencySettings()
+  const agencyPhone = (settings?.agencyPhone && !settings.agencyPhone.includes('(555)')) ? settings.agencyPhone : '+91 7046704693'
   const [enquiry, setEnquiry] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -279,7 +282,7 @@ export default function EnquiryPage({ enquiryId, onBackToHome }) {
                 Our luxury travel planners will design a bespoke itinerary based on your details and send you a preliminary PDF proposal via email within 24 hours.
               </p>
               <p className="text-xs text-stone-400 leading-relaxed italic font-light pt-2 border-t border-stone-800">
-                Need immediate help? Call us at +1 (555) 019-2831.
+                Need immediate help? Call us at {agencyPhone}.
               </p>
             </div>
           </div>

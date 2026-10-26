@@ -18,9 +18,57 @@ const MarkdownInline = ({ children, className }) => (
 )
 
 
-export default function FeaturedPackages({ packages, onViewPackage, settings = {}, onNavigate }) {
+export default function FeaturedPackages({ packages = [], onViewPackage, settings = {}, onNavigate }) {
   const featured = packages.slice(0, 4)
   const offers = settings.specialOffers || []
+
+  // Handle clicking on an offer banner or CTA button
+  const handleOfferClick = (offer) => {
+    const target = offer.linkUrl || offer.targetUrl || offer.targetPage || 'destinations'
+    if (!target) return
+
+    // External URL
+    if (target.startsWith('http://') || target.startsWith('https://')) {
+      window.open(target, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    // Direct Package target: package:id, /package/id, or package id
+    let targetPkgId = null
+    if (target.startsWith('package:')) {
+      targetPkgId = target.replace('package:', '').trim()
+    } else if (target.startsWith('/package/')) {
+      targetPkgId = target.replace('/package/', '').trim()
+    } else if (packages.some(p => p.id === target)) {
+      targetPkgId = target
+    }
+
+    if (targetPkgId) {
+      const pkg = packages.find(p => p.id === targetPkgId)
+      if (pkg) {
+        if (onViewPackage) {
+          onViewPackage(pkg)
+        } else if (onNavigate) {
+          onNavigate('detail', pkg)
+        }
+        return
+      }
+    }
+
+    // Named internal page routes
+    const cleanPage = target.replace(/^\//, '').toLowerCase().trim()
+    if (cleanPage === 'booking' || cleanPage === 'book') {
+      onNavigate && onNavigate('booking')
+    } else if (cleanPage === 'about' || cleanPage === 'about-us') {
+      onNavigate && onNavigate('about')
+    } else if (cleanPage === 'destinations' || cleanPage === 'packages') {
+      onNavigate && onNavigate('destinations')
+    } else if (cleanPage === 'enquiry' || cleanPage === 'contact') {
+      onNavigate && onNavigate('enquiry')
+    } else {
+      onNavigate && onNavigate(cleanPage || 'destinations')
+    }
+  }
 
   // Define fallbacks if agency has no offers configured
   const defaultOffers = [
@@ -93,13 +141,21 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
             return (
               <div
                 key={offer.id}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isActive ? 'opacity-100 z-10 visible' : 'opacity-0 z-0 pointer-events-none invisible'}`}
+                onClick={() => handleOfferClick(offer)}
+                className={`absolute inset-0 cursor-pointer transition-opacity duration-700 ease-in-out ${isActive ? 'opacity-100 z-10 visible' : 'opacity-0 z-0 pointer-events-none invisible'}`}
+                role="button"
+                tabIndex={isActive ? 0 : -1}
+                aria-label={`View offer: ${offer.title}`}
               >
-                {/* Background Image */}
+                {/* Background Image with hover zoom and error fallback */}
                 <img
                   src={imgUrl(offer.imageUrl)}
                   alt={offer.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null
+                    e.currentTarget.src = '/assets/unsplash-maldives.jpg'
+                  }}
                 />
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-stone-950/85 via-stone-950/45 to-transparent" />
@@ -116,11 +172,15 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
                     {offer.subtitle}
                   </p>
                   <button
-                    onClick={() => onNavigate && onNavigate(offer.targetPage || 'destinations')}
-                    className="px-5 py-2.5 bg-white hover:bg-amber-50 text-stone-900 rounded-full text-xs sm:text-xs font-semibold transition-all duration-300 w-fit active:scale-95"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleOfferClick(offer)
+                    }}
+                    className="px-5 py-2.5 bg-white hover:bg-amber-50 text-stone-900 rounded-full text-xs sm:text-xs font-semibold transition-all duration-300 w-fit active:scale-95 shadow-sm group-hover:shadow-md cursor-pointer"
                   >
-                    {offer.buttonText || 'Learn More'}
-                    <ArrowRight className="w-3.5 h-3.5 inline ml-1.5" />
+                    {offer.buttonText || 'Explore Offer'}
+                    <ArrowRight className="w-3.5 h-3.5 inline ml-1.5 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </div>
               </div>
@@ -131,14 +191,20 @@ export default function FeaturedPackages({ packages, onViewPackage, settings = {
           {activeOffers.length > 1 && (
             <>
               <button
-                onClick={prevSlide}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  prevSlide()
+                }}
                 className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm cursor-pointer z-30 transition-all active:scale-95 opacity-0 group-hover:opacity-100 duration-300 border border-white/15"
                 aria-label="Previous Slide"
               >
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
-                onClick={nextSlide}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  nextSlide()
+                }}
                 className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm cursor-pointer z-30 transition-all active:scale-95 opacity-0 group-hover:opacity-100 duration-300 border border-white/15"
                 aria-label="Next Slide"
               >

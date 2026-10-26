@@ -6,15 +6,15 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const DEFAULT_AGENCY_SETTINGS = {
   agencyName: 'KRAFT YOUR TRIP',
   agencyTagline: 'Handcrafting bespoke luxury travel experiences across the globe.',
-  agencyAddress: '456 Sandstone Ave, Suite 100, San Francisco, CA',
-  agencyPhone: '+1 (555) 019-2831',
-  agencyEmail: 'concierge@kraftyourtrip.com',
-  workingHours: 'Mon – Sat: 9 AM – 6 PM',
+  agencyAddress: 'Mumbai, Maharashtra, India',
+  agencyPhone: '+91 7046704693',
+  agencyEmail: 'contact@kraftyourtrip.com',
+  workingHours: 'Mon – Sat: 9:00 AM – 7:00 PM IST',
   inrToUsdRate: 83.5,
   socialLinks: {
-    instagram: 'https://instagram.com',
-    facebook: 'https://facebook.com',
-    twitter: 'https://twitter.com'
+    instagram: 'https://instagram.com/kraftyourtrip',
+    facebook: 'https://facebook.com/kraftyourtrip',
+    whatsapp: 'https://wa.me/917046704693'
   }
 }
 
@@ -25,43 +25,52 @@ const AgencyContext = createContext({
 })
 
 export function AgencyProvider({ children }) {
-  const [settings, setSettings] = useState(DEFAULT_AGENCY_SETTINGS)
-  const [loading, setLoading] = useState(true)
+  const [settings, setSettings] = useState(() => {
+    try {
+      const cached = localStorage.getItem('kraft_customer_settings')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        return {
+          ...DEFAULT_AGENCY_SETTINGS,
+          ...parsed,
+          socialLinks: { ...DEFAULT_AGENCY_SETTINGS.socialLinks, ...(parsed.socialLinks || {}) }
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return DEFAULT_AGENCY_SETTINGS
+  })
+  const [loading, setLoading] = useState(false)
 
   const fetchSettings = async () => {
     try {
       const res = await fetch(`${API_URL}/api/settings`)
       if (res.ok) {
         const data = await res.json()
-        setSettings((prev) => ({
-          ...prev,
-          ...data,
-          socialLinks: { ...prev.socialLinks, ...(data.socialLinks || {}) }
-        }))
+        setSettings((prev) => {
+          const nextSettings = {
+            ...prev,
+            ...data,
+            socialLinks: { ...prev.socialLinks, ...(data.socialLinks || {}) }
+          }
+          try {
+            localStorage.setItem('kraft_customer_settings', JSON.stringify(nextSettings))
+          } catch {
+            // ignore
+          }
+          return nextSettings
+        })
       }
     } catch (err) {
-      console.warn('[AgencyContext] Using default settings:', err.message)
+      console.warn('[AgencyContext] Using cached/default settings:', err.message)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetch(`${API_URL}/api/settings`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Not OK'))))
-      .then((data) => {
-        setSettings((prev) => ({
-          ...prev,
-          ...data,
-          socialLinks: { ...prev.socialLinks, ...(data.socialLinks || {}) }
-        }))
-      })
-      .catch((err) => {
-        console.warn('[AgencyContext] Using default settings:', err.message)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+    fetchSettings()
   }, [])
 
   return (

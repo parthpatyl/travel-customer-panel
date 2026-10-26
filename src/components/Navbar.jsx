@@ -20,7 +20,11 @@ const SEARCH_PLACEHOLDERS = [
 export default function Navbar({ activePage, onNavigate, settings = {} }) {
   const { settings: contextSettings } = useAgencySettings()
   const agencyName = settings.agencyName || contextSettings.agencyName || 'KRAFT YOUR TRIP'
-  const agencyPhone = settings.agencyPhone || contextSettings.agencyPhone || '7046704693'
+  const agencyPhone = (settings.agencyPhone && !settings.agencyPhone.includes('(555)'))
+    ? settings.agencyPhone
+    : (contextSettings.agencyPhone && !contextSettings.agencyPhone.includes('(555)'))
+      ? contextSettings.agencyPhone
+      : '+91 7046704693'
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)

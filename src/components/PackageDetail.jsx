@@ -13,6 +13,9 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   const [groupDepartures, setGroupDepartures] = useState([])
   const [isBrochureOpen, setIsBrochureOpen] = useState(false)
 
+  const agencyPhone = (settings.agencyPhone && !settings.agencyPhone.includes('(555)')) ? settings.agencyPhone : '+91 7046704693'
+  const agencyEmail = settings.agencyEmail || 'contact@kraftyourtrip.com'
+
   const totalSlots = pkg?.slots?.total ?? pkg?.slotsTotal ?? 20
   const bookedSlots = pkg?.slots?.booked ?? pkg?.slotsBooked ?? 0
   const spotsLeft = totalSlots - bookedSlots
@@ -605,13 +608,13 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                 Our luxury travel planners are available to tailor this itinerary exactly to your preferences.
               </p>
               <div className="pt-2 flex flex-col gap-2.5 text-sm">
-                <a href="tel:+15550192831" className="flex items-center gap-2 text-stone-300 hover:text-amber-300 transition-colors">
+                <a href={`tel:${agencyPhone.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2 text-stone-300 hover:text-amber-300 transition-colors">
                   <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                  +1 (555) 019-2831
+                  {agencyPhone}
                 </a>
-                <a href="mailto:concierge@kraftyourtrip.com" className="flex items-center gap-2 text-stone-300 hover:text-amber-300 transition-colors">
+                <a href={`mailto:${agencyEmail}`} className="flex items-center gap-2 text-stone-300 hover:text-amber-300 transition-colors">
                   <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-                  concierge@kraftyourtrip.com
+                  {agencyEmail}
                 </a>
                 <div className="flex items-start gap-2 text-stone-300">
                   <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />

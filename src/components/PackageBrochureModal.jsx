@@ -47,9 +47,9 @@ export default function PackageBrochureModal({ pkg, isOpen, onClose, settings = 
   }
 
   const agencyName = settings.agencyName || 'KRAFT YOUR TRIP'
-  const agencyPhone = settings.agencyPhone || '+1 (555) 019-2831'
-  const agencyEmail = settings.agencyEmail || 'concierge@kraftyourtrip.com'
-  const agencyAddress = settings.agencyAddress || '456 Sandstone Ave, Suite 100, San Francisco, CA'
+  const agencyPhone = (settings.agencyPhone && !settings.agencyPhone.includes('(555)')) ? settings.agencyPhone : '+91 7046704693'
+  const agencyEmail = settings.agencyEmail || 'contact@kraftyourtrip.com'
+  const agencyAddress = (settings.agencyAddress && !settings.agencyAddress.includes('Sandstone')) ? settings.agencyAddress : 'Mumbai, Maharashtra, India'
 
   const modalContent = (
     <div className="print-portal-root">

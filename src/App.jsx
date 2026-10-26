@@ -37,22 +37,60 @@ function App() {
   const [selectedEnquiryId, setSelectedEnquiryId] = useState(initialRoute.enquiryId)
   const [initialRegion, setInitialRegion] = useState('All')
 
-  const [packages, setPackages] = useState(staticPackages)
-  const [testimonials, setTestimonials] = useState(fallbackTestimonials)
-  const [initialSearch, setInitialSearch] = useState('')
-  const [stats, setStats] = useState({
-    tripsCrafted: '500+',
-    satisfaction: '98%',
-    destinations: '50+'
+  const [packages, setPackages] = useState(() => {
+    try {
+      const cached = localStorage.getItem('kraft_customer_packages')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {
+      // ignore
+    }
+    return staticPackages
   })
-  const [settings, setSettings] = useState({
-    agencyName: 'KRAFT YOUR TRIP',
-    agencyAddress: '456 Sandstone Ave, Suite 100, San Francisco, CA',
-    agencyPhone: '+1 (555) 019-2831',
-    agencyEmail: 'concierge@kraftyourtrip.com'
+  const [testimonials, setTestimonials] = useState(() => {
+    try {
+      const cached = localStorage.getItem('kraft_customer_testimonials')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {
+      // ignore
+    }
+    return fallbackTestimonials
+  })
+  const [initialSearch, setInitialSearch] = useState('')
+  const [stats, setStats] = useState(() => {
+    try {
+      const cached = localStorage.getItem('kraft_customer_stats')
+      if (cached) return JSON.parse(cached)
+    } catch {
+      // ignore
+    }
+    return {
+      tripsCrafted: '10+',
+      satisfaction: '52%',
+      destinations: '40+'
+    }
+  })
+  const [settings, setSettings] = useState(() => {
+    try {
+      const cached = localStorage.getItem('kraft_customer_settings')
+      if (cached) return JSON.parse(cached)
+    } catch {
+      // ignore
+    }
+    return {
+      agencyName: 'KRAFT YOUR TRIP',
+      agencyAddress: 'Mumbai, Maharashtra, India',
+      agencyPhone: '+91 7046704693',
+      agencyEmail: 'contact@kraftyourtrip.com'
+    }
   })
 
-  // Load dynamic data from backend API
+  // Load dynamic data from backend API with localStorage caching
   useEffect(() => {
     const loadDynamicData = async () => {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -62,6 +100,7 @@ function App() {
           const pkgData = await pkgRes.json()
           if (Array.isArray(pkgData) && pkgData.length > 0) {
             setPackages(pkgData)
+            try { localStorage.setItem('kraft_customer_packages', JSON.stringify(pkgData)) } catch {}
           }
         }
 
@@ -70,6 +109,7 @@ function App() {
           const testData = await testRes.json()
           if (Array.isArray(testData) && testData.length > 0) {
             setTestimonials(testData)
+            try { localStorage.setItem('kraft_customer_testimonials', JSON.stringify(testData)) } catch {}
           }
         }
 
@@ -77,15 +117,17 @@ function App() {
         if (settingsRes.ok) {
           const settingsData = await settingsRes.json()
           setSettings(settingsData)
+          try { localStorage.setItem('kraft_customer_settings', JSON.stringify(settingsData)) } catch {}
         }
 
         const statsRes = await fetch(`${API_URL}/api/stats`)
         if (statsRes.ok) {
           const statsData = await statsRes.json()
           setStats(statsData)
+          try { localStorage.setItem('kraft_customer_stats', JSON.stringify(statsData)) } catch {}
         }
       } catch (err) {
-        console.warn('Backend API connection failed, using static fallbacks:', err)
+        console.warn('Backend API connection failed, using cached/static fallbacks:', err)
       }
     }
     loadDynamicData()
@@ -218,6 +260,9 @@ function App() {
                   }
                   alt="CTA background image"
                   className="w-full h-full object-cover opacity-40"
+                  onError={(e) => {
+                    e.currentTarget.src = '/assets/unsplash-app-hero.jpg'
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/50 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-r from-stone-950/50 via-transparent to-stone-950/50" />
