@@ -128,36 +128,42 @@ export default function UpcomingTrips({ onBook }) {
   return (
     <section className="py-10 sm:py-14 bg-[#FDFCF7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2 block">
-            Upcoming Trips
-          </span>
-          <h1 className="font-display text-3xl sm:text-4xl text-stone-900 tracking-tight">
-            Scheduled Departures
-          </h1>
-          <p className="text-sm text-stone-500 mt-2 max-w-xl">
-            Join a scheduled departure and explore the world with like-minded travellers. Fixed dates, shared experiences.
-          </p>
+        {/* Header & Stats Bar */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-stone-200">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2 block">
+              Upcoming Trips
+            </span>
+            <h1 className="font-display text-3xl sm:text-4xl text-stone-900 tracking-tight">
+              Scheduled Departures
+            </h1>
+            <p className="text-sm text-stone-500 mt-2 max-w-xl">
+              Join a scheduled departure and explore the world with like-minded travellers. Fixed dates, shared experiences.
+            </p>
+          </div>
+
+          {/* Right-Aligned Stats Counter Pills (Image 2) */}
+          <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl px-4 py-2.5 flex items-center gap-3 shadow-xs">
+              <CalendarDays className="w-5 h-5 text-amber-600 shrink-0" />
+              <div>
+                <span className="block text-[11px] text-stone-500 font-medium">Upcoming Departures</span>
+                <span className="text-base sm:text-lg font-bold text-stone-900 tabular-nums">{upcomingCount}</span>
+              </div>
+            </div>
+            <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl px-4 py-2.5 flex items-center gap-3 shadow-xs">
+              <Users className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div>
+                <span className="block text-[11px] text-stone-500 font-medium">Packages Available</span>
+                <span className="text-base sm:text-lg font-bold text-stone-900 tabular-nums">{packagesCount}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-stone-200">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 flex items-center gap-3">
-            <CalendarDays className="w-5 h-5 text-amber-600" />
-            <div>
-              <span className="block text-xs text-stone-500 font-medium">Upcoming Departures</span>
-              <span className="text-lg font-bold text-stone-900">{upcomingCount}</span>
-            </div>
-          </div>
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 flex items-center gap-3">
-            <Users className="w-5 h-5 text-emerald-600" />
-            <div>
-              <span className="block text-xs text-stone-500 font-medium">Packages Available</span>
-              <span className="text-lg font-bold text-stone-900">{packagesCount}</span>
-            </div>
-          </div>
-          <div className="ml-auto flex flex-wrap gap-2">
+        {/* Filter Tabs Bar */}
+        <div className="flex items-center justify-between gap-4 mb-8">
+          <div className="flex flex-wrap gap-2">
             {[
               { key: 'all', label: 'All Trips' },
               { key: 'scheduled', label: 'Scheduled' },
@@ -166,10 +172,10 @@ export default function UpcomingTrips({ onBook }) {
               <button
                 key={tab.key}
                 onClick={() => setStatusFilter(tab.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border capitalize cursor-pointer ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all border capitalize cursor-pointer shadow-xs ${
                   statusFilter === tab.key
-                    ? 'bg-stone-900 text-white border-stone-900'
-                    : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-700'
+                    ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
+                    : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-800'
                 }`}
               >
                 {tab.label}
@@ -191,8 +197,8 @@ export default function UpcomingTrips({ onBook }) {
           </div>
         )}
 
-        {/* Departures List */}
-        <div className="space-y-4 sm:space-y-5">
+        {/* Departures Card Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {filtered.map((dep, i) => {
             const depTotal = dep.slots?.total ?? dep.slotsTotal ?? 20
             const depBooked = dep.slots?.booked ?? dep.slotsBooked ?? 0
@@ -215,140 +221,159 @@ export default function UpcomingTrips({ onBook }) {
             const totalPrice = basePriceNum + modifierNum
 
             return (
-              <div
+              <article
                 key={dep.id}
-                className="animate-fade-in-up bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 hover:shadow-xl hover:shadow-stone-900/[0.04] hover:border-amber-400/40 transition-all duration-300"
-                style={{ animationDelay: `${i * 50}ms` }}
+                className="animate-fade-in-up group bg-white border border-stone-200/90 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-stone-900/[0.06] hover:border-amber-400/50 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+                style={{ animationDelay: `${i * 60}ms` }}
               >
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4 sm:gap-5">
-                  {/* 1. Thumbnail Column */}
-                  <div className="relative w-full sm:w-48 lg:w-44 h-40 sm:h-32 rounded-xl overflow-hidden bg-stone-100 shrink-0 group">
-                    <img
-                      src={imgUrl(dep.packageCardImage || dep.cardImage || depPkg?.cardImage || '/assets/unsplash-pkg-card.jpg')}
-                      alt={packageTitle}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
+                {/* 1. Card Top Image with Badges */}
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-stone-100 shrink-0">
+                  <img
+                    src={imgUrl(dep.packageCardImage || dep.cardImage || depPkg?.cardImage || '/assets/unsplash-pkg-card.jpg')}
+                    alt={packageTitle}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = '/assets/unsplash-pkg-card.jpg'
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-stone-950/20 to-transparent" />
+
+                  {/* Top Overlay Badges */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-xs ${getStatusColor(dep.status)}`}>
+                      {dep.status}
+                    </span>
                     {dep.ctaBadge && (
-                      <span className="absolute top-2.5 left-2.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-900/85 backdrop-blur-sm text-amber-300 shadow-sm">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-stone-900/90 backdrop-blur-md text-amber-300 shadow-xs border border-white/10">
                         {dep.ctaBadge}
                       </span>
                     )}
                   </div>
 
-                  {/* 2. Middle Content Column */}
-                  <div className="flex-1 min-w-0 space-y-2">
-                    {/* Title & Status */}
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base sm:text-lg font-bold text-stone-900 leading-snug">
-                          {packageTitle}
-                        </h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shrink-0 ${getStatusColor(dep.status)}`}>
-                          {dep.status}
-                        </span>
-                      </div>
-                      {departureBatchTitle && (
-                        <p className="text-xs text-stone-500 font-medium mt-0.5">
-                          {departureBatchTitle}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Date, Region, Duration, Itinerary meta */}
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-stone-600">
-                      <span className="flex items-center gap-1.5 font-medium text-stone-700">
-                        <CalendarDays className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  {/* Bottom of Image: Date Range Banner */}
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
+                    <div className="flex items-center gap-1.5 bg-stone-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 font-medium text-[11px]">
+                      <CalendarDays className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>
                         {formatDate(dep.departureDate)}
                         {dep.returnDate && ` — ${formatDate(dep.returnDate)}`}
                       </span>
-                      {(dep.packageRegion || depPkg?.region) && (
-                        <span className="flex items-center gap-1 text-stone-500">
-                          <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                          {dep.packageRegion || depPkg?.region}
-                        </span>
-                      )}
-                      {(dep.packageDuration || depPkg?.duration) && (
-                        <span className="text-stone-500 font-medium">
-                          ⏱️ {dep.packageDuration || depPkg?.duration}
-                        </span>
-                      )}
-                      {activeItinerary.length > 0 && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/80">
-                          📅 {activeItinerary.length} Days Itinerary
-                        </span>
-                      )}
                     </div>
+                    {activeItinerary.length > 0 && (
+                      <span className="bg-amber-600/90 backdrop-blur-md text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-xs">
+                        📅 {activeItinerary.length} Days Itinerary
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-                    {/* Highlights tags */}
-                    {highlights && highlights.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                        {highlights.slice(0, 4).map((h, idx) => (
-                          <span key={idx} className="text-[11px] bg-stone-100 text-stone-700 px-2.5 py-0.5 rounded-full border border-stone-200/60 font-medium">
-                            {h}
-                          </span>
-                        ))}
-                      </div>
+                {/* 2. Card Content Body */}
+                <div className="p-5 flex flex-col flex-1">
+                  {/* Region & Duration */}
+                  <div className="flex items-center gap-3 text-xs text-stone-500 font-medium mb-1.5">
+                    {(dep.packageRegion || depPkg?.region) && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-stone-400" />
+                        {dep.packageRegion || depPkg?.region}
+                      </span>
+                    )}
+                    {(dep.packageDuration || depPkg?.duration) && (
+                      <span>⏱️ {dep.packageDuration || depPkg?.duration}</span>
                     )}
                   </div>
 
-                  {/* 3. Right Pricing, Capacity & Actions */}
-                  <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 lg:gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-stone-100 min-w-[190px]">
-                    {/* Spots & Pricing */}
-                    <div className="text-left lg:text-right">
-                      <div className="flex items-center lg:justify-end gap-1.5">
-                        <span className="text-xs font-medium text-stone-500">
-                          {isFull ? 'Sold Out' : `${spotsLeft} / ${depTotal} spots`}
+                  {/* Package Title */}
+                  <h3 className="font-display text-lg font-bold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug line-clamp-2">
+                    {packageTitle}
+                  </h3>
+                  {departureBatchTitle && (
+                    <p className="text-xs text-stone-500 font-medium mt-1 line-clamp-1">
+                      {departureBatchTitle}
+                    </p>
+                  )}
+
+                  {/* Highlights Tags */}
+                  {highlights && highlights.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 my-3.5">
+                      {highlights.slice(0, 3).map((h, idx) => (
+                        <span key={idx} className="text-[11px] bg-stone-100 text-stone-700 px-2 py-0.5 rounded-md font-medium border border-stone-200/60">
+                          {h}
+                        </span>
+                      ))}
+                      {highlights.length > 3 && (
+                        <span className="text-[10px] text-stone-400 font-medium">
+                          +{highlights.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 3. Card Bottom: Price, Spots & Actions */}
+                  <div className="mt-auto pt-4 border-t border-stone-100">
+                    <div className="flex items-center justify-between mb-3.5">
+                      <div>
+                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                          Total Tour Price
+                        </span>
+                        <span className="text-lg font-bold text-stone-900 tabular-nums">
+                          {totalPrice > 0 ? formatINR(totalPrice) : 'On Request'}
+                        </span>
+                        {modifierNum !== 0 && (
+                          <span className={`block text-[10px] font-semibold ${modifierNum > 0 ? 'text-amber-700' : 'text-emerald-600'}`}>
+                            {modifierNum > 0 ? '+' : ''}{formatINR(modifierNum)} modifier
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-right">
+                        <span className="block text-[11px] font-medium text-stone-500">
+                          {isFull ? (
+                            <span className="text-rose-600 font-bold">Sold Out</span>
+                          ) : (
+                            <span><strong className="text-stone-900">{spotsLeft} / {depTotal} spots</strong></span>
+                          )}
                         </span>
                         {isAlmostFull && !isFull && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700 border border-rose-200">
+                          <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700 border border-rose-200">
                             Almost full!
                           </span>
                         )}
                       </div>
-                      {totalPrice > 0 && (
-                        <div className="mt-0.5">
-                          <span className="text-base sm:text-lg font-bold text-stone-900 tabular-nums">
-                            {formatINR(totalPrice)}
-                          </span>
-                          {modifierNum !== 0 && (
-                            <span className={`block text-[10px] font-semibold ${modifierNum > 0 ? 'text-amber-700' : 'text-emerald-600'}`}>
-                              {modifierNum > 0 ? '+' : ''}{formatINR(modifierNum)} modifier
-                            </span>
-                          )}
-                        </div>
-                      )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      {activeItinerary.length > 0 && (
+                    {/* Actions: Itinerary Modal & Book Button */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {activeItinerary.length > 0 ? (
                         <button
                           type="button"
                           onClick={() => setSelectedDepartureItinerary({ dep, itinerary: activeItinerary, pkg: depPkg })}
-                          className="px-3 py-1.5 rounded-full text-xs font-semibold border border-stone-200 hover:border-amber-400 text-stone-700 hover:text-amber-800 bg-white hover:bg-stone-50 transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                          className="w-full py-2 px-3 rounded-xl text-xs font-semibold border border-stone-200 hover:border-amber-400 text-stone-700 hover:text-amber-800 bg-white hover:bg-stone-50 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                         >
-                          <Calendar className="w-3 h-3 text-amber-600" />
+                          <Calendar className="w-3.5 h-3.5 text-amber-600" />
                           Itinerary
                         </button>
+                      ) : (
+                        <div />
                       )}
                       <button
                         type="button"
                         onClick={() => handleBookDeparture(dep)}
                         disabled={isFull}
-                        className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                        className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer ${
                           isFull
                             ? 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200'
-                            : 'bg-stone-900 hover:bg-amber-600 text-white active:scale-95'
-                        }`}
+                            : 'bg-stone-900 hover:bg-amber-600 text-white active:scale-98'
+                        } ${activeItinerary.length === 0 ? 'col-span-2' : ''}`}
                       >
                         {isFull ? 'Full' : 'Book'}
-                        {!isFull && <ArrowRight className="w-3 h-3" />}
+                        {!isFull && <ArrowRight className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
+              </article>
             )
           })}
         </div>

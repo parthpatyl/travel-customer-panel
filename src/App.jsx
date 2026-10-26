@@ -221,18 +221,6 @@ function App() {
             {/* Destination Categories Strip */}
             <DestinationCategories onExplore={handleExplore} />
 
-            {/* Speciality Tour Categories Grid */}
-            <SpecialityCategories
-              packages={packages}
-              onSelectCategory={(name, keyword, catId) => {
-                if (catId === 'group-tours' || (name && name.toLowerCase().includes('group'))) {
-                  navigate('group-tours')
-                } else {
-                  navigate('destinations', null, 'All', keyword)
-                }
-              }}
-            />
-
             {/* Featured Luxury Packages */}
             <FeaturedPackages
               packages={packages}
@@ -246,6 +234,18 @@ function App() {
 
             {/* Customer Testimonials Grid */}
             <TestimonialsSection testimonials={testimonials} />
+
+            {/* Speciality Tour Categories Grid (Positioned after reviews) */}
+            <SpecialityCategories
+              packages={packages}
+              onSelectCategory={(name, keyword, catId) => {
+                if (catId === 'group-tours' || (name && name.toLowerCase().includes('group'))) {
+                  navigate('group-tours')
+                } else {
+                  navigate('destinations', null, 'All', keyword)
+                }
+              }}
+            />
 
             {/* Final home CTA section */}
             <section className="py-20 sm:py-24 text-center relative overflow-hidden bg-stone-900 text-white">
