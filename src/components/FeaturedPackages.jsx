@@ -99,12 +99,12 @@ export default function FeaturedPackages({ packages = [], onViewPackage, setting
   }, [isPaused, activeOffers.length])
 
   const nextSlide = (e) => {
-    e.stopPropagation()
+    if (e && e.stopPropagation) e.stopPropagation()
     setCurrentSlide((prev) => (prev + 1) % activeOffers.length)
   }
 
   const prevSlide = (e) => {
-    e.stopPropagation()
+    if (e && e.stopPropagation) e.stopPropagation()
     setCurrentSlide((prev) => (prev - 1 + activeOffers.length) % activeOffers.length)
   }
 
@@ -191,39 +191,37 @@ export default function FeaturedPackages({ packages = [], onViewPackage, setting
           {activeOffers.length > 1 && (
             <>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  prevSlide()
-                }}
-                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm cursor-pointer z-30 transition-all active:scale-95 opacity-0 group-hover:opacity-100 duration-300 border border-white/15"
+                type="button"
+                onClick={prevSlide}
+                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-stone-900/50 hover:bg-stone-900/80 sm:bg-white/15 sm:hover:bg-white/30 text-white backdrop-blur-md cursor-pointer z-30 transition-all active:scale-95 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 duration-300 border border-white/20 shadow-md"
                 aria-label="Previous Slide"
               >
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  nextSlide()
-                }}
-                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm cursor-pointer z-30 transition-all active:scale-95 opacity-0 group-hover:opacity-100 duration-300 border border-white/15"
+                type="button"
+                onClick={nextSlide}
+                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-stone-900/50 hover:bg-stone-900/80 sm:bg-white/15 sm:hover:bg-white/30 text-white backdrop-blur-md cursor-pointer z-30 transition-all active:scale-95 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 duration-300 border border-white/20 shadow-md"
                 aria-label="Next Slide"
               >
                 <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               {/* Pagination Dots */}
-              <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5 z-30">
+              <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30 bg-stone-900/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
                 {activeOffers.map((_, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={(e) => {
-                      e.stopPropagation()
+                      if (e && e.stopPropagation) e.stopPropagation()
                       setCurrentSlide(idx)
                     }}
-                    className={`h-1.5 rounded-full transition-all cursor-pointer ${idx === currentSlide
-                      ? 'bg-amber-300 w-6'
-                      : 'bg-white/40 hover:bg-white/70 w-1.5'
-                      }`}
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      idx === currentSlide
+                        ? 'bg-amber-300 w-6'
+                        : 'bg-white/40 hover:bg-white/75 w-2'
+                    }`}
                     aria-label={`Go to slide ${idx + 1}`}
                   />
                 ))}
