@@ -25,7 +25,11 @@ export default function MegaMenu({
 
   const handleLinkClick = (link) => {
     setIsOpen(false)
-    onNavigate(link.page || 'destinations', null, link.region || 'All', link.search || '')
+    if (link.pkg || link.page === 'detail') {
+      onNavigate('detail', link.pkg || null, link.region || 'All', link.search || '')
+    } else {
+      onNavigate(link.page || 'destinations', link.pkg || null, link.region || 'All', link.search || '')
+    }
   }
 
   const activeContinent = continents.find(c => c.id === activeContinentId) || continents[0]

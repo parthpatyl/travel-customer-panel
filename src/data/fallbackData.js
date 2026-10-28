@@ -184,5 +184,57 @@ export const fallbackTestimonials = [
     role: 'Adventure Enthusiast',
     company: '',
     images: ['/assets/unsplash-bali.jpg', '/assets/unsplash-maldives.jpg']
+  },
+  {
+    id: 8,
+    name: 'Kavita & Rajesh Kapoor',
+    location: 'Gurgaon, India',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=75',
+    rating: 5,
+    text: 'Tokyo to Kyoto was magical during the spring cherry blossoms. The private tea master in Gion and First Class Shinkansen rides arranged by Kraft Your Trip were simply world-class.',
+    package: 'Kyoto Ancient Heritage & Tokyo Modernity',
+    type: 'consumer',
+    role: 'Cultural Traveler',
+    company: '',
+    images: ['https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=75']
+  },
+  {
+    id: 9,
+    name: 'Zaid & Fatima Al-Mansoor',
+    location: 'Dubai, UAE',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=75',
+    rating: 5,
+    text: 'Our Italian Amalfi Coast journey was sheer perfection. Private Riva boat to the Capri Faraglioni rocks, sunset dinner overlooking Positano cliffs, and truffle hunting in Chianti.',
+    package: 'Amalfi Coast Yachting & Tuscan Vineyard Escapes',
+    type: 'consumer',
+    role: 'Luxury Traveler',
+    company: '',
+    images: ['https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=75']
+  },
+  {
+    id: 10,
+    name: 'Natasha Verma',
+    location: 'Hyderabad, India',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=75',
+    rating: 5,
+    text: 'Watching the Northern Lights dance over the Jokulsarlon glacier lagoon in Iceland was a bucket-list dream fulfilled. The super jeep ice cave tour was flawlessly organized!',
+    package: 'Iceland Northern Lights, Geysers & Glacier Lagoons',
+    type: 'consumer',
+    role: 'Solo Explorer',
+    company: '',
+    images: ['https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=75']
+  },
+  {
+    id: 11,
+    name: 'Aditya & Neha Chawla',
+    location: 'Mumbai, India',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=75',
+    rating: 5,
+    text: 'From the VIP Burj Khalifa lounge to vintage Land Rover desert safaris, our Dubai escape was royal treatment from start to finish. The team handled every transfer without a hitch.',
+    package: 'Dubai Luxury Dunes, Burj Views & Marina Oasis',
+    type: 'consumer',
+    role: 'Family Vacationer',
+    company: '',
+    images: ['https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=75']
   }
 ];

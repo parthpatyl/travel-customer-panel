@@ -27,7 +27,7 @@ function getStatusColor(status) {
 import { fallbackGroupDepartures } from '../data/fallbackData'
 import defaultPackages from '../data/packages'
 
-export default function UpcomingTrips({ onBook }) {
+export default function UpcomingTrips({ onBook, onViewPackage }) {
   const [departures, setDepartures] = useState(fallbackGroupDepartures)
   const [packages, setPackages] = useState(defaultPackages)
   const [loading, setLoading] = useState(false)
@@ -348,7 +348,19 @@ export default function UpcomingTrips({ onBook }) {
                       {activeItinerary.length > 0 ? (
                         <button
                           type="button"
-                          onClick={() => setSelectedDepartureItinerary({ dep, itinerary: activeItinerary, pkg: depPkg })}
+                          onClick={() => {
+                            if (onViewPackage && depPkg) {
+                              onViewPackage({
+                                ...depPkg,
+                                departureId: dep.id,
+                                departureDate: dep.departureDate,
+                                returnDate: dep.returnDate,
+                                priceModifier: dep.priceModifier || 0
+                              })
+                            } else {
+                              setSelectedDepartureItinerary({ dep, itinerary: activeItinerary, pkg: depPkg })
+                            }
+                          }}
                           className="w-full py-2 px-3 rounded-xl text-xs font-semibold border border-stone-200 hover:border-amber-400 text-stone-700 hover:text-amber-800 bg-white hover:bg-stone-50 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                         >
                           <Calendar className="w-3.5 h-3.5 text-amber-600" />

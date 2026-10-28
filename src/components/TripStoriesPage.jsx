@@ -200,7 +200,45 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
           </div>
         </div>
 
-        {/* Stories Grid */}
+        {/* Affect UI Style Trust & Social Proof Header Banner */}
+        <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+          <div className="space-y-2 text-center md:text-left z-10">
+            <div className="flex items-center justify-center md:justify-start gap-1 text-amber-400 mb-1">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+              ))}
+              <span className="ml-2 font-display text-lg font-bold text-white">4.9 / 5.0</span>
+            </div>
+            <h3 className="font-display text-2xl sm:text-3xl text-white tracking-tight">
+              Loved by 350+ discerning luxury travelers
+            </h3>
+            <p className="text-xs sm:text-sm text-stone-300 font-light max-w-xl">
+              Authentic stories, verified impressions, and unscripted memories from guests who explored the world with Kraft Your Trip.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4 z-10">
+            {/* Stacked traveler avatars */}
+            <div className="flex -space-x-3 overflow-hidden p-1">
+              <img className="inline-block h-10 w-10 rounded-full ring-2 ring-stone-900 object-cover" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=75" alt="" />
+              <img className="inline-block h-10 w-10 rounded-full ring-2 ring-stone-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=75" alt="" />
+              <img className="inline-block h-10 w-10 rounded-full ring-2 ring-stone-900 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=75" alt="" />
+              <img className="inline-block h-10 w-10 rounded-full ring-2 ring-stone-900 object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=75" alt="" />
+              <div className="h-10 w-10 rounded-full ring-2 ring-stone-900 bg-amber-600 text-white font-bold text-xs flex items-center justify-center">
+                +340
+              </div>
+            </div>
+            <button
+              onClick={() => setIsSubmitModalOpen(true)}
+              className="px-5 py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg shadow-amber-950/40 transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            >
+              Share Your Journey
+            </button>
+          </div>
+          <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        </div>
+
+        {/* Stories Masonry Wall Grid */}
         {filteredStories.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-3xl border border-stone-200 shadow-sm p-8 space-y-4">
             <Camera className="w-12 h-12 text-stone-300 mx-auto" />
@@ -216,20 +254,20 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 [column-fill:_balance]">
             {filteredStories.map((story) => {
               const roleInfo = ROLE_BADGES[story.role] || ROLE_BADGES['Customer']
               const imageList = parseImageList(story.images)
-              const isLongText = story.text && story.text.length > 220
+              const isLongText = story.text && story.text.length > 200
               const isExpanded = expandedStoryId === story.id
 
               return (
                 <div
                   key={story.id}
-                  className="bg-white rounded-3xl border border-stone-200/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group"
+                  className="break-inside-avoid mb-6 bg-white rounded-3xl border border-stone-200/90 hover:border-amber-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group p-6"
                 >
-                  <div className="p-6 space-y-4">
-                    {/* Header: User Info & Role Tag */}
+                  <div className="space-y-4">
+                    {/* Header: User Info & Verified Badge */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         {story.avatar ? (
@@ -237,116 +275,112 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
                             src={getImgUrl(story.avatar, DEFAULT_AVATAR)}
                             alt={story.name || 'Traveler'}
                             onError={(e) => handleImageError(e, DEFAULT_AVATAR)}
-                            className="w-11 h-11 rounded-full object-cover border-2 border-amber-500/20 shadow-sm"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-amber-500/20 shadow-xs"
                             loading="lazy"
                           />
                         ) : (
-                          <div className="w-11 h-11 rounded-full bg-amber-100 text-amber-800 font-semibold flex items-center justify-center text-base border border-amber-200">
+                          <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-800 font-semibold flex items-center justify-center text-sm border border-amber-200">
                             {story.name?.charAt(0).toUpperCase() || 'U'}
                           </div>
                         )}
 
                         <div>
-                          <h4 className="font-display text-base font-semibold text-stone-900 group-hover:text-amber-700 transition-colors">
+                          <h4 className="font-display text-sm font-bold text-stone-900 group-hover:text-amber-800 transition-colors leading-tight">
                             {story.name}
                           </h4>
                           {story.location && (
-                            <span className="text-xs text-stone-500 flex items-center gap-1">
-                              <MapPin className="w-3 h-3 text-amber-600" />
+                            <span className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
+                              <MapPin className="w-3 h-3 text-amber-600 shrink-0" />
                               {story.location}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Submitter Role Badge */}
-                      <span className={`px-2.5 py-1 text-[11px] font-semibold rounded-full border ${roleInfo.bg}`}>
-                        {roleInfo.label}
+                      {/* Verified Journey Pill */}
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 rounded-full border border-emerald-200/60 shrink-0">
+                        <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                        Verified
                       </span>
                     </div>
 
-                    {/* Rating & Package Tag */}
-                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-100">
-                      <div className="flex items-center gap-1" aria-label={`${story.rating || 5} out of 5 stars`}>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`w-4 h-4 ${
-                              (story.rating || 5) >= star
-                                ? 'fill-amber-400 text-amber-400'
-                                : 'text-stone-200'
-                            }`}
-                            aria-hidden="true"
-                          />
-                        ))}
-                      </div>
-
-                      {story.package && (
-                        <span className="text-xs font-medium text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200/60 truncate max-w-[160px]">
-                          {story.package}
-                        </span>
-                      )}
+                    {/* Star Rating */}
+                    <div className="flex items-center gap-1" aria-label={`${story.rating || 5} out of 5 stars`}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-3.5 h-3.5 ${
+                            (story.rating || 5) >= star
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-stone-200'
+                          }`}
+                          aria-hidden="true"
+                        />
+                      ))}
                     </div>
 
-                    {/* Review Text */}
-                    <div className="relative text-stone-700 text-sm leading-relaxed font-normal">
-                      <Quote className="w-5 h-5 text-amber-300/40 absolute -top-1 -left-2 -z-0" aria-hidden="true" />
-                      <p className="relative z-10 whitespace-pre-line">
-                        {isExpanded || !isLongText ? story.text : `${story.text.slice(0, 220)}...`}
+                    {/* Review Quote Body */}
+                    <div className="relative text-stone-700 text-xs sm:text-[13px] leading-relaxed font-light">
+                      <Quote className="w-4 h-4 text-amber-300/40 absolute -top-1 -left-1 -z-0" aria-hidden="true" />
+                      <p className="relative z-10 whitespace-pre-line italic">
+                        &ldquo;{isExpanded || !isLongText ? story.text : `${story.text.slice(0, 200)}...`}&rdquo;
                       </p>
                       {isLongText && (
                         <button
                           type="button"
                           onClick={() => setExpandedStoryId(isExpanded ? null : story.id)}
-                          className="mt-1 text-xs font-semibold text-amber-700 hover:underline inline-block cursor-pointer"
+                          className="mt-1.5 text-[11px] font-bold text-amber-700 hover:underline inline-block cursor-pointer"
                         >
-                          {isExpanded ? 'Show less' : 'Read full story'}
+                          {isExpanded ? 'Show less' : 'Read full review'}
                         </button>
                       )}
                     </div>
+
+                    {/* Photo Gallery Thumbnails */}
+                    {imageList.length > 0 && (
+                      <div className="pt-2">
+                        <div className={`grid gap-2 ${imageList.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                          {imageList.slice(0, 2).map((imgItem, idx) => {
+                            const fullImgUrl = getImgUrl(imgItem, DEFAULT_FALLBACK_IMAGE)
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => openLightbox(imageList, idx, `${story.name} — ${story.package || 'Trip Photo'}`)}
+                                className="relative aspect-[4/3] rounded-xl overflow-hidden group/img focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-2xs border border-stone-200/60"
+                              >
+                                <img
+                                  src={fullImgUrl}
+                                  alt={`Trip photo ${idx + 1}`}
+                                  onError={(e) => handleImageError(e, DEFAULT_FALLBACK_IMAGE)}
+                                  className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+                                  loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-stone-900/10 group-hover/img:bg-stone-900/25 transition-colors" />
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Photo Gallery Strip */}
-                  {imageList.length > 0 && (
-                    <div className="px-6 pb-6 pt-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1">
-                          <Camera className="w-3.5 h-3.5" /> Trip Gallery ({imageList.length})
-                        </span>
-                      </div>
+                  {/* Footer Destination Tag & Role */}
+                  <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
+                    {story.package ? (
+                      <span className="text-[11px] font-semibold text-amber-900 bg-amber-50/80 px-2.5 py-0.5 rounded-lg border border-amber-200/50 truncate max-w-[170px]" title={story.package}>
+                        {story.package}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-stone-500 bg-stone-50 px-2 py-0.5 rounded-lg">
+                        Custom Expedition
+                      </span>
+                    )}
 
-                      {/* Image Thumbnail Grid */}
-                      <div className={`grid gap-2 ${imageList.length === 1 ? 'grid-cols-1' : (imageList.length === 2 ? 'grid-cols-2' : 'grid-cols-3')}`}>
-                        {imageList.slice(0, 3).map((imgItem, idx) => {
-                          const src = getImgUrl(imgItem, DEFAULT_FALLBACK_IMAGE)
-                          const isLastThum = idx === 2 && imageList.length > 3
-
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => openLightbox(imageList, idx, story.name)}
-                              className="relative aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-100 cursor-pointer group/img text-left focus:outline-none focus:ring-2 focus:ring-amber-500"
-                              aria-label={`View photo ${idx + 1} from ${story.name}'s trip gallery`}
-                            >
-                              <img
-                                src={src}
-                                alt={`${story.name} photo ${idx + 1}`}
-                                onError={(e) => handleImageError(e, DEFAULT_FALLBACK_IMAGE)}
-                                className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
-                                loading="lazy"
-                              />
-                              {isLastThum && (
-                                <div className="absolute inset-0 bg-stone-900/70 text-white flex items-center justify-center font-semibold text-xs backdrop-blur-[1px]">
-                                  +{imageList.length - 3} photos
-                                </div>
-                              )}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${roleInfo.bg} shrink-0`}>
+                      {roleInfo.label}
+                    </span>
+                  </div>
                 </div>
               )
             })}

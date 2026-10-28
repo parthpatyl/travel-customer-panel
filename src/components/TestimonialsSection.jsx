@@ -25,7 +25,7 @@ function parseImageList(images) {
   return []
 }
 
-export default function TestimonialsSection({ testimonials = [] }) {
+export default function TestimonialsSection({ testimonials = [], onNavigate }) {
   // Filter out any hidden reviews or fake demo reviews
   const activeReviews = testimonials.filter(t => {
     if (t.status && t.status !== 'approved') return false
@@ -127,30 +127,41 @@ export default function TestimonialsSection({ testimonials = [] }) {
             </p>
           </div>
 
-          {/* Carousel Controls */}
-          {count > 1 && (
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              <span className="text-[11px] font-medium text-stone-400 tracking-wider">
-                {String(currentIndex + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
-              </span>
+          {/* Controls & Wall Link */}
+          <div className="flex items-center gap-4 self-end md:self-auto">
+            {onNavigate && (
               <button
                 type="button"
-                onClick={prevReview}
-                aria-label="Previous review"
-                className="w-9 h-9 rounded-full bg-white border border-stone-200 shadow-xs hover:border-amber-500 hover:text-amber-700 text-stone-700 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+                onClick={() => onNavigate('gallery')}
+                className="text-xs font-bold text-amber-700 hover:text-amber-600 transition-colors cursor-pointer mr-2 underline decoration-amber-300 underline-offset-4"
               >
-                <ChevronLeft className="w-4 h-4" />
+                View Full Wall ({count}) &rarr;
               </button>
-              <button
-                type="button"
-                onClick={nextReview}
-                aria-label="Next review"
-                className="w-9 h-9 rounded-full bg-white border border-stone-200 shadow-xs hover:border-amber-500 hover:text-amber-700 text-stone-700 flex items-center justify-center transition-all cursor-pointer active:scale-95"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+            )}
+            {count > 1 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-medium text-stone-400 tracking-wider">
+                  {String(currentIndex + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
+                </span>
+                <button
+                  type="button"
+                  onClick={prevReview}
+                  aria-label="Previous review"
+                  className="w-9 h-9 rounded-full bg-white border border-stone-200 shadow-xs hover:border-amber-500 hover:text-amber-700 text-stone-700 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextReview}
+                  aria-label="Next review"
+                  className="w-9 h-9 rounded-full bg-white border border-stone-200 shadow-xs hover:border-amber-500 hover:text-amber-700 text-stone-700 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 1 Line Horizontal Carousel Container */}

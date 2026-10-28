@@ -253,6 +253,158 @@ const packages = [
       { day: 6, title: 'Uluwatu Clifftop Temple & Kecak Fire Dance', desc: 'Watch the dramatic sunset over the Indian Ocean followed by the hypnotic Kecak dance.' },
       { day: 7, title: 'Spa Relaxation & Denpasar Departure', desc: 'Enjoy 2-hour Balinese massage treatment before your airport departure.' }
     ]
+  },
+  {
+    id: 'PKG-JAPAN-01',
+    name: 'Kyoto Ancient Heritage & Tokyo Modernity',
+    duration: '8 Days',
+    price: 215000,
+    region: 'Asia',
+    category: 'luxury',
+    trend: 'High Demand',
+    ctaBadge: 'Cherry Blossom Season',
+    isBespoke: false,
+    slots: { booked: 9, total: 14 },
+    cardImage: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=75',
+    heroImage: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1600&q=80',
+    description: 'A masterclass in Japanese refinement: ride the Shinkansen bullet train from futuristic Tokyo to Kyoto bamboo groves, historic Gion geisha districts, and serene Zen rock gardens.',
+    highlights: [
+      'First Class Shinkansen Bullet Train with Mt. Fuji panoramic window view',
+      'Exclusive private tea ceremony in an authentic 300-year-old Kyoto Machiya',
+      'Arashiyama Bamboo Forest sunrise private walk and Golden Pavilion Kinkaku-ji',
+      'Luxury Ryokan stay with private Onsen hot spring and 9-course Kaiseki dinner'
+    ],
+    inclusions: [
+      '7 Nights in 5-star handpicked Tokyo hotels and traditional Kyoto Onsen Ryokan',
+      '7-Day JR Rail Pass First Class and all local subway transit passes',
+      'Daily Japanese gourmet breakfasts and 3 Michelin-starred Kaiseki dinners',
+      'Private licensed English-speaking scholar guide in Tokyo and Kyoto'
+    ],
+    exclusions: ['International flights', 'Japan tourist visa fee', 'Personal shopping'],
+    inclusionsSelection: { hotel: true, flight: false, sightseeing: true, guide: true, airportTransfer: true, cruise: false },
+    itinerary: [
+      { day: 1, title: 'Arrival in Tokyo & Shinjuku Neon Sky', desc: 'Arrive at Tokyo Haneda or Narita. Private chauffeur transfer to luxury hotel in Ginza.' },
+      { day: 2, title: 'Asakusa Senso-ji & Meiji Shrine', desc: 'Explore Tokyo oldest temple in Asakusa and tranquil cedar groves of Meiji Jingu.' },
+      { day: 3, title: 'Shinkansen Bullet Train to Kyoto', desc: 'High-speed 300 km/h Shinkansen ride past Mount Fuji into ancient Kyoto.' },
+      { day: 4, title: 'Fushimi Inari Torii Gates & Gion Geisha District', desc: 'Walk under thousands of vermilion Torii gates and enjoy an evening walking tour in Gion.' },
+      { day: 5, title: 'Arashiyama Bamboo Grove & Tenryu-ji Zen Temple', desc: 'Early morning serenity in Arashiyama, followed by private Machiya matcha tea ceremony.' },
+      { day: 6, title: 'Hakone Hot Springs & Ryokan Onsen Retreat', desc: 'Scenic journey to Hakone. Bathe in mineral hot spring onsen and dine on multi-course Kaiseki.' },
+      { day: 7, title: 'Lake Ashi Cruise & Return to Tokyo', desc: 'Pirate ship cruise across Lake Ashi with views of Mt. Fuji before returning to Tokyo.' },
+      { day: 8, title: 'Tokyo Departure', desc: 'Morning visit to Tsukiji Outer Market before your private airport transfer.' }
+    ]
+  },
+  {
+    id: 'PKG-DUBAI-01',
+    name: 'Dubai Luxury Dunes, Burj Views & Marina Oasis',
+    duration: '5 Days',
+    price: 78000,
+    region: 'Middle East',
+    category: 'luxury',
+    trend: 'Trending',
+    ctaBadge: 'VIP Experience',
+    isBespoke: false,
+    slots: { booked: 11, total: 18 },
+    cardImage: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=75',
+    heroImage: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80',
+    description: 'Immerse yourself in supreme Arabian luxury. Marvel at panoramic views from the Burj Khalifa At The Top, cruise Dubai Marina on a private yacht, and dine under desert stars in a royal Bedouin retreat.',
+    highlights: [
+      'Burj Khalifa Level 148 VIP Sky Lounge access with sunset champagne',
+      'Private 2-hour luxury yacht cruise along Dubai Marina and Atlantis The Palm',
+      'Royal Platinum Desert Safari in vintage Land Rovers with 6-course dune dinner',
+      'Museum of the Future entry and Dubai Mall Fountain VIP viewing terrace'
+    ],
+    inclusions: [
+      '4 Nights in 5-star beachfront luxury hotel (Jumeirah / Downtown)',
+      'Daily international buffet breakfast and Bedouin royal banquet',
+      'Private luxury vehicle transfers throughout Dubai',
+      'All VIP skip-the-line attraction passes and yacht charter'
+    ],
+    exclusions: ['International flights', 'UAE tourist visa', 'Tourism Dirham fee'],
+    inclusionsSelection: { hotel: true, flight: false, sightseeing: true, guide: true, airportTransfer: true, cruise: true },
+    itinerary: [
+      { day: 1, title: 'Arrival in Dubai & Private Chauffeur Transfer', desc: 'VIP meet and assist at Dubai International Airport. Check-in to luxury Downtown hotel.' },
+      { day: 2, title: 'Burj Khalifa Level 148 & Dubai Mall Luxury Walk', desc: 'Ascend to the highest observation deck on earth and witness the Dubai Fountain choreography.' },
+      { day: 3, title: 'Royal Desert Dunes Safari & Starlight Feast', desc: 'Traverse red sand dunes in vintage Land Rovers, watch falconry, and dine under desert stars.' },
+      { day: 4, title: 'Dubai Marina Private Yacht & Palm Jumeirah', desc: 'Glide past Bluewaters Island and Ain Dubai on a private yacht, followed by Museum of the Future.' },
+      { day: 5, title: 'Gold Souk & Departure', desc: 'Experience traditional Old Dubai Abra water taxi and spice souks before airport transfer.' }
+    ]
+  },
+  {
+    id: 'PKG-ITALY-01',
+    name: 'Amalfi Coast Yachting & Tuscan Vineyard Escapes',
+    duration: '8 Days',
+    price: 220000,
+    region: 'Europe',
+    category: 'luxury',
+    trend: 'High Demand',
+    ctaBadge: 'Bestseller',
+    isBespoke: false,
+    slots: { booked: 7, total: 12 },
+    cardImage: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=75',
+    heroImage: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1600&q=80',
+    description: 'La Dolce Vita in its purest form: sail past Positano cliffs on a private Riva speedboat, stay in converted cliffside convents, and savor private Chianti tastings at historic Tuscan estates.',
+    highlights: [
+      'Private Capri & Faraglioni rock speedboat charter with Blue Grotto swim',
+      'Exclusive wine tasting with estate owners in Chianti Classico, Tuscany',
+      'Cliffside suite in Positano overlooking the Mediterranean Sea',
+      'Private cooking class with an Italian master chef in Florence'
+    ],
+    inclusions: [
+      '7 Nights in 5-star Relais & Chateaux properties (Amalfi + Tuscany)',
+      'Daily Italian breakfasts and 3 multi-course wine-paired dinners',
+      'First-Class Frecciarossa high-speed rail between Naples and Florence',
+      'Private Mercedes V-Class chauffeur for all coastal and vineyard drives'
+    ],
+    exclusions: ['International airfare', 'Schengen Visa', 'City tourist taxes'],
+    inclusionsSelection: { hotel: true, flight: false, sightseeing: true, guide: true, airportTransfer: true, cruise: true },
+    itinerary: [
+      { day: 1, title: 'Arrival in Naples & Drive to Positano', desc: 'Scenic private coastal drive along the dramatic cliffs of the Amalfi Coast.' },
+      { day: 2, title: 'Private Speedboat to Capri & Anacapri', desc: 'Cruise to the Isle of Capri, explore Marina Grande, and swim in emerald sea grottoes.' },
+      { day: 3, title: 'Ravello Gardens & Amalfi Cathedral', desc: 'Visit Villa Cimbrone clifftop gardens and historic Amalfi maritime square.' },
+      { day: 4, title: 'High-Speed Train to Florence & Historic Walk', desc: 'First-Class rail to Tuscany. Evening walk across Ponte Vecchio and Piazza del Duomo.' },
+      { day: 5, title: 'Chianti Wine Estate & Truffle Hunt', desc: 'Trek for wild truffles with trained hounds followed by private wine cellar tasting.' },
+      { day: 6, title: 'San Gimignano & Siena Medieval Towers', desc: 'Explore UNESCO medieval walled towns of San Gimignano and Piazza del Campo in Siena.' },
+      { day: 7, title: 'Uffizi Gallery VIP Access & Sunset Arno Cruise', desc: 'Skip-the-line Renaissance art masterworks and vintage wooden boat cruise on the River Arno.' },
+      { day: 8, title: 'Florence / Rome Departure', desc: 'Private transfer to Florence or Rome Fiumicino Airport for your journey home.' }
+    ]
+  },
+  {
+    id: 'PKG-ICELAND-01',
+    name: 'Iceland Northern Lights, Geysers & Glacier Lagoons',
+    duration: '7 Days',
+    price: 198000,
+    region: 'Europe',
+    category: 'standard',
+    trend: 'Trending',
+    ctaBadge: 'Aurora Guaranteed',
+    isBespoke: false,
+    slots: { booked: 4, total: 15 },
+    cardImage: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=75',
+    heroImage: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1600&q=80',
+    description: 'Chase the ethereal Aurora Borealis across Iceland surreal volcanic landscapes: bathe in the geothermal Blue Lagoon, explore crystal blue ice caves, and stand beside roaring waterfalls.',
+    highlights: [
+      'Nightly Northern Lights Aurora hunts with professional astronomer guide',
+      'Zodiac boat navigation between floating icebergs at Jokulsarlon Glacier Lagoon',
+      'Exclusive Blue Lagoon Premium geothermal retreat with silica mud mask',
+      'Super Jeep expedition into Katla natural ice cave beneath the glacier'
+    ],
+    inclusions: [
+      '6 Nights in Nordic boutique design hotels with Aurora wake-up service',
+      'Daily Scandinavian buffet breakfasts and 2 Icelandic seafood dinners',
+      'Custom 4x4 Super Jeep transit and all national park fees',
+      'Blue Lagoon Premium admission including towel, robe, and welcome beverage'
+    ],
+    exclusions: ['International flights to Keflavik', 'Cold weather thermal gear rental', 'Travel insurance'],
+    inclusionsSelection: { hotel: true, flight: false, sightseeing: true, guide: true, airportTransfer: true, cruise: true },
+    itinerary: [
+      { day: 1, title: 'Arrival in Reykjavik & Blue Lagoon Soak', desc: 'Land at Keflavik and immerse in the warm mineral waters of the world-famous Blue Lagoon.' },
+      { day: 2, title: 'Golden Circle: Thingvellir, Geysir & Gullfoss', desc: 'Walk between tectonic plates, watch Strokkur geyser spout 30m high, and view Gullfoss waterfall.' },
+      { day: 3, title: 'South Coast: Seljalandsfoss & Black Sand Beach', desc: 'Walk behind Seljalandsfoss waterfall and admire basalt columns at Reynisfjara beach.' },
+      { day: 4, title: 'Jokulsarlon Glacier Lagoon & Diamond Beach', desc: 'Watch crystal icebergs wash onto pitch-black volcanic sand at Diamond Beach.' },
+      { day: 5, title: 'Vatnajokull Glacier Ice Cave Exploration', desc: 'Equip crampons and helmets to enter otherworldly naturally sculpted blue ice tunnels.' },
+      { day: 6, title: 'Reykjavik Culture & Harpa Concert Hall', desc: 'Discover Hallgrimskirkja church and Reykjavik vibrant waterfront design shops.' },
+      { day: 7, title: 'Keflavik Departure', desc: 'Final Icelandic breakfast before your transfer to Keflavik International Airport.' }
+    ]
   }
 ];
 

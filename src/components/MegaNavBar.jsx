@@ -659,9 +659,12 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
           const name = d.title || d.packageName
           if (name && !seen.has(name)) {
             seen.add(name)
+            // Match corresponding package if available for direct inner page view
+            const matchedPkg = Array.isArray(pkgData) ? pkgData.find(p => p.id === d.packageId || p.name === d.packageName) : null
             items.push({
               label: name,
-              page: 'group-tours',
+              page: 'detail',
+              pkg: matchedPkg || { id: d.packageId, name: d.packageName || d.title, region: d.packageRegion || 'All', departureId: d.id },
               region: d.packageRegion || 'All',
               search: d.packageName || d.title
             })
@@ -675,7 +678,8 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
             seen.add(p.name)
             items.push({
               label: p.name,
-              page: 'destinations',
+              page: 'detail',
+              pkg: p,
               region: p.region || 'All',
               search: p.name
             })
@@ -684,7 +688,7 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
       }
 
       if (items.length > 0) {
-        setPopularExpeditions(items.slice(0, 6))
+        setPopularExpeditions(items.slice(0, 8))
       }
     }).catch(() => {})
   }, [])
@@ -737,12 +741,15 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
           label="Stories & Gallery"
           isMobile
         />
-        <NavLink
-          active={activePage === 'giftcards'}
-          onClick={() => onNavigate('giftcards')}
-          label="Gift Cards"
-          isMobile
-        />
+        {/* Gift Cards temporarily hidden as requested - do not delete */}
+        {false && (
+          <NavLink
+            active={activePage === 'giftcards'}
+            onClick={() => onNavigate('giftcards')}
+            label="Gift Cards"
+            isMobile
+          />
+        )}
       </div>
     )
   }
@@ -773,12 +780,15 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
         label="Stories & Gallery"
         compact={compact}
       />
-      <NavLink
-        active={activePage === 'giftcards'}
-        onClick={() => onNavigate('giftcards')}
-        label="Gift Cards"
-        compact={compact}
-      />
+      {/* Gift Cards temporarily hidden as requested - do not delete */}
+      {false && (
+        <NavLink
+          active={activePage === 'giftcards'}
+          onClick={() => onNavigate('giftcards')}
+          label="Gift Cards"
+          compact={compact}
+        />
+      )}
     </div>
   )
 }

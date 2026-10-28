@@ -19,7 +19,8 @@ const MarkdownInline = ({ children, className }) => (
 
 
 export default function FeaturedPackages({ packages = [], onViewPackage, settings = {}, onNavigate }) {
-  const featured = packages.slice(0, 4)
+  // Show 2 full rows (8 packages) on featured homepage grid
+  const featured = packages.slice(0, 8)
   const offers = settings.specialOffers || []
 
   // Handle clicking on an offer banner or CTA button
@@ -247,6 +248,8 @@ export default function FeaturedPackages({ packages = [], onViewPackage, setting
                     src={imgUrl(pkg.cardImage)}
                     onError={handleImageError}
                     alt={pkg.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-950/30 via-transparent to-transparent" />

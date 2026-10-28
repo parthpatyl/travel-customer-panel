@@ -14,13 +14,16 @@ const REGION_FALLBACKS = {
 }
 
 const DESTINATION_CATEGORIES = [
-  { id: 'europe', name: 'Europe', region: 'Europe', image: `${API_URL}/assets/unsplash-paris.jpg`, fallback: REGION_FALLBACKS.europe },
-  { id: 'asia', name: 'Asia', region: 'Asia', image: `${API_URL}/assets/unsplash-bali.jpg`, fallback: REGION_FALLBACKS.asia },
-  { id: 'africa', name: 'Africa', region: 'Africa', image: `${API_URL}/assets/unsplash-dubai.jpg`, fallback: REGION_FALLBACKS.africa },
-  { id: 'north-america', name: 'North America', region: 'North America', image: `${API_URL}/assets/unsplash-us.jpg`, fallback: REGION_FALLBACKS['north-america'] },
-  { id: 'south-america', name: 'South America', region: 'South America', image: `${API_URL}/assets/unsplash-australia.jpg`, fallback: REGION_FALLBACKS['south-america'] },
-  { id: 'middle-east', name: 'Middle East', region: 'Middle East', image: `${API_URL}/assets/unsplash-maldives.jpg`, fallback: REGION_FALLBACKS['middle-east'] },
-  { id: 'australia', name: 'Australia', region: 'Australia', image: `${API_URL}/assets/unsplash-thailand.jpg`, fallback: REGION_FALLBACKS.australia },
+  { id: 'switzerland', name: 'Switzerland', region: 'Europe', search: 'Switzerland', image: `${API_URL}/assets/unsplash-swiss-alps.jpg`, fallback: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=300&q=75' },
+  { id: 'japan', name: 'Japan', region: 'Asia', search: 'Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=300&q=75', fallback: REGION_FALLBACKS.asia },
+  { id: 'dubai', name: 'Dubai & UAE', region: 'Middle East', search: 'Dubai', image: `${API_URL}/assets/unsplash-dubai.jpg`, fallback: REGION_FALLBACKS['middle-east'] },
+  { id: 'bali', name: 'Bali & Indo', region: 'Asia', search: 'Bali', image: `${API_URL}/assets/unsplash-bali.jpg`, fallback: REGION_FALLBACKS.asia },
+  { id: 'greece', name: 'Greece', region: 'Europe', search: 'Greece', image: `${API_URL}/assets/unsplash-greece.jpg`, fallback: REGION_FALLBACKS.europe },
+  { id: 'italy', name: 'Italy & Amalfi', region: 'Europe', search: 'Italy', image: `${API_URL}/assets/unsplash-amalfi.jpg`, fallback: REGION_FALLBACKS.europe },
+  { id: 'iceland', name: 'Iceland', region: 'Europe', search: 'Iceland', image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=300&q=75', fallback: REGION_FALLBACKS.europe },
+  { id: 'kashmir', name: 'Kashmir, India', region: 'India', search: 'Kashmir', image: `${API_URL}/assets/unsplash-kashmir.png`, fallback: REGION_FALLBACKS.asia },
+  { id: 'africa', name: 'Serengeti Safari', region: 'Africa', search: 'Safari', image: `${API_URL}/assets/unsplash-african-safari.jpg`, fallback: REGION_FALLBACKS.africa },
+  { id: 'vietnam', name: 'Vietnam', region: 'Asia', search: 'Vietnam', image: `${API_URL}/assets/unsplash-pkg-card.jpg`, fallback: REGION_FALLBACKS.asia }
 ]
 
 export default function DestinationCategories({ onExplore }) {
@@ -88,7 +91,7 @@ export default function DestinationCategories({ onExplore }) {
               return (
                 <button
                   key={dest.id}
-                  onClick={() => onExplore(dest.region)}
+                  onClick={() => onExplore(dest.region, dest.search || '')}
                   aria-label={`Explore ${dest.name} destinations`}
                   className="group flex flex-col items-center gap-2.5 snap-start shrink-0 focus:outline-none animate-fade-in-up min-w-[90px] sm:min-w-[106px]"
                   style={{ animationDelay: `${index * 60}ms` }}

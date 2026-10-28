@@ -27,7 +27,7 @@ const MarkdownInline = ({ children, className }) => (
 )
 
 // ─── Filter Config ────────────────────────────────────────────────────────────
-const REGIONS = ['All', 'Africa', 'Antarctica', 'Asia', 'Europe', 'North America', 'Australia', 'South America']
+const REGIONS = ['All', 'Africa', 'Asia', 'Europe', 'India', 'Middle East', 'Australia', 'North America', 'South America']
 
 const TRAVEL_TYPES = [
   { label: 'All Types', value: 'all' },
