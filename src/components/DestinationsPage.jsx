@@ -479,21 +479,21 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                   <div className="p-4 sm:p-4.5 flex flex-col flex-grow">
                     <div>
                       {/* Editorial Eyebrow */}
-                      <div className="text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] text-amber-700 uppercase mb-1.5">
+                      <div className="text-[10px] sm:text-[11px] font-bold tracking-[0.16em] text-amber-700 uppercase mb-1.5">
                         {pkg.region} · {pkg.duration} · {travelType}
                       </div>
 
-                      <h3 className="text-base sm:text-lg font-semibold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-2 font-display tracking-tight">
+                      <h3 className="text-base sm:text-lg font-bold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-2 font-display tracking-tight">
                         {pkg.name}
                       </h3>
 
-                      <MarkdownInline className="text-xs sm:text-[13px] text-stone-500 leading-relaxed line-clamp-2 mb-3 font-light">
+                      <MarkdownInline className="text-xs sm:text-[13px] text-stone-500 leading-relaxed line-clamp-2 mb-3 font-normal">
                         {(pkg.description || '').split('\n')[0]}
                       </MarkdownInline>
 
                       {/* Refined Highlights Line */}
                       <div className="space-y-0.5 mb-2.5">
-                        <span className="text-[10px] sm:text-[11px] font-semibold text-stone-400 uppercase tracking-wider block mb-0.5">Highlights</span>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider block mb-0.5">Highlights</span>
                         <ul className="space-y-0.5">
                           {pkg.highlights.slice(0, 2).map((h, i) => (
                             <li key={i} className="flex items-start gap-1.5 text-xs sm:text-[13px] text-stone-600 font-normal leading-snug">
@@ -513,17 +513,17 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                     </div>
 
                     {/* Price and Action */}
-                    <div className="flex items-center justify-between pt-4 mt-auto border-t border-stone-100">
+                    <div className="flex items-end justify-between pt-3.5 mt-auto border-t border-stone-100">
                       <div>
-                        <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-wider block">From</span>
-                        <span className="text-base sm:text-lg font-semibold text-stone-900 tabular-nums">
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block mb-0.5">From</span>
+                        <span className="text-lg sm:text-xl font-extrabold text-stone-900 tabular-nums leading-none">
                           {pkg.isBespoke ? 'Custom Quote' : formatINR(pkg.price)}
                           {!pkg.isBespoke && pkg.usdPrice != null && (
-                            <span className="ml-1.5 text-xs text-stone-400 font-medium">{formatUSD(pkg.usdPrice)}</span>
+                            <span className="ml-1.5 text-xs text-stone-400 font-medium tabular-nums">{formatUSD(pkg.usdPrice)}</span>
                           )}
                         </span>
                       </div>
-                      <span className="text-stone-700 group-hover:text-amber-700 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                      <span className="text-stone-800 group-hover:text-amber-700 text-xs font-bold transition-colors flex items-center gap-1.5 pb-0.5">
                         Explore
                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
                       </span>

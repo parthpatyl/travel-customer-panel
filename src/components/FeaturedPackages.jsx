@@ -271,15 +271,15 @@ export default function FeaturedPackages({ packages = [], onViewPackage, setting
                 <div className="p-5 flex flex-col flex-grow">
                   <div>
                     {/* Editorial Eyebrow */}
-                    <div className="text-xs font-semibold tracking-[0.15em] text-amber-700 uppercase mb-2">
+                    <div className="text-[11px] font-bold tracking-[0.16em] text-amber-700 uppercase mb-1.5">
                       {pkg.region} · {pkg.duration}
                     </div>
 
-                    <h3 className="text-[15px] font-semibold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-2 font-display tracking-tight">
+                    <h3 className="text-lg font-bold text-stone-900 group-hover:text-amber-700 transition-colors leading-snug mb-2 font-display tracking-tight">
                       {pkg.name}
                     </h3>
 
-                    <MarkdownInline className="text-sm text-stone-500 leading-relaxed line-clamp-2 mb-4 font-light">
+                    <MarkdownInline className="text-[13px] text-stone-500 font-normal leading-relaxed line-clamp-2 mb-3.5">
                       {(pkg.description || '').split('\n')[0]}
                     </MarkdownInline>
 
@@ -292,13 +292,13 @@ export default function FeaturedPackages({ packages = [], onViewPackage, setting
                   </div>
 
                   {/* Price & CTA Footer */}
-                  <div className="flex items-center justify-between pt-4 mt-auto border-t border-stone-100">
+                  <div className="flex items-end justify-between pt-3.5 mt-auto border-t border-stone-100">
                     <div>
-                      <span className="text-xs text-stone-400 font-semibold uppercase tracking-wider block">From</span>
-                      <span className="text-lg font-semibold text-stone-900 tabular-nums">{formatINR(pkg.price)}</span>
-                      {pkg.usdPrice != null && <span className="ml-2 text-xs text-stone-400 font-medium">{formatUSD(pkg.usdPrice)}</span>}
+                      <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block mb-0.5">FROM</span>
+                      <span className="text-xl font-extrabold text-stone-900 tabular-nums leading-none">{formatINR(pkg.price)}</span>
+                      {pkg.usdPrice != null && <span className="ml-1.5 text-xs text-stone-400 font-medium tabular-nums">{formatUSD(pkg.usdPrice)}</span>}
                     </div>
-                    <span className="text-stone-700 group-hover:text-amber-700 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <span className="text-stone-800 group-hover:text-amber-700 text-xs font-bold transition-colors flex items-center gap-1.5 pb-0.5">
                       Explore
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
                     </span>
