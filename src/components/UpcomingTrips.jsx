@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { CalendarDays, MapPin, Users, ArrowRight, Calendar, X } from 'lucide-react'
 import { formatINR } from '../utils/currency'
 import { SmartMarkdown } from '../utils/markdownUtils'
+import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../utils/image'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
@@ -233,10 +234,7 @@ export default function UpcomingTrips({ onBook, onViewPackage }) {
                     alt={packageTitle}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null
-                      e.currentTarget.src = '/assets/unsplash-pkg-card.jpg'
-                    }}
+                    onError={(e) => handleImageError(e, DEFAULT_FALLBACK_IMAGE)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-stone-950/20 to-transparent" />
 

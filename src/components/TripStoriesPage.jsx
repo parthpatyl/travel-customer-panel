@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Star, MapPin, Camera, Filter, Search, PlusCircle, ChevronLeft, ChevronRight, X, Sparkles, Quote } from 'lucide-react'
 import SubmitStoryModal from './SubmitStoryModal'
-import { API_URL, getImgUrl, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../utils/image'
+import { API_URL, getImgUrl, handleImageError, DEFAULT_FALLBACK_IMAGE, DEFAULT_HERO_IMAGE } from '../utils/image'
 
 const DEFAULT_AVATAR = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#e4d5c5" rx="50"/><circle cx="50" cy="38" r="18" fill="#d4c4b5"/><path d="M20 80c0-18 13-32 30-32s30 14 30 32" fill="#d4c4b5"/></svg>'
@@ -109,9 +109,10 @@ export default function TripStoriesPage({ testimonials = [], packages = [], onSt
       <section className="relative bg-stone-900 text-white py-16 sm:py-24 overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src={`${API_URL}/assets/unsplash-app-hero.jpg`}
+            src={getImgUrl('/assets/unsplash-app-hero.jpg', DEFAULT_HERO_IMAGE)}
             alt="Trip Stories & Gallery background"
             className="w-full h-full object-cover opacity-25"
+            onError={(e) => handleImageError(e, DEFAULT_HERO_IMAGE)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/80 to-stone-950/90" />
         </div>

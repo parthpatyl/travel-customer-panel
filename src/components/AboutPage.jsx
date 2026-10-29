@@ -1,6 +1,6 @@
 import { Sparkles, Compass, Sliders, PhoneCall, ShieldCheck, HeartHandshake, Award } from 'lucide-react'
 import { useAgencySettings } from '../context/AgencyContext'
-import { getImgUrl } from '../utils/image'
+import { getImgUrl, handleImageError, DEFAULT_HERO_IMAGE, DEFAULT_FALLBACK_IMAGE } from '../utils/image'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -69,10 +69,7 @@ export default function AboutPage() {
             src={heroBg}
             alt="Scenic mountain peaks banner"
             className="w-full h-full object-cover opacity-50"
-            onError={(e) => {
-              e.currentTarget.onerror = null
-              e.currentTarget.src = '/assets/unsplash-about-hero.jpg'
-            }}
+            onError={(e) => handleImageError(e, DEFAULT_HERO_IMAGE)}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-stone-900/40 via-stone-900/20 to-stone-900/70" />
         </div>
@@ -116,10 +113,7 @@ export default function AboutPage() {
               src={philosophyImg}
               alt="Travel design roadmap"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.onerror = null
-                e.currentTarget.src = '/assets/unsplash-about-section.jpg'
-              }}
+              onError={(e) => handleImageError(e, DEFAULT_FALLBACK_IMAGE)}
             />
           </div>
         </div>

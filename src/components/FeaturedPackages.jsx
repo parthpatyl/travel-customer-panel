@@ -153,10 +153,7 @@ export default function FeaturedPackages({ packages = [], onViewPackage, setting
                   src={imgUrl(offer.imageUrl)}
                   alt={offer.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null
-                    e.currentTarget.src = '/assets/unsplash-maldives.jpg'
-                  }}
+                  onError={handleImageError}
                 />
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-stone-950/85 via-stone-950/45 to-transparent" />

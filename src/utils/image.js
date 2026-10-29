@@ -30,8 +30,8 @@ export function getImgUrl(url, fallback = DEFAULT_FALLBACK_IMAGE) {
  * Image onError event handler preventing broken image displays and infinite retry loops
  */
 export function handleImageError(e, fallback = DEFAULT_FALLBACK_IMAGE) {
+  e.currentTarget.onerror = null
   if (e.currentTarget.src !== fallback) {
-    e.currentTarget.onerror = null
     e.currentTarget.src = fallback
   }
 }

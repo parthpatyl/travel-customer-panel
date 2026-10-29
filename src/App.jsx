@@ -19,6 +19,7 @@ import TripStoriesPage from './components/TripStoriesPage'
 import staticPackages from './data/packages'
 import { fallbackTestimonials } from './data/fallbackData'
 import { updatePageMeta } from './utils/meta'
+import { handleImageError, DEFAULT_HERO_IMAGE } from './utils/image'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -367,9 +368,7 @@ function App() {
                     }
                     alt="CTA background image"
                     className="w-full h-full object-cover opacity-40"
-                    onError={(e) => {
-                      e.currentTarget.src = '/assets/unsplash-app-hero.jpg'
-                    }}
+                    onError={(e) => handleImageError(e, DEFAULT_HERO_IMAGE)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/50 to-transparent" />
                   <div className="absolute inset-0 bg-gradient-to-r from-stone-950/50 via-transparent to-stone-950/50" />
