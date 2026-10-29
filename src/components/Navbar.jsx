@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import logo from '../assets/logo.png'
-import { Menu, X, CalendarDays, Search, PhoneCall, Compass, MapPin, ArrowRight, Sparkles, User } from 'lucide-react'
+import { Menu, X, CalendarDays, Search, PhoneCall, Compass, MapPin, ArrowRight, Sparkles } from 'lucide-react'
 import MegaNavBar from './MegaNavBar'
 import { useAgencySettings } from '../context/AgencyContext'
 
@@ -292,29 +292,21 @@ export default function Navbar({ activePage, onNavigate, settings = {} }) {
                 <span>{agencyPhone}</span>
               </a>
 
-              {/* Login / Account Button */}
+              {/* Book Now Button (shifted here from navigation row) */}
               <button
                 onClick={() => handleNav('booking')}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/10 hover:bg-white/15 text-white rounded-lg text-xs font-semibold border border-white/10 cursor-pointer transition-colors"
-                aria-label="Login or account"
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-900 rounded-full text-xs font-bold shadow-md shadow-black/20 transition-all hover:scale-105 border border-amber-400/30 cursor-pointer"
+                aria-label="Book Now"
               >
-                <User className="w-3.5 h-3.5 text-stone-300" />
-                <span>Login</span>
+                <CalendarDays className="w-3.5 h-3.5 text-stone-900" />
+                <span>Book Now</span>
               </button>
             </div>
           </div>
 
-          {/* Row 2: Navigation Mega Menus + Book Your Trip CTA */}
-          <div className="flex items-center justify-between h-[46px]">
+          {/* Row 2: Navigation Mega Menus (India, International, etc.) Centered */}
+          <div className="flex items-center justify-center h-[46px] w-full">
             <MegaNavBar activePage={activePage} onNavigate={handleNav} compact />
-
-            <button
-              onClick={() => handleNav('booking')}
-              className="shrink-0 px-4 py-1.5 bg-white hover:bg-stone-100 text-stone-900 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-md shadow-black/30 transition-all hover:scale-105 border border-stone-200/20"
-            >
-              <CalendarDays className="w-3.5 h-3.5 text-stone-900" />
-              <span>Book Your Trip</span>
-            </button>
           </div>
         </div>
 

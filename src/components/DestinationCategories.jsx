@@ -57,8 +57,8 @@ export default function DestinationCategories({ onExplore }) {
   return (
     <section className="relative z-10 py-12 sm:py-16 bg-[#FDFCF7] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* ── Section Header (Responsive Alignment: Left on Mobile, Center on MD+) ── */}
-        <div className="text-left md:text-center flex flex-col items-start md:items-center max-w-2xl mx-auto mb-8 sm:mb-10 animate-fade-in-up">
+        {/* ── Section Header (Centered) ── */}
+        <div className="text-center flex flex-col items-center max-w-2xl mx-auto mb-8 sm:mb-10 animate-fade-in-up">
           <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-1.5 block">
             Browse by Region
           </span>
@@ -70,7 +70,7 @@ export default function DestinationCategories({ onExplore }) {
           </p>
         </div>
 
-        {/* ── Scrollable Strip (Responsive Alignment: justify-start on Mobile to prevent clipping, justify-center on Desktop) ── */}
+        {/* ── Scrollable Strip (Centered) ── */}
         <div className="relative">
           {/* Fade masks */}
           <div
@@ -83,7 +83,7 @@ export default function DestinationCategories({ onExplore }) {
           <div
             ref={scrollRef}
             onScroll={checkScroll}
-            className="flex justify-start lg:justify-center gap-5 sm:gap-7 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 -mb-3 pt-1 px-1"
+            className="flex justify-start sm:justify-center gap-5 sm:gap-7 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 -mb-3 pt-1 px-1"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {DESTINATION_CATEGORIES.map((dest, index) => {

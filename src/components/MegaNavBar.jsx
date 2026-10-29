@@ -755,7 +755,7 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
   }
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 py-0.5">
+    <div className="flex items-center justify-center gap-1 sm:gap-2 py-0.5 mx-auto">
       {navConfig.map((cat) => (
         <MegaMenu
           key={cat.id}
