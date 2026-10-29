@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, ChevronRight, Globe, MapPin } from 'lucide-react'
 
 export default function MegaMenu({
@@ -13,6 +13,12 @@ export default function MegaMenu({
   const [isOpen, setIsOpen] = useState(false)
   const [activeContinentId, setActiveContinentId] = useState(continents[0]?.id || 'africa')
   const timeoutRef = useRef(null)
+
+  useEffect(() => {
+    if (continents && continents.length > 0 && !continents.some(c => c.id === activeContinentId)) {
+      setActiveContinentId(continents[0].id)
+    }
+  }, [continents, activeContinentId])
 
   const open = () => {
     clearTimeout(timeoutRef.current)
@@ -185,7 +191,7 @@ export default function MegaMenu({
               <div className="flex items-center justify-between px-5 py-2.5 bg-stone-50 border-b border-stone-200/80 shrink-0">
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-amber-600" />
-                  <span className="text-xs font-bold text-stone-800 uppercase tracking-wider">International Destinations</span>
+                  <span className="text-xs font-bold text-stone-800 uppercase tracking-wider">{label} Destinations</span>
                 </div>
                 <span className="text-[11px] text-stone-400 font-semibold">Hover continent to explore destinations</span>
               </div>

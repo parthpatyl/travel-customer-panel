@@ -638,7 +638,62 @@ const MEGA_MENU_CONFIG = [
   }
 ]
 
+const DEFAULT_MENU_FALLBACK = [
+  ...MEGA_MENU_CONFIG,
+  {
+    id: 'group_tours',
+    label: 'Group Tours',
+    type: 'dropdown',
+    visible: true,
+    columns: [
+      {
+        heading: 'Popular Group Expeditions',
+        links: [
+          { label: 'Greece & Turkey Odyssey', page: 'destinations', region: 'Europe', search: 'Greece' },
+          { label: 'Northern Lights Iceland', page: 'destinations', region: 'Europe', search: 'Iceland' },
+          { label: 'Tuscany Gourmet Trail', page: 'destinations', region: 'Europe', search: 'Tuscany' },
+          { label: 'Kerala Backwaters Group', page: 'destinations', region: 'Asia', search: 'Kerala' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'corporate',
+    label: 'Corporate Travel',
+    type: 'link',
+    page: 'corporate',
+    visible: true
+  },
+  {
+    id: 'gallery',
+    label: 'Stories & Gallery',
+    type: 'link',
+    page: 'gallery',
+    visible: true
+  },
+  {
+    id: 'giftcards',
+    label: 'Gift Cards',
+    type: 'link',
+    page: 'giftcards',
+    visible: false
+  }
+]
+
 export default function MegaNavBar({ activePage, onNavigate, isMobile = false, compact = false }) {
+  const [navigationMenu, setNavigationMenu] = useState(() => {
+    try {
+      const cached = localStorage.getItem('kraft_navigation_menu')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {
+      // Fallback on storage read error
+    }
+    return DEFAULT_MENU_FALLBACK
+  })
+
   const [popularExpeditions, setPopularExpeditions] = useState([
     { label: 'Greece & Turkey Odyssey', page: 'destinations', region: 'Europe', search: 'Greece' },
     { label: 'Northern Lights Iceland', page: 'destinations', region: 'Europe', search: 'Iceland' },
@@ -647,6 +702,18 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
   ])
 
   useEffect(() => {
+    // 1. Fetch live CMS navigation structure
+    fetch(`${API_URL}/api/navigation`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setNavigationMenu(data)
+          localStorage.setItem('kraft_navigation_menu', JSON.stringify(data))
+        }
+      })
+      .catch(() => {})
+
+    // 2. Fetch popular expeditions dynamically for Group Tours dropdown
     Promise.all([
       fetch(`${API_URL}/api/group-departures`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
       fetch(`${API_URL}/api/packages`).then((r) => (r.ok ? r.json() : [])).catch(() => [])
@@ -659,7 +726,6 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
           const name = d.title || d.packageName
           if (name && !seen.has(name)) {
             seen.add(name)
-            // Match corresponding package if available for direct inner page view
             const matchedPkg = Array.isArray(pkgData) ? pkgData.find(p => p.id === d.packageId || p.name === d.packageName) : null
             items.push({
               label: name,
@@ -693,102 +759,109 @@ export default function MegaNavBar({ activePage, onNavigate, isMobile = false, c
     }).catch(() => {})
   }, [])
 
-  const navConfig = useMemo(() => {
-    const groupToursConfig = {
-      id: 'group_tours',
-      label: 'Group Tours',
-      columns: [
-        {
-          heading: 'Popular Group Expeditions',
-          links: popularExpeditions
+  const filteredMenuItems = useMemo(() => {
+    const rawList = Array.isArray(navigationMenu) && navigationMenu.length > 0 ? navigationMenu : DEFAULT_MENU_FALLBACK
+    return rawList
+      .filter((item) => item.visible !== false)
+      .map((item) => {
+        if (item.id === 'group_tours') {
+          return {
+            ...item,
+            columns: [
+              {
+                heading: item.columns?.[0]?.heading || 'Popular Group Expeditions',
+                links: popularExpeditions.length > 0 ? popularExpeditions : (item.columns?.[0]?.links || [])
+              }
+            ]
+          }
         }
-      ]
-    }
 
-    return [...MEGA_MENU_CONFIG, groupToursConfig]
-  }, [popularExpeditions])
+        if (item.type === 'megamenu' && Array.isArray(item.continents)) {
+          return {
+            ...item,
+            continents: item.continents
+              .filter((c) => c.visible !== false)
+              .map((c) => ({
+                ...c,
+                countries: Array.isArray(c.countries)
+                  ? c.countries
+                      .filter((country) => country.visible !== false)
+                      .map((country) => ({
+                        ...country,
+                        cities: Array.isArray(country.cities)
+                          ? country.cities.filter((city) => (typeof city === 'object' ? city.visible !== false : true))
+                          : []
+                      }))
+                  : []
+              }))
+          }
+        }
+
+        return item
+      })
+  }, [navigationMenu, popularExpeditions])
 
   if (isMobile) {
     return (
       <div className="space-y-1">
-        {navConfig.map((cat) => (
-          <MegaMenu
-            key={cat.id}
-            label={cat.label}
-            columns={cat.columns}
-            isSplit={cat.isSplit}
-            topTabs={cat.topTabs}
-            continents={cat.continents}
-            onNavigate={onNavigate}
-            isMobile
-          />
-        ))}
-        <NavLink
-          active={activePage === 'group-tours'}
-          onClick={() => onNavigate('group-tours')}
-          label="Scheduled Departures"
-          isMobile
-        />
-        <NavLink
-          active={activePage === 'corporate'}
-          onClick={() => onNavigate('corporate')}
-          label="Corporate Travel"
-          isMobile
-        />
-        <NavLink
-          active={activePage === 'gallery'}
-          onClick={() => onNavigate('gallery')}
-          label="Stories & Gallery"
-          isMobile
-        />
-        {/* Gift Cards temporarily hidden as requested - do not delete */}
-        {false && (
-          <NavLink
-            active={activePage === 'giftcards'}
-            onClick={() => onNavigate('giftcards')}
-            label="Gift Cards"
-            isMobile
-          />
-        )}
+        {filteredMenuItems.map((item) => {
+          if (item.type === 'link') {
+            return (
+              <NavLink
+                key={item.id}
+                active={activePage === item.page}
+                onClick={() => onNavigate(item.page || 'destinations')}
+                label={item.label}
+                isMobile
+              />
+            )
+          }
+
+          return (
+            <MegaMenu
+              key={item.id}
+              label={item.label}
+              columns={item.columns}
+              isSplit={item.isSplit}
+              topTabs={item.topTabs}
+              continents={item.continents}
+              onNavigate={onNavigate}
+              isMobile
+            />
+          )
+        })}
       </div>
     )
   }
 
   return (
     <div className="flex items-center justify-center gap-1 sm:gap-2 py-0.5 mx-auto">
-      {navConfig.map((cat) => (
-        <MegaMenu
-          key={cat.id}
-          label={cat.label}
-          columns={cat.columns}
-          isSplit={cat.isSplit}
-          topTabs={cat.topTabs}
-          continents={cat.continents}
-          onNavigate={onNavigate}
-          compact={compact}
-        />
-      ))}
-      <NavLink
-        active={activePage === 'corporate'}
-        onClick={() => onNavigate('corporate')}
-        label="Corporate Travel"
-        compact={compact}
-      />
-      <NavLink
-        active={activePage === 'gallery'}
-        onClick={() => onNavigate('gallery')}
-        label="Stories & Gallery"
-        compact={compact}
-      />
-      {/* Gift Cards temporarily hidden as requested - do not delete */}
-      {false && (
-        <NavLink
-          active={activePage === 'giftcards'}
-          onClick={() => onNavigate('giftcards')}
-          label="Gift Cards"
-          compact={compact}
-        />
-      )}
+      {filteredMenuItems.map((item) => {
+        if (item.type === 'link') {
+          return (
+            <NavLink
+              key={item.id}
+              active={activePage === item.page}
+              onClick={() => onNavigate(item.page || 'destinations')}
+              label={item.label}
+              compact={compact}
+            />
+          )
+        }
+
+        return (
+          <MegaMenu
+            key={item.id}
+            label={item.label}
+            columns={item.columns}
+            isSplit={item.isSplit}
+            topTabs={item.topTabs}
+            continents={item.continents}
+            onNavigate={onNavigate}
+            compact={compact}
+          />
+        )
+      })}
     </div>
   )
 }
