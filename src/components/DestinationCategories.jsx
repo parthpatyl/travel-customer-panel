@@ -13,7 +13,7 @@ const REGION_FALLBACKS = {
   australia: 'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=400&q=80'
 }
 
-const DESTINATION_CATEGORIES = [
+export const DEFAULT_DESTINATION_CATEGORIES = [
   { id: 'switzerland', name: 'Switzerland', region: 'Europe', search: 'Switzerland', image: `${API_URL}/assets/unsplash-swiss-alps.jpg`, fallback: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=300&q=75' },
   { id: 'japan', name: 'Japan', region: 'Asia', search: 'Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=300&q=75', fallback: REGION_FALLBACKS.asia },
   { id: 'dubai', name: 'Dubai & UAE', region: 'Middle East', search: 'Dubai', image: `${API_URL}/assets/unsplash-dubai.jpg`, fallback: REGION_FALLBACKS['middle-east'] },
@@ -26,12 +26,36 @@ const DESTINATION_CATEGORIES = [
   { id: 'vietnam', name: 'Vietnam', region: 'Asia', search: 'Vietnam', image: `${API_URL}/assets/unsplash-pkg-card.jpg`, fallback: REGION_FALLBACKS.asia }
 ]
 
+function getSafeImageUrl(img) {
+  if (!img) return REGION_FALLBACKS.europe
+  if (img.startsWith('http')) return img
+  return `${API_URL}${img.startsWith('/') ? '' : '/'}${img}`
+}
+
 export default function DestinationCategories({ onExplore }) {
+  const [destinations, setDestinations] = useState(DEFAULT_DESTINATION_CATEGORIES)
   const [tourCounts, setTourCounts] = useState({})
   const [loading, setLoading] = useState(true)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
   const scrollRef = useRef(null)
+
+  // Fetch dynamic carousel items from API with graceful fallback
+  useEffect(() => {
+    fetch(`${API_URL}/api/navigation/carousel`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const activeItems = data.filter(item => item.isActive !== false)
+          if (activeItems.length > 0) {
+            setDestinations(activeItems)
+          }
+        }
+      })
+      .catch(() => {
+        // Fall back to static defaults
+      })
+  }, [])
 
   useEffect(() => {
     fetch(`${API_URL}/api/destinations`)
@@ -86,36 +110,40 @@ export default function DestinationCategories({ onExplore }) {
             className="flex justify-start sm:justify-center gap-5 sm:gap-7 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 -mb-3 pt-1 px-1"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {DESTINATION_CATEGORIES.map((dest, index) => {
-              const count = loading ? undefined : (tourCounts[dest.region] ?? 0)
+            {destinations.map((dest, index) => {
+              const dynamicCount = loading ? undefined : (tourCounts[dest.region] ?? 0)
+              const countBadge = dest.tourCount || (dynamicCount !== undefined ? `${dynamicCount} ${dynamicCount === 1 ? 'tour' : 'tours'}` : undefined)
+              const img = getSafeImageUrl(dest.image)
+              const fallback = dest.fallback || REGION_FALLBACKS[dest.region?.toLowerCase()] || REGION_FALLBACKS.europe
+
               return (
                 <button
-                  key={dest.id}
-                  onClick={() => onExplore(dest.region, dest.search || '')}
+                  key={dest.id || dest.name + index}
+                  onClick={() => onExplore(dest.region, dest.search || dest.name || '')}
                   aria-label={`Explore ${dest.name} destinations`}
-                  className="group flex flex-col items-center gap-2.5 snap-start shrink-0 focus:outline-none animate-fade-in-up min-w-[90px] sm:min-w-[106px]"
+                  className="group flex flex-col items-center gap-2.5 snap-start shrink-0 focus:outline-none animate-fade-in-up min-w-[90px] sm:min-w-[106px] cursor-pointer"
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
                   {/* ── Circular image wrapper (prevents ring clipping / crescents) ── */}
                   <div className="p-[3px] rounded-full border-2 border-transparent group-hover:border-[#1A1A2E] transition-all duration-300">
                     <div className="relative w-[80px] h-[80px] sm:w-[96px] sm:h-[96px] rounded-full overflow-hidden bg-stone-100 shadow-md shadow-stone-200/60 ring-1 ring-stone-200/80 transition-all duration-400">
                       <img
-                        src={dest.image}
+                        src={img}
                         alt={`${dest.name} travel destinations`}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         loading="lazy"
                         onError={(e) => {
                           e.currentTarget.onerror = null
-                          e.currentTarget.src = dest.fallback
+                          e.currentTarget.src = fallback
                         }}
                       />
                       <div className="absolute inset-0 bg-stone-900/0 group-hover:bg-stone-900/10 transition-colors duration-400 rounded-full" />
 
                       {/* Tour count badge — revealed on hover */}
-                      {count !== undefined && count > 0 && (
+                      {countBadge && (
                         <div className="absolute bottom-0 left-0 right-0 pt-5 pb-1 bg-gradient-to-t from-[#1A1A2E]/70 via-[#1A1A2E]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 flex items-end justify-center">
-                          <span className="text-[10px] font-mono font-semibold text-white tabular-nums tracking-wider">
-                            {count} {count === 1 ? 'tour' : 'tours'}
+                          <span className="text-[10px] font-mono font-semibold text-white tabular-nums tracking-wider px-1 text-center">
+                            {countBadge}
                           </span>
                         </div>
                       )}
@@ -127,18 +155,18 @@ export default function DestinationCategories({ onExplore }) {
                     <p className="text-xs sm:text-sm font-semibold text-stone-800 group-hover:text-[#1A1A2E] transition-colors duration-300 leading-snug">
                       {dest.name}
                     </p>
-                    {count === undefined ? (
-                      <p className="text-[10px] font-mono text-stone-300 mt-0.5 tabular-nums tracking-wider">
-                        Loading…
-                      </p>
-                    ) : count > 0 ? (
-                      <p className="text-[10px] font-mono text-stone-400 group-hover:text-stone-500 transition-colors duration-300 mt-0.5 tabular-nums tracking-wider">
-                        {count} {count === 1 ? 'tour' : 'tours'}
-                      </p>
+                    {dest.tourCount ? (
+                      <span className="text-[10px] text-stone-400 font-mono tracking-wider">
+                        {dest.tourCount}
+                      </span>
+                    ) : dynamicCount === undefined ? (
+                      <span className="text-[10px] text-stone-400 font-mono tracking-wider">&nbsp;</span>
+                    ) : dynamicCount === 0 ? (
+                      <span className="text-[10px] text-stone-400 italic">Coming soon</span>
                     ) : (
-                      <p className="text-[10px] font-mono text-stone-300 mt-0.5 tabular-nums tracking-wider italic">
-                        Coming soon
-                      </p>
+                      <span className="text-[10px] text-stone-400 font-mono tracking-wider">
+                        {dynamicCount} {dynamicCount === 1 ? 'tour' : 'tours'}
+                      </span>
                     )}
                   </div>
                 </button>
@@ -147,14 +175,14 @@ export default function DestinationCategories({ onExplore }) {
           </div>
         </div>
 
-        {/* ── "View all" CTA ── */}
-        <div className="mt-8 sm:mt-10 flex justify-center">
+        {/* ── Bottom Link ── */}
+        <div className="text-center mt-8">
           <button
-            onClick={() => onExplore('All')}
-            className="group text-[13px] font-semibold text-amber-700 flex items-center gap-1.5 hover:text-amber-600 transition-colors"
+            onClick={() => onExplore('All', '')}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-600 hover:text-stone-900 transition-colors duration-300 group cursor-pointer"
           >
-            View all destinations
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300" />
+            <span>View all destinations</span>
+            <ArrowRight className="w-3.5 h-3.5 text-amber-600 group-hover:translate-x-1 transition-transform duration-300" />
           </button>
         </div>
       </div>

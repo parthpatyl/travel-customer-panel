@@ -1,29 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import {
-  Compass,
-  Sparkles,
-  Heart,
-  Binoculars,
-  Utensils,
-  Ship,
-  Camera,
-  Users,
-  ArrowRight,
-  Sparkle
-} from 'lucide-react'
+import { ArrowRight, Sparkle } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-
-const ICON_MAP = {
-  Compass,
-  Sparkles,
-  Heart,
-  Binoculars,
-  Utensils,
-  Ship,
-  Camera,
-  Users,
-}
 
 const DEFAULT_CATEGORIES = [
   {
@@ -31,10 +9,8 @@ const DEFAULT_CATEGORIES = [
     name: 'Adventure',
     subtitle: 'Thrilling treks & expeditions',
     keyword: 'Adventure',
-    iconName: 'Compass',
-    iconColor: 'text-blue-600',
-    iconBg: 'bg-blue-50',
-    accentColor: 'text-blue-400 group-hover:text-blue-300',
+    imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+    accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 24,
   },
   {
@@ -42,21 +18,17 @@ const DEFAULT_CATEGORIES = [
     name: 'Wellness',
     subtitle: 'Rejuvenate mind & body',
     keyword: 'Wellness',
-    iconName: 'Sparkles',
-    iconColor: 'text-teal-600',
-    iconBg: 'bg-teal-50',
-    accentColor: 'text-teal-400 group-hover:text-teal-300',
+    imageUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+    accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 18,
   },
   {
     id: 'honeymoon',
     name: 'Honeymoon',
-    subtitle: 'Romantic getaways',
+    subtitle: 'Romantic getaways & escapes',
     keyword: 'Honeymoon',
-    iconName: 'Heart',
-    iconColor: 'text-rose-500',
-    iconBg: 'bg-rose-50',
-    accentColor: 'text-rose-400 group-hover:text-rose-300',
+    imageUrl: 'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=800&q=80',
+    accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 31,
   },
   {
@@ -64,43 +36,35 @@ const DEFAULT_CATEGORIES = [
     name: 'Wildlife',
     subtitle: 'Safari & nature tours',
     keyword: 'Wildlife',
-    iconName: 'Binoculars',
-    iconColor: 'text-emerald-600',
-    iconBg: 'bg-emerald-50',
-    accentColor: 'text-emerald-400 group-hover:text-emerald-300',
+    imageUrl: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80',
+    accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 15,
   },
   {
     id: 'culinary',
     name: 'Culinary',
-    subtitle: 'Taste the world',
+    subtitle: 'Taste authentic world flavors',
     keyword: 'Culinary',
-    iconName: 'Utensils',
-    iconColor: 'text-amber-600',
-    iconBg: 'bg-amber-50',
+    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
     accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 22,
   },
   {
     id: 'cruises',
     name: 'Cruises',
-    subtitle: 'Sail the seas in style',
+    subtitle: 'Sail the seas in private luxury',
     keyword: 'Cruise',
-    iconName: 'Ship',
-    iconColor: 'text-sky-600',
-    iconBg: 'bg-sky-50',
-    accentColor: 'text-sky-400 group-hover:text-sky-300',
+    imageUrl: 'https://images.unsplash.com/photo-1548574505-5e239809ee19?auto=format&fit=crop&w=800&q=80',
+    accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 9,
   },
   {
     id: 'photography',
     name: 'Photography',
-    subtitle: 'Capture stunning moments',
+    subtitle: 'Capture cinematic landscapes',
     keyword: 'Photography',
-    iconName: 'Camera',
-    iconColor: 'text-purple-600',
-    iconBg: 'bg-purple-50',
-    accentColor: 'text-purple-400 group-hover:text-purple-300',
+    imageUrl: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80',
+    accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 11,
   },
   {
@@ -108,10 +72,8 @@ const DEFAULT_CATEGORIES = [
     name: 'Group Tours',
     subtitle: 'Travel with like-minded people',
     keyword: 'Group',
-    iconName: 'Users',
-    iconColor: 'text-indigo-600',
-    iconBg: 'bg-indigo-50',
-    accentColor: 'text-indigo-400 group-hover:text-indigo-300',
+    imageUrl: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80',
+    accentColor: 'text-amber-400 group-hover:text-amber-300',
     defaultCount: 27,
   },
 ]
@@ -129,10 +91,8 @@ export default function SpecialityCategories({ packages = [], onSelectCategory }
             const defCat = DEFAULT_CATEGORIES.find((c) => c.id === dbCat.id)
             return {
               ...dbCat,
-              iconName: dbCat.iconName || defCat?.iconName || 'Compass',
-              iconColor: dbCat.iconColor || defCat?.iconColor || 'text-amber-600',
-              iconBg: dbCat.iconBg || defCat?.iconBg || 'bg-amber-50',
-              accentColor: dbCat.accentColor || defCat?.accentColor || 'text-amber-500 group-hover:text-amber-400',
+              imageUrl: dbCat.imageUrl || defCat?.imageUrl || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+              accentColor: dbCat.accentColor || defCat?.accentColor || 'text-amber-400 group-hover:text-amber-300',
               subtitle: dbCat.subtitle || defCat?.subtitle || `Explore handpicked ${dbCat.name.toLowerCase()} tours.`,
             }
           })
@@ -160,13 +120,13 @@ export default function SpecialityCategories({ packages = [], onSelectCategory }
       counts[cat.id] = matches.length
     })
     return counts
-  }, [packages, categories])
+  }, [categories, packages])
 
   return (
-    <section className="relative py-10 sm:py-14 bg-[#FDFCF7] overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* ── Header Badge & Title ── */}
-        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 animate-fade-in-up">
+    <section className="relative z-10 py-14 sm:py-20 bg-[#FDFCF7] border-t border-stone-200/60 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* ── Section Header (Centered) ── */}
+        <div className="text-center flex flex-col items-center max-w-2xl mx-auto mb-10 sm:mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/5 border border-stone-900/10 text-stone-800 text-[11px] font-semibold tracking-wide mb-3 shadow-xs">
             <Sparkle className="w-3 h-3 text-amber-600 fill-amber-500" />
             <span>Unique Experiences</span>
@@ -184,43 +144,53 @@ export default function SpecialityCategories({ packages = [], onSelectCategory }
           </p>
         </div>
 
-        {/* ── Responsive Card Grid Layout ── */}
+        {/* ── Responsive Card Grid Layout with Photographic Backgrounds ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-5">
           {categories.filter((cat) => cat.isActive !== false).map((cat, idx) => {
-            const Icon = ICON_MAP[cat.iconName] || Compass
             const count = categoryCounts[cat.id]
+            const imgUrl = cat.imageUrl?.startsWith('http') ? cat.imageUrl : (cat.imageUrl ? `${API_URL}${cat.imageUrl}` : 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80')
 
             return (
               <div
                 key={cat.id}
                 onClick={() => onSelectCategory?.(cat.name, cat.keyword || cat.name, cat.id)}
-                className="group relative bg-[#132238] border border-stone-800/80 hover:border-amber-500/40 rounded-xl p-4 sm:p-5 flex flex-col items-center text-center shadow-md hover:shadow-xl hover:shadow-stone-950/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
+                className="group relative aspect-[3/4] sm:aspect-[4/5] rounded-2xl overflow-hidden border border-stone-800/80 shadow-md hover:shadow-2xl hover:shadow-stone-950/40 transition-all duration-500 hover:-translate-y-1.5 cursor-pointer flex flex-col justify-end p-4 sm:p-5"
                 style={{ animationDelay: `${idx * 50}ms` }}
               >
-                {/* Ambient glow effect on card hover */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                {/* Full-card photographic background */}
+                <img
+                  src={imgUrl}
+                  alt={cat.name}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80'
+                  }}
+                />
 
-                {/* White Squircle Icon Box */}
-                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white rounded-xl flex items-center justify-center shadow-md shadow-stone-950/20 mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <Icon className={`w-5 h-5 ${cat.iconColor || 'text-amber-600'}`} />
-                </div>
+                {/* Dark Luxury Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/50 to-stone-950/20 group-hover:from-stone-950 group-hover:via-stone-950/40 transition-colors duration-500 pointer-events-none" />
 
-                {/* Category Title */}
-                <h3 className="font-display text-sm sm:text-base font-bold text-white tracking-tight group-hover:text-amber-300 transition-colors">
-                  {cat.name}
-                </h3>
+                {/* Content Overlay */}
+                <div className="relative z-10 flex flex-col">
+                  {/* Category Title */}
+                  <h3 className="font-display text-base sm:text-lg font-bold text-white tracking-tight group-hover:text-amber-300 transition-colors drop-shadow-sm">
+                    {cat.name}
+                  </h3>
 
-                {/* Subtitle */}
-                <p className="text-[11px] sm:text-xs text-stone-400 font-light mt-1 mb-3 line-clamp-2 leading-snug">
-                  {cat.subtitle}
-                </p>
+                  {/* Subtitle */}
+                  <p className="text-[11px] sm:text-xs text-stone-300/90 font-light mt-1 mb-3 line-clamp-2 leading-snug">
+                    {cat.subtitle}
+                  </p>
 
-                {/* Footer Count & Link */}
-                <div className="mt-auto pt-1">
-                  <span className={`inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold ${cat.accentColor || 'text-amber-400'} transition-colors`}>
-                    <span>{count} Tours</span>
-                    <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
-                  </span>
+                  {/* Footer Count & Link */}
+                  <div className="pt-1 flex items-center justify-between border-t border-white/10">
+                    <span className="text-[11px] sm:text-xs font-semibold text-amber-400 group-hover:text-amber-300 transition-colors flex items-center gap-1">
+                      <span>{count} Tours</span>
+                      <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
+                  </div>
                 </div>
               </div>
             )
