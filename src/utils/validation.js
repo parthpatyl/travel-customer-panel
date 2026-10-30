@@ -14,6 +14,15 @@ const DUMMY_EMAIL_PREFIXES = new Set([
 
 const SEQUENTIAL_ASC = '01234567890123456789'
 
+const COUNTRY_PHONE_RULES = {
+  '+91': { name: 'India', min: 10, max: 10, label: 'Indian phone numbers must be exactly 10 digits' },
+  '+1': { name: 'US/Canada', min: 10, max: 10, label: 'US/Canada phone numbers must be exactly 10 digits' },
+  '+44': { name: 'UK', min: 10, max: 11, label: 'UK phone numbers must be 10 or 11 digits' },
+  '+971': { name: 'UAE', min: 9, max: 9, label: 'UAE phone numbers must be exactly 9 digits' },
+  '+65': { name: 'Singapore', min: 8, max: 8, label: 'Singapore phone numbers must be exactly 8 digits' },
+  '+61': { name: 'Australia', min: 9, max: 9, label: 'Australian phone numbers must be exactly 9 digits' }
+}
+
 /**
  * Validates an email address against syntax, RFC compliance, and bogus/disposable domains.
  * @param {string} email
@@ -77,29 +86,100 @@ export function validatePhone(phone, countryCode = '+91') {
     return { isValid: false, error: 'Please enter your phone number' }
   }
 
-  const cleanDigits = raw.replace(/\D/g, '')
-  if (!cleanDigits) {
+  const allDigits = raw.replace(/\D/g, '')
+  if (!allDigits) {
     return { isValid: false, error: 'Phone number must contain digits' }
   }
 
-  // Standard E.164 length check
-  if (cleanDigits.length < 7 || cleanDigits.length > 15) {
-    return { isValid: false, error: 'Phone number must be between 7 and 15 digits' }
+  // Determine effective country code and local digits
+  let cc = (countryCode || '+91').toString().trim()
+  if (!cc.startsWith('+')) cc = `+${cc}`
+  let localDigits = allDigits
+
+  if (raw.startsWith('+')) {
+    // Check known codes first ordered by length descending
+    const knownCodes = Object.keys(COUNTRY_PHONE_RULES).sort((a, b) => b.length - a.length)
+    for (const code of knownCodes) {
+      if (raw.startsWith(code)) {
+        cc = code
+        localDigits = raw.slice(code.length).replace(/\D/g, '')
+        break
+      }
+    }
+  } else if (allDigits.length > 10 && cc && allDigits.startsWith(cc.replace('+', ''))) {
+    // Number already includes country code prefix without '+'
+    localDigits = allDigits.slice(cc.replace('+', '').length)
   }
 
   // Check for repeated identical digits (e.g. 0000000000, 1111111111, 9999999999)
-  if (/^(\d)\1+$/.test(cleanDigits)) {
+  if (/^(\d)\1+$/.test(localDigits)) {
     return { isValid: false, error: 'Phone number cannot contain all identical digits' }
   }
 
   // Check for ascending sequential dummy numbers (e.g. 1234567890, 0123456789)
-  if (cleanDigits.length >= 8 && SEQUENTIAL_ASC.includes(cleanDigits)) {
+  if (localDigits.length >= 8 && SEQUENTIAL_ASC.includes(localDigits)) {
     return { isValid: false, error: 'Sequential dummy phone numbers are not allowed' }
   }
 
-  const cc = countryCode?.startsWith('+') ? countryCode : `+${countryCode || '91'}`
-  const formatted = `${cc}${cleanDigits}`
-  return { isValid: true, formatted, cleanDigits }
+  // Standard E.164 length check on total or local
+  if (localDigits.length < 7 || localDigits.length > 15) {
+    return { isValid: false, error: 'Phone number must be between 7 and 15 digits' }
+  }
+
+  // Check country-specific length constraints (e.g. India +91 requires exactly 10 digits)
+  const rule = COUNTRY_PHONE_RULES[cc]
+  if (rule) {
+    if (localDigits.length < rule.min || localDigits.length > rule.max) {
+      return { isValid: false, error: rule.label }
+    }
+  }
+
+  const formatted = `${cc}${localDigits}`
+  return { isValid: true, formatted, cleanDigits: localDigits }
+}
+
+/**
+ * Validates numeric inputs with custom boundaries.
+ * @param {any} value
+ * @param {object} [options]
+ * @returns {{ isValid: boolean, error?: string, value?: number }}
+ */
+export function validateNumber(value, options = {}) {
+  const { min, max, integerOnly = false, fieldName = 'Value', required = true } = options
+  if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+    if (!required) return { isValid: true, value: null }
+    return { isValid: false, error: `${fieldName} is required` }
+  }
+  const num = Number(value)
+  if (isNaN(num) || !isFinite(num)) {
+    return { isValid: false, error: `${fieldName} must be a valid number` }
+  }
+  if (integerOnly && !Number.isInteger(num)) {
+    return { isValid: false, error: `${fieldName} must be a whole number` }
+  }
+  if (min !== undefined && num < min) {
+    return { isValid: false, error: `${fieldName} must be at least ${min}` }
+  }
+  if (max !== undefined && num > max) {
+    return { isValid: false, error: `${fieldName} cannot exceed ${max}` }
+  }
+  return { isValid: true, value: num }
+}
+
+export function validateGuests(value) {
+  return validateNumber(value, { min: 1, max: 500, integerOnly: true, fieldName: 'Number of guests' })
+}
+
+export function validatePrice(value, fieldName = 'Price') {
+  return validateNumber(value, { min: 0, fieldName })
+}
+
+export function validatePercentage(value, fieldName = 'Percentage') {
+  return validateNumber(value, { min: 0, max: 100, fieldName })
+}
+
+export function validateRating(value) {
+  return validateNumber(value, { min: 1, max: 5, integerOnly: true, fieldName: 'Rating' })
 }
 
 /**

@@ -10,7 +10,7 @@ import { SmartMarkdown, SmartMarkdownInline, flattenBulletedItems } from '../uti
 import PackageBrochureModal from './PackageBrochureModal'
 import ItineraryDownloadLeadModal from './ItineraryDownloadLeadModal'
 import PhoneInput from './PhoneInput'
-import { validateEmail, validatePhone, validateName } from '../utils/validation'
+import { validateEmail, validatePhone, validateName, validateGuests } from '../utils/validation'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
 
@@ -148,6 +148,9 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
 
     const phoneCheck = validatePhone(phone, countryCode)
     if (!phoneCheck.isValid) errors.phone = phoneCheck.error
+
+    const guestCheck = validateGuests(guestCount)
+    if (!guestCheck.isValid) errors.guests = guestCheck.error
 
     if (!travelDate) {
       errors.travelDate = 'Please select a preferred travel date'

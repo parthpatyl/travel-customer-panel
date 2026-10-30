@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateEmail, validatePhone, validateName } from '../utils/validation'
+import { validateEmail, validatePhone, validateName, validateNumber, validateGuests, validatePrice, validatePercentage, validateRating } from '../utils/validation'
 
 describe('Credential & Contact Verification Suite', () => {
   describe('Email Verification', () => {
@@ -69,6 +69,64 @@ describe('Credential & Contact Verification Suite', () => {
       expect(validatePhone('1234567890').isValid).toBe(false)
       expect(validatePhone('0123456789').isValid).toBe(false)
       expect(validatePhone('1234567890').error).toMatch(/Sequential dummy phone numbers are not allowed/i)
+    })
+
+    it('enforces country-specific length constraints, especially India 10 digits', () => {
+      // India (+91)
+      const indiaShort = validatePhone('987654321', '+91')
+      expect(indiaShort.isValid).toBe(false)
+      expect(indiaShort.error).toMatch(/Indian phone numbers must be exactly 10 digits/i)
+
+      const indiaLong = validatePhone('98765432109', '+91')
+      expect(indiaLong.isValid).toBe(false)
+      expect(indiaLong.error).toMatch(/Indian phone numbers must be exactly 10 digits/i)
+
+      const indiaValid = validatePhone('9876543210', '+91')
+      expect(indiaValid.isValid).toBe(true)
+      expect(indiaValid.formatted).toBe('+919876543210')
+
+      // US (+1)
+      const usValid = validatePhone('2025550188', '+1')
+      expect(usValid.isValid).toBe(true)
+
+      const usShort = validatePhone('202555018', '+1')
+      expect(usShort.isValid).toBe(false)
+      expect(usShort.error).toMatch(/US\/Canada phone numbers must be exactly 10 digits/i)
+    })
+  })
+
+  describe('Numerical Field Validation', () => {
+    it('validates guest counts accurately', () => {
+      expect(validateGuests(1).isValid).toBe(true)
+      expect(validateGuests(10).isValid).toBe(true)
+      expect(validateGuests(0).isValid).toBe(false)
+      expect(validateGuests(-2).isValid).toBe(false)
+      expect(validateGuests(1.5).isValid).toBe(false)
+      expect(validateGuests(600).isValid).toBe(false)
+      expect(validateGuests('abc').isValid).toBe(false)
+    })
+
+    it('validates financial prices and amounts', () => {
+      expect(validatePrice(0).isValid).toBe(true)
+      expect(validatePrice(49999).isValid).toBe(true)
+      expect(validatePrice(-100).isValid).toBe(false)
+      expect(validatePrice('not-a-number').isValid).toBe(false)
+    })
+
+    it('validates percentages within 0-100 range', () => {
+      expect(validatePercentage(0).isValid).toBe(true)
+      expect(validatePercentage(18).isValid).toBe(true)
+      expect(validatePercentage(100).isValid).toBe(true)
+      expect(validatePercentage(-5).isValid).toBe(false)
+      expect(validatePercentage(105).isValid).toBe(false)
+    })
+
+    it('validates rating values within 1-5 integer scale', () => {
+      expect(validateRating(5).isValid).toBe(true)
+      expect(validateRating(1).isValid).toBe(true)
+      expect(validateRating(0).isValid).toBe(false)
+      expect(validateRating(6).isValid).toBe(false)
+      expect(validateRating(4.5).isValid).toBe(false)
     })
   })
 

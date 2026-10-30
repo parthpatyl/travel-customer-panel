@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, Star, Trash2, Camera, User, MapPin, Compass, CheckCircle } from 'lucide-react'
+import { validateName, validateRating } from '../utils/validation'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -73,8 +74,14 @@ export default function SubmitStoryModal({ isOpen, onClose, packages = [], onSuc
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name.trim()) {
-      setError('Please enter your name.')
+    const nameCheck = validateName(name)
+    if (!nameCheck.isValid) {
+      setError(nameCheck.error)
+      return
+    }
+    const ratingCheck = validateRating(rating)
+    if (!ratingCheck.isValid) {
+      setError(ratingCheck.error)
       return
     }
     if (!text.trim()) {

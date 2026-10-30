@@ -6,7 +6,7 @@ import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
 import CalendarPopup from './CalendarPopup'
 import { getDefaultDialCode } from '../utils/dialCodes'
-import { validateEmail, validatePhone, validateName } from '../utils/validation'
+import { validateEmail, validatePhone, validateName, validateGuests } from '../utils/validation'
 
 const BESPOKE_DESTINATIONS_DEFAULTS = [
   { id: 'custom-maldives', name: 'Maldives Overwater Villas', region: 'Indian Ocean', image: '/assets/unsplash-maldives.jpg' },
@@ -327,6 +327,10 @@ export default function BookingPage({ packages, selectedPackage }) {
         }
         return null
       }
+      case 'guests': {
+        const check = validateGuests(value)
+        return check.isValid ? null : check.error
+      }
       case 'companyName': {
         if (inquiryType === 'corporate' && (!value || !value.trim())) {
           return 'Company name is required for corporate inquiries'
@@ -406,6 +410,9 @@ export default function BookingPage({ packages, selectedPackage }) {
 
     const phoneErr = validateField('phone', formData.phone, formData)
     if (phoneErr) newErrors.phone = phoneErr
+
+    const guestErr = validateField('guests', formData.guests, formData)
+    if (guestErr) newErrors.guests = guestErr
 
     if (inquiryType === 'corporate') {
       const compErr = validateField('companyName', formData.companyName, formData)
