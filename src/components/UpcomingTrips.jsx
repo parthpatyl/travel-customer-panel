@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { CalendarDays, MapPin, Users, ArrowRight, Calendar, X } from 'lucide-react'
+import { CalendarDays, MapPin, Users, ArrowRight, Calendar, X, Download } from 'lucide-react'
 import { formatINR } from '../utils/currency'
 import { SmartMarkdown } from '../utils/markdownUtils'
 import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../utils/image'
+import PackageBrochureModal from './PackageBrochureModal'
+import ItineraryDownloadLeadModal from './ItineraryDownloadLeadModal'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const imgUrl = (url) => url?.startsWith('http') ? url : `${API_URL}${url || ''}`
@@ -34,6 +36,8 @@ export default function UpcomingTrips({ onBook, onViewPackage }) {
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedDepartureItinerary, setSelectedDepartureItinerary] = useState(null)
+  const [leadGateDeparturePkg, setLeadGateDeparturePkg] = useState(null)
+  const [brochureDeparturePkg, setBrochureDeparturePkg] = useState(null)
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -478,7 +482,33 @@ export default function UpcomingTrips({ onBook, onViewPackage }) {
               <span className="text-xs text-stone-500 font-medium order-2 sm:order-1">
                 {(selectedDepartureItinerary.dep.slots?.total ?? selectedDepartureItinerary.dep.slotsTotal ?? 20) - (selectedDepartureItinerary.dep.slots?.booked ?? selectedDepartureItinerary.dep.slotsBooked ?? 0)} seats remaining
               </span>
-              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end order-1 sm:order-2">
+              <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end order-1 sm:order-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const dep = selectedDepartureItinerary.dep
+                    const targetPkg = {
+                      ...(selectedDepartureItinerary.pkg || {}),
+                      id: dep.packageId || selectedDepartureItinerary.pkg?.id || 'group-dep',
+                      name: dep.title || dep.packageName || selectedDepartureItinerary.pkg?.name || 'Group Departure',
+                      destination: dep.destination || selectedDepartureItinerary.pkg?.destination || 'Tour',
+                      duration: dep.packageDuration || selectedDepartureItinerary.pkg?.duration || `${selectedDepartureItinerary.itinerary?.length || 1} Days`,
+                      price: (dep.packageBasePrice || selectedDepartureItinerary.pkg?.price || 0) + (dep.priceModifier || 0),
+                      itinerary: selectedDepartureItinerary.itinerary || [],
+                      heroImage: dep.packageCardImage || selectedDepartureItinerary.pkg?.heroImage,
+                      cardImage: dep.packageCardImage || selectedDepartureItinerary.pkg?.cardImage,
+                      description: dep.notes || selectedDepartureItinerary.pkg?.description || '',
+                      highlights: selectedDepartureItinerary.pkg?.highlights || [],
+                      inclusions: selectedDepartureItinerary.pkg?.inclusions || [],
+                      exclusions: selectedDepartureItinerary.pkg?.exclusions || []
+                    }
+                    setLeadGateDeparturePkg(targetPkg)
+                  }}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-stone-300 hover:border-amber-500 text-stone-700 hover:text-amber-700 bg-white hover:bg-stone-50 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-amber-600" />
+                  Download Itinerary (PDF)
+                </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDepartureItinerary(null)}
@@ -502,6 +532,29 @@ export default function UpcomingTrips({ onBook, onViewPackage }) {
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Lead Capture Modal for Gated Group Departure Itinerary Download */}
+      {leadGateDeparturePkg && (
+        <ItineraryDownloadLeadModal
+          isOpen={!!leadGateDeparturePkg}
+          onClose={() => setLeadGateDeparturePkg(null)}
+          onSuccess={() => {
+            const target = leadGateDeparturePkg
+            setLeadGateDeparturePkg(null)
+            setBrochureDeparturePkg(target)
+          }}
+          pkg={leadGateDeparturePkg}
+        />
+      )}
+
+      {/* Brochure Modal for Printing / Download */}
+      {brochureDeparturePkg && (
+        <PackageBrochureModal
+          isOpen={!!brochureDeparturePkg}
+          onClose={() => setBrochureDeparturePkg(null)}
+          pkg={brochureDeparturePkg}
+        />
       )}
     </section>
   )

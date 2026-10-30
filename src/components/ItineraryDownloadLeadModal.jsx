@@ -44,6 +44,24 @@ export default function ItineraryDownloadLeadModal({ isOpen, onClose, onSuccess,
 
   if (!isOpen || !pkg) return null
 
+  const handleBlur = (field) => {
+    const errs = { ...errors }
+    if (field === 'name') {
+      const check = validateName(name)
+      if (!check.isValid) errs.name = check.error
+      else delete errs.name
+    } else if (field === 'email') {
+      const check = validateEmail(email)
+      if (!check.isValid) errs.email = check.error
+      else delete errs.email
+    } else if (field === 'phone') {
+      const check = validatePhone(phone, countryCode)
+      if (!check.isValid) errs.phone = check.error
+      else delete errs.phone
+    }
+    setErrors(errs)
+  }
+
   const validate = () => {
     const errs = {}
     const nameCheck = validateName(name)
@@ -93,9 +111,18 @@ export default function ItineraryDownloadLeadModal({ isOpen, onClose, onSuccess,
       })
 
       if (!res.ok) {
-        // Fallback: try bookings inquiry endpoint with leadSource if enquiries endpoint fails
+        // If the server rejected the lead with validation error (400 / 422), display error and halt
+        if (res.status === 400 || res.status === 422) {
+          const errData = await res.json().catch(() => ({}))
+          const firstErr = errData.errors?.[0]?.message || errData.message || 'Please provide valid credentials.'
+          setSubmitError(firstErr)
+          setIsSubmitting(false)
+          return
+        }
+
+        // Fallback: try bookings inquiry endpoint with leadSource if enquiries endpoint had 404 or 500
         try {
-          await fetch(`${API_URL}/api/bookings/inquiry`, {
+          const fallbackRes = await fetch(`${API_URL}/api/bookings/inquiry`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -112,29 +139,35 @@ export default function ItineraryDownloadLeadModal({ isOpen, onClose, onSuccess,
               specialRequests: '[Itinerary Download]'
             })
           })
+
+          if (!fallbackRes.ok && (fallbackRes.status === 400 || fallbackRes.status === 422)) {
+            const fallbackData = await fallbackRes.json().catch(() => ({}))
+            setSubmitError(fallbackData?.message || 'Invalid details provided.')
+            setIsSubmitting(false)
+            return
+          }
         } catch {
-          // Proceed anyway so download is not blocked
+          // Proceed only if network error
         }
       }
     } catch {
-      // Graceful offline fallback: allow guest to view itinerary even if backend is offline
-    } finally {
-      // Save contact details to session storage
-      try {
-        sessionStorage.setItem('kraft_lead_captured', 'true')
-        sessionStorage.setItem('kraft_guest_contact', JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          countryCode,
-          phone
-        }))
-      } catch {
-        // ignore
-      }
-
-      setIsSubmitting(false)
-      onSuccess()
+      // Graceful offline fallback: allow guest to view itinerary only when network fetch failed completely
     }
+
+    // Save contact details to session storage for form prefill convenience (not modal bypass)
+    try {
+      sessionStorage.setItem('kraft_guest_contact', JSON.stringify({
+        name: name.trim(),
+        email: email.trim(),
+        countryCode,
+        phone
+      }))
+    } catch {
+      // ignore
+    }
+
+    setIsSubmitting(false)
+    onSuccess()
   }
 
   const modal = (
@@ -193,7 +226,9 @@ export default function ItineraryDownloadLeadModal({ isOpen, onClose, onSuccess,
               onChange={(e) => {
                 setName(e.target.value)
                 if (errors.name) setErrors(prev => ({ ...prev, name: null }))
+                if (submitError) setSubmitError('')
               }}
+              onBlur={() => handleBlur('name')}
               placeholder="e.g. John Doe"
               className={`w-full bg-[#FAF9F5] border ${errors.name ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200' : 'border-stone-200 focus:border-amber-500'} rounded-xl py-2.5 px-3.5 text-xs text-stone-900 placeholder-stone-400 outline-none transition-all`}
             />
@@ -217,7 +252,9 @@ export default function ItineraryDownloadLeadModal({ isOpen, onClose, onSuccess,
               onChange={(e) => {
                 setEmail(e.target.value)
                 if (errors.email) setErrors(prev => ({ ...prev, email: null }))
+                if (submitError) setSubmitError('')
               }}
+              onBlur={() => handleBlur('email')}
               placeholder="e.g. john@example.com"
               className={`w-full bg-[#FAF9F5] border ${errors.email ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-200' : 'border-stone-200 focus:border-amber-500'} rounded-xl py-2.5 px-3.5 text-xs text-stone-900 placeholder-stone-400 outline-none transition-all`}
             />
@@ -242,8 +279,10 @@ export default function ItineraryDownloadLeadModal({ isOpen, onClose, onSuccess,
                 if (e.target.name === 'phone') {
                   setPhone(e.target.value)
                   if (errors.phone) setErrors(prev => ({ ...prev, phone: null }))
+                  if (submitError) setSubmitError('')
                 }
               }}
+              onBlur={() => handleBlur('phone')}
               error={errors.phone}
             />
             {errors.phone && (

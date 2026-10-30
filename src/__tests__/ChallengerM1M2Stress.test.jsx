@@ -383,7 +383,7 @@ describe('Empirical Challenger: Milestone 1 Gen 2 & Milestone 2 Stress Test Suit
       )
 
       // Verify session storage set
-      expect(window.sessionStorage.getItem('kraft_lead_captured')).toBe('true')
+      expect(window.sessionStorage.getItem('kraft_guest_contact')).toBeTruthy()
 
       // Verify brochure modal opened
       expect(await screen.findByText(/Package Brochure Preview/i)).toBeInTheDocument()

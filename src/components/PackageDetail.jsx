@@ -47,14 +47,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   const handleDownloadClick = () => {
-    try {
-      if (sessionStorage.getItem('kraft_lead_captured') === 'true') {
-        setIsBrochureOpen(true)
-        return
-      }
-    } catch {
-      // ignore
-    }
+    // Always require contact details validation before downloading itinerary
     setIsLeadModalOpen(true)
   }
 

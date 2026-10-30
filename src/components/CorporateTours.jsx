@@ -107,14 +107,7 @@ export default function CorporateTours({ onNavigate }) {
       termsAndConditions: pkg.terms_and_conditions || pkg.termsAndConditions || ''
     }
 
-    try {
-      if (sessionStorage.getItem('kraft_lead_captured') === 'true') {
-        setBrochurePkg(formatted)
-        return
-      }
-    } catch {
-      // ignore
-    }
+    // Always require contact details validation before downloading corporate itinerary
     setLeadGatePkg(formatted)
   }
 

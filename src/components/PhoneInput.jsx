@@ -9,7 +9,7 @@ function detectFromNumber(raw) {
   return null
 }
 
-export default function PhoneInput({ countryCode, phone, onChange, error }) {
+export default function PhoneInput({ countryCode, phone, onChange, onBlur, error }) {
   const defaultCode = getDefaultDialCode()
   const currentCode = countryCode || defaultCode?.code || '+91'
 
@@ -76,6 +76,7 @@ export default function PhoneInput({ countryCode, phone, onChange, error }) {
             name="phone"
             value={phone}
             onChange={handlePhoneChange}
+            onBlur={onBlur}
             placeholder={getPlaceholder(currentCode)}
             className={`w-full h-12 ${error ? 'bg-rose-50/20 border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-200' : 'bg-[#FAF9F5] border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
               } border rounded-full pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all`}

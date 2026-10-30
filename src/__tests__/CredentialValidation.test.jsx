@@ -95,4 +95,20 @@ describe('Credential & Contact Verification Suite', () => {
       expect(validateName('testing').isValid).toBe(false)
     })
   })
+
+  describe('Itinerary Download Validation Invariants', () => {
+    it('enforces that invalid email domains cannot pass validation for itinerary leads', () => {
+      const invalidEmails = ['fake@tempmail.com', 'test@test.com', 'admin@trashmail.com', 'bad@']
+      for (const mail of invalidEmails) {
+        expect(validateEmail(mail).isValid).toBe(false)
+      }
+    })
+
+    it('enforces that dummy phone patterns cannot pass validation for itinerary leads', () => {
+      const invalidPhones = ['1234567890', '0000000000', '1111111111', '9999999999', '123']
+      for (const num of invalidPhones) {
+        expect(validatePhone(num, '+91').isValid).toBe(false)
+      }
+    })
+  })
 })

@@ -284,16 +284,32 @@ describe('Milestone 2 Customer Site Enhancements (R1, R2, R3, R4, R7)', () => {
       expect(screen.getByText(/Package Brochure Preview/i)).toBeInTheDocument()
     })
 
-    it('subsequent download clicks open brochure directly if contact details are already captured in session', () => {
-      window.sessionStorage.setItem('kraft_lead_captured', 'true')
+    it('always gates download behind contact verification even if session contact exists', async () => {
+      window.sessionStorage.setItem('kraft_guest_contact', JSON.stringify({
+        name: 'Rajesh Kumar',
+        email: 'rajesh@example.com',
+        phone: '9876543210',
+        countryCode: '+91'
+      }))
       render(<PackageDetail pkg={mockPackage} />)
 
       const downloadBtn = screen.getByRole('button', { name: /download itinerary \(pdf\)/i })
       fireEvent.click(downloadBtn)
 
-      // Brochure opens directly without lead capture modal
+      // Gated lead modal opens with prefilled fields for review and validation
+      expect(screen.getByText(/Download Day-by-Day Itinerary/i)).toBeInTheDocument()
+      expect(screen.getByText(/Free Itinerary PDF/i)).toBeInTheDocument()
+      expect(screen.queryByText(/Package Brochure Preview/i)).not.toBeInTheDocument()
+
+      const dialog = screen.getByRole('dialog')
+      const submitBtn = within(dialog).getByTestId('lead-submit-btn')
+
+      await act(async () => {
+        fireEvent.click(submitBtn)
+      })
+
+      // Unlocks brochure after verified submission
       expect(screen.getByText(/Package Brochure Preview/i)).toBeInTheDocument()
-      expect(screen.queryByText(/Free Itinerary PDF/i)).not.toBeInTheDocument()
     })
   })
 })
