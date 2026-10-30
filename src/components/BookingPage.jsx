@@ -114,16 +114,6 @@ function GuestPreferenceCard({ index, data, onChange, errors }) {
             ))}
           </select>
         </div>
-        <div>
-          <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Passport No.</label>
-          <input
-            type="text"
-            value={data?.passport || ''}
-            onChange={(e) => onChange(index, 'passport', e.target.value)}
-            placeholder="Optional"
-            className="w-full bg-white border border-stone-200 focus:border-amber-500 rounded-lg py-2 px-3 text-xs text-stone-900 placeholder-stone-400 outline-none"
-          />
-        </div>
       </div>
     </div>
   )
@@ -201,7 +191,7 @@ export default function BookingPage({ packages, selectedPackage }) {
 
   const [groupMembers, setGroupMembers] = useState(() =>
     Array.from({ length: 2 }, () => ({
-      name: '', email: '', dietary: 'None', seat: 'Window', passport: ''
+      name: '', email: '', dietary: 'None', seat: 'Window'
     }))
   )
 
@@ -245,35 +235,32 @@ export default function BookingPage({ packages, selectedPackage }) {
 
   const isStandardPackage = selectedPkg && !selectedPkg.isBespoke
 
+  const packageDurationDays = selectedPkg
+    ? (inquiryType === 'corporate' ? parseDurationDays(selectedPkg.nights) : parseDurationDays(selectedPkg.duration))
+    : null
+
+  const isDurationFixed = !formData.departureId && !!packageDurationDays && (inquiryType === 'corporate' || isStandardPackage)
+  const isStartDateLocked = !!formData.departureId
+  const isEndDateLocked = isStartDateLocked || isDurationFixed
+
   const computedEndDate = (() => {
-    if (!selectedPkg || !formData.startDate) return ''
-    const days = inquiryType === 'corporate'
-      ? parseDurationDays(selectedPkg.nights)
-      : parseDurationDays(selectedPkg.duration)
-    if (!days) return ''
+    if (!formData.startDate || !packageDurationDays) return ''
     const start = toDateObject(formData.startDate)
     if (!start) return ''
     const end = new Date(start)
-    end.setDate(end.getDate() + days - 1)
+    end.setDate(end.getDate() + Math.max(0, packageDurationDays - 1))
     return end.toISOString().split('T')[0]
   })()
 
-  const isStartDateLocked = !!formData.departureId
-  const isEndDateLocked = (
-    (inquiryType !== 'corporate' && isStandardPackage && !!computedEndDate) ||
-    (inquiryType === 'corporate' && formData.packageId && formData.packageId !== 'custom-other' && !!computedEndDate) ||
-    !!formData.departureId
-  )
-
-  const effectiveEndDate = isEndDateLocked
-    ? (formData.departureId ? formData.endDate : computedEndDate)
-    : formData.endDate
+  const effectiveEndDate = isStartDateLocked
+    ? formData.endDate
+    : (isDurationFixed ? (computedEndDate || formData.endDate) : formData.endDate)
 
   const syncGroupMembers = (count) => {
     setGroupMembers((prev) => {
       const next = [...prev]
       while (next.length < count) {
-        next.push({ name: '', email: '', dietary: 'None', seat: 'Window', passport: '' })
+        next.push({ name: '', email: '', dietary: 'None', seat: 'Window' })
       }
       return next.slice(0, count)
     })
@@ -296,7 +283,7 @@ export default function BookingPage({ packages, selectedPackage }) {
     setGroupMembers((prev) => {
       const next = [...prev]
       if (!next[index]) {
-        next[index] = { name: '', email: '', dietary: 'None', seat: 'Window', passport: '' }
+        next[index] = { name: '', email: '', dietary: 'None', seat: 'Window' }
       }
       next[index] = { ...next[index], [field]: value }
       return next
@@ -516,7 +503,7 @@ export default function BookingPage({ packages, selectedPackage }) {
 Enquiry Type: Corporate Retreat / MICE Event
 Selected Destination/Package: ${packageLabel}
 Estimated Group Size: ${guestCount} attendees
-Preferred Dates: ${formatDateDisplay(formData.startDate)} to ${formatDateDisplay(formData.endDate)}
+Preferred Dates: ${formatDateDisplay(formData.startDate)} to ${formatDateDisplay(effectiveEndDate || formData.endDate)}
 Additional Requirements:
 ${formData.notes || 'No special requests specified.'}
       `.trim()
@@ -553,8 +540,7 @@ ${formData.notes || 'No special requests specified.'}
         email: idx === 0 ? formData.email : (m.email || ''),
         phone: idx === 0 ? formData.phone : (m.phone || ''),
         dietary: m.dietary || 'None',
-        seat: m.seat || 'Window',
-        passport: m.passport || ''
+        seat: m.seat || 'Window'
       }))
 
       try {
@@ -739,7 +725,7 @@ ${formData.notes || 'No special requests specified.'}
               </div>
               <div className="flex justify-between gap-4">
                 <span className="text-stone-500">Travel Dates</span>
-                <span className="font-semibold text-stone-900">{formatDateDisplay(formData.startDate)} → {formatDateDisplay(formData.endDate)}</span>
+                <span className="font-semibold text-stone-900">{formatDateDisplay(formData.startDate)} → {formatDateDisplay(effectiveEndDate || formData.endDate)}</span>
               </div>
             </div>
 
@@ -889,13 +875,38 @@ ${formData.notes || 'No special requests specified.'}
                         <div
                           key={opt.id}
                           onClick={() => {
-                            const updated = { ...formData, packageId: opt.id }
+                            let nextEndDate = formData.endDate
+                            const targetPkg = inquiryType === 'corporate'
+                              ? corporatePackages.find(p => p.id === opt.id)
+                              : (packages || []).find(p => p.id === opt.id)
+                            const targetDuration = targetPkg
+                              ? (inquiryType === 'corporate' ? parseDurationDays(targetPkg.nights) : parseDurationDays(targetPkg.duration))
+                              : null
+                            if (formData.startDate && targetDuration && (inquiryType === 'corporate' || !targetPkg?.isBespoke)) {
+                              const sObj = toDateObject(formData.startDate)
+                              if (sObj) {
+                                const eObj = new Date(sObj)
+                                eObj.setDate(eObj.getDate() + Math.max(0, targetDuration - 1))
+                                nextEndDate = eObj.toISOString().split('T')[0]
+                              }
+                            }
+                            const updated = {
+                              ...formData,
+                              packageId: opt.id,
+                              departureId: '',
+                              priceModifier: 0,
+                              endDate: nextEndDate
+                            }
                             setFormData(updated)
                             if (submissionAttempted) {
                               setErrors(prev => {
                                 const next = { ...prev }
                                 delete next.packageId
                                 if (opt.id !== 'custom-other') delete next.customDestination
+                                if (updated.startDate && nextEndDate) {
+                                  delete next.startDate
+                                  delete next.endDate
+                                }
                                 return next
                               })
                             } else if (errors.packageId) {
@@ -1011,12 +1022,22 @@ ${formData.notes || 'No special requests specified.'}
                   <CalendarPopup
                     startDate={formData.startDate}
                     endDate={effectiveEndDate}
+                    durationDays={isDurationFixed ? packageDurationDays : null}
                     isEndDateLocked={isEndDateLocked}
                     onChange={(selectedIso) => {
+                      let calcEnd = formData.endDate || selectedIso
+                      if (isDurationFixed && packageDurationDays) {
+                        const sObj = toDateObject(selectedIso)
+                        if (sObj) {
+                          const eObj = new Date(sObj)
+                          eObj.setDate(eObj.getDate() + Math.max(0, packageDurationDays - 1))
+                          calcEnd = eObj.toISOString().split('T')[0]
+                        }
+                      }
                       const updated = {
                         ...formData,
                         startDate: selectedIso,
-                        ...(isEndDateLocked ? {} : { endDate: formData.endDate || selectedIso })
+                        endDate: calcEnd
                       }
                       setFormData(updated)
                       if (submissionAttempted) {
@@ -1029,15 +1050,24 @@ ${formData.notes || 'No special requests specified.'}
                           return next
                         })
                       } else if (errors.startDate) {
-                        setErrors(prev => ({ ...prev, startDate: null }))
+                        setErrors(prev => ({ ...prev, startDate: null, endDate: null }))
                       }
                       setOpenCalendar(null)
                     }}
                     onChangeRange={({ startDate: sDate, endDate: eDate }) => {
+                      let calcEnd = eDate || sDate
+                      if (isDurationFixed && packageDurationDays) {
+                        const sObj = toDateObject(sDate)
+                        if (sObj) {
+                          const eObj = new Date(sObj)
+                          eObj.setDate(eObj.getDate() + Math.max(0, packageDurationDays - 1))
+                          calcEnd = eObj.toISOString().split('T')[0]
+                        }
+                      }
                       const updated = {
                         ...formData,
                         startDate: sDate,
-                        endDate: eDate || sDate
+                        endDate: calcEnd
                       }
                       setFormData(updated)
                       if (submissionAttempted) {

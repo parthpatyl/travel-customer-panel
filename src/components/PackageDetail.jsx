@@ -8,17 +8,54 @@ import {
 } from 'lucide-react'
 import { SmartMarkdown, SmartMarkdownInline, flattenBulletedItems } from '../utils/markdownUtils'
 import PackageBrochureModal from './PackageBrochureModal'
+import ItineraryDownloadLeadModal from './ItineraryDownloadLeadModal'
 import PhoneInput from './PhoneInput'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
+
+function parseDurationDays(duration) {
+  if (!duration) return null
+  const str = String(duration)
+  const dayMatch = str.match(/(\d+)\s*Days?/i)
+  if (dayMatch) return parseInt(dayMatch[1], 10)
+  const nightMatch = str.match(/(\d+)\s*Nights?/i)
+  if (nightMatch) return parseInt(nightMatch[1], 10) + 1
+  const num = parseInt(str, 10)
+  return !isNaN(num) ? num : null
+}
+
+function calculateEndDate(startDate, durationDays) {
+  if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) return ''
+  const days = durationDays || 1
+  const [y, m, d] = startDate.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  date.setDate(date.getDate() + Math.max(0, days - 1))
+  const ry = date.getFullYear()
+  const rm = String(date.getMonth() + 1).padStart(2, '0')
+  const rd = String(date.getDate()).padStart(2, '0')
+  return `${ry}-${rm}-${rd}`
+}
 
 export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   const [activeTab, setActiveTab] = useState('itinerary') // tabs: itinerary, inclusions
   const [weather, setWeather] = useState(null)
   const [groupDepartures, setGroupDepartures] = useState([])
   const [isBrochureOpen, setIsBrochureOpen] = useState(false)
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
   const [shareToast, setShareToast] = useState(null)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+
+  const handleDownloadClick = () => {
+    try {
+      if (sessionStorage.getItem('kraft_lead_captured') === 'true') {
+        setIsBrochureOpen(true)
+        return
+      }
+    } catch {
+      // ignore
+    }
+    setIsLeadModalOpen(true)
+  }
 
   // Embedded Book Now Form States
   const [fullName, setFullName] = useState('')
@@ -40,6 +77,11 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   const bookedSlots = pkg?.slots?.booked ?? pkg?.slotsBooked ?? 0
   const spotsLeft = totalSlots - bookedSlots
 
+  const pkgDays = parseDurationDays(pkg?.duration)
+  const computedEndDate = selectedDeparture?.returnDate
+    ? selectedDeparture.returnDate.split('T')[0]
+    : calculateEndDate(travelDate, pkgDays)
+
   // Ensure document title updates for Meta/SEO
   useEffect(() => {
     document.title = 'Kraft Your Trip | Package Details'
@@ -60,7 +102,8 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
         const res = await fetch(`${API_URL}/api/group-departures?packageId=${pkg.id}`)
         if (res.ok) {
           const data = await res.json()
-          const filtered = data.filter(d => d.status === 'scheduled' || d.status === 'confirmed')
+          const list = Array.isArray(data) ? data : []
+          const filtered = list.filter(d => d.status === 'scheduled' || d.status === 'confirmed')
           setGroupDepartures(filtered)
         }
       } catch (err) {
@@ -138,6 +181,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
       departureId: selectedDeparture?.id || pkg.departureId || null,
       travelDate,
       startDate: travelDate,
+      endDate: computedEndDate || travelDate,
       guests: guestCount,
       estimatedAmount: calculatedAmount,
       notes: notes.trim()
@@ -351,7 +395,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
               Share Trip
             </button>
             <button
-              onClick={() => setIsBrochureOpen(true)}
+              onClick={handleDownloadClick}
               className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900/90 hover:bg-stone-900 text-amber-300 border border-amber-500/40 backdrop-blur-sm shadow-sm rounded-full text-xs font-semibold transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4 text-amber-400" />
@@ -444,7 +488,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                 {/* Tab content: Itinerary */}
                 {activeTab === 'itinerary' && (
                   <div className="relative border-l-2 border-stone-200 pl-6 ml-3 space-y-7">
-                    {pkg.itinerary.map((dayItem, idx) => (
+                    {(pkg.itinerary || []).map((dayItem, idx) => (
                       <div key={idx} className="relative group">
                         {/* Bullet circle */}
                         <div className="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full bg-amber-600 border-4 border-white shadow-sm transition-transform duration-300 group-hover:scale-125" />
@@ -779,10 +823,11 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                   {/* Travel Date & Guests */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-stone-600 uppercase tracking-wider mb-1">
+                      <label htmlFor="package-detail-travel-date" className="block text-[10px] font-bold text-stone-600 uppercase tracking-wider mb-1">
                         Travel Date *
                       </label>
                       <input
+                        id="package-detail-travel-date"
                         type="date"
                         value={travelDate}
                         min={new Date().toISOString().split('T')[0]}
@@ -790,6 +835,12 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                         className="w-full px-3 py-2 bg-stone-50 border border-stone-200 focus:border-amber-600 rounded-xl text-xs text-stone-800 outline-none"
                         required
                       />
+                      {travelDate && computedEndDate && (
+                        <p className="text-[10px] text-amber-700 font-medium mt-1">
+                          Returns: {new Date(computedEndDate + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {pkgDays ? ` (${pkgDays} Days)` : ''}
+                        </p>
+                      )}
                       {formErrors.travelDate && <p className="text-[10px] text-rose-600 mt-0.5">{formErrors.travelDate}</p>}
                     </div>
                     <div>
@@ -875,7 +926,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsBrochureOpen(true)}
+                  onClick={handleDownloadClick}
                   className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-stone-200"
                 >
                   <Printer className="w-3.5 h-3.5 text-amber-700" />
@@ -945,6 +996,17 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* Lead Capture Modal for Gated Itinerary Download */}
+      <ItineraryDownloadLeadModal
+        pkg={pkg}
+        isOpen={isLeadModalOpen}
+        onClose={() => setIsLeadModalOpen(false)}
+        onSuccess={() => {
+          setIsLeadModalOpen(false)
+          setIsBrochureOpen(true)
+        }}
+      />
 
       {/* Brochure Modal for Printing / Download */}
       <PackageBrochureModal

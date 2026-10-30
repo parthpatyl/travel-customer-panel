@@ -18,10 +18,22 @@ function parseViewDate(value) {
   return new Date()
 }
 
+function addDaysIso(isoStr, numDays) {
+  if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return ''
+  const [y, m, d] = isoStr.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  date.setDate(date.getDate() + numDays)
+  const ry = date.getFullYear()
+  const rm = String(date.getMonth() + 1).padStart(2, '0')
+  const rd = String(date.getDate()).padStart(2, '0')
+  return `${ry}-${rm}-${rd}`
+}
+
 export default function CalendarPopup({
   value,
   startDate,
   endDate,
+  durationDays = null,
   onChange,
   onChangeRange,
   onClose,
@@ -31,7 +43,13 @@ export default function CalendarPopup({
   const initialStart = startDate || value || ''
   const [viewDate, setViewDate] = useState(() => parseViewDate(initialStart))
   const [selectedStart, setSelectedStart] = useState(initialStart)
-  const [selectedEnd, setSelectedEnd] = useState(endDate || '')
+  const [selectedEnd, setSelectedEnd] = useState(() => {
+    if (endDate) return endDate
+    if (isEndDateLocked && initialStart && durationDays) {
+      return addDaysIso(initialStart, Math.max(0, durationDays - 1))
+    }
+    return ''
+  })
   const [hoveredDate, setHoveredDate] = useState('')
   const [step, setStep] = useState(selectedStart && !selectedEnd && !isEndDateLocked ? 'end' : 'start')
   const ref = useRef(null)
@@ -55,9 +73,18 @@ export default function CalendarPopup({
   const handleDayClick = (day) => {
     const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
-    if (isEndDateLocked || !onChangeRange) {
+    if (isEndDateLocked) {
+      const computedEnd = durationDays && durationDays > 1 ? addDaysIso(iso, durationDays - 1) : iso
+      setSelectedStart(iso)
+      setSelectedEnd(computedEnd)
       if (onChange) onChange(iso)
-      if (onChangeRange) onChangeRange({ startDate: iso, endDate: '' })
+      if (onChangeRange) onChangeRange({ startDate: iso, endDate: computedEnd })
+      onClose()
+      return
+    }
+
+    if (!onChangeRange) {
+      if (onChange) onChange(iso)
       onClose()
       return
     }
@@ -96,19 +123,35 @@ export default function CalendarPopup({
     cells.push(<div key={`blank-${i}`} className="w-9 h-9" />)
   }
 
-  const activeEnd = selectedEnd || (step === 'end' && hoveredDate > selectedStart ? hoveredDate : '')
+  // Determine active start/end for display highlighting
+  let displayStart = selectedStart
+  let displayEnd = selectedEnd
+
+  if (isEndDateLocked && durationDays) {
+    if (hoveredDate && !isDisabled(parseInt(hoveredDate.split('-')[2], 10))) {
+      displayStart = hoveredDate
+      displayEnd = addDaysIso(hoveredDate, Math.max(0, durationDays - 1))
+    } else if (selectedStart) {
+      displayStart = selectedStart
+      displayEnd = addDaysIso(selectedStart, Math.max(0, durationDays - 1))
+    }
+  } else if (!isEndDateLocked && step === 'end' && hoveredDate && hoveredDate > selectedStart) {
+    displayEnd = hoveredDate
+  }
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    const isStart = dateStr === selectedStart
-    const isEnd = dateStr === activeEnd
-    const inRange = selectedStart && activeEnd && dateStr > selectedStart && dateStr < activeEnd
-    const isSingleSelected = isStart && (!activeEnd || activeEnd === selectedStart)
+    const isStart = dateStr === displayStart
+    const isEnd = dateStr === displayEnd
+    const inRange = displayStart && displayEnd && dateStr > displayStart && dateStr < displayEnd
+    const isSingleSelected = isStart && (!displayEnd || displayEnd === displayStart)
     const disabled = isDisabled(d)
     const isToday = dateStr === todayStr
 
     let btnClass = 'text-stone-700 hover:bg-stone-100 rounded-full'
     if (isSingleSelected) {
+      btnClass = 'bg-amber-600 text-white font-bold rounded-full shadow-xs'
+    } else if (isStart && isEnd) {
       btnClass = 'bg-amber-600 text-white font-bold rounded-full shadow-xs'
     } else if (isStart) {
       btnClass = 'bg-amber-600 text-white font-bold rounded-l-full'
@@ -139,10 +182,26 @@ export default function CalendarPopup({
   return (
     <div
       ref={ref}
+      onMouseLeave={() => setHoveredDate('')}
       className="absolute top-full mt-2 left-0 z-50 bg-white border border-stone-200 rounded-2xl shadow-xl p-4 w-[295px] animate-fade-in"
     >
       {/* Step prompt banner */}
-      {!isEndDateLocked && onChangeRange && (
+      {isEndDateLocked ? (
+        <div className="mb-2 pb-2 border-b border-stone-100 flex items-center justify-between text-[11px]">
+          <span className="font-semibold text-stone-700">
+            Select Departure Date {durationDays ? `(${durationDays} Days)` : ''}
+          </span>
+          {selectedStart && (
+            <button
+              type="button"
+              onClick={() => { setSelectedStart(''); setSelectedEnd(''); }}
+              className="text-[10px] text-amber-700 hover:underline font-medium cursor-pointer"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      ) : onChangeRange ? (
         <div className="mb-2 pb-2 border-b border-stone-100 flex items-center justify-between text-[11px]">
           <span className="font-semibold text-stone-600">
             {step === 'start' ? '1. Select Departure Date' : '2. Select Return Date'}
@@ -157,7 +216,7 @@ export default function CalendarPopup({
             </button>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* Month Header */}
       <div className="flex items-center justify-between mb-3">
@@ -197,7 +256,7 @@ export default function CalendarPopup({
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-y-1 gap-x-0">{cells}</div>
 
-      {/* Single date shortcut if only 1 day trip */}
+      {/* Single date shortcut if only 1 day trip in free-form mode */}
       {!isEndDateLocked && onChangeRange && selectedStart && step === 'end' && (
         <div className="mt-3 pt-2 border-t border-stone-100 text-center">
           <button

@@ -202,7 +202,27 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   const filteredPackages = useMemo(() => {
     let result = packages.filter(pkg => {
       // Region
-      if (selectedRegion !== 'All' && pkg.region !== selectedRegion) return false
+      if (selectedRegion !== 'All') {
+        const isKnownContinent = REGIONS.some(r => r.toLowerCase() === selectedRegion.toLowerCase() && r !== 'All')
+        if (isKnownContinent) {
+          if (pkg.region?.toLowerCase() !== selectedRegion.toLowerCase()) return false
+        } else {
+          // If selectedRegion is a country or compound destination name (e.g. 'Greece' or 'Greece & Turkey')
+          const destHaystack = [
+            pkg.name,
+            pkg.description,
+            pkg.region,
+            pkg.category,
+            ...(pkg.highlights || []),
+            ...(pkg.inclusions || [])
+          ].join(' ').toLowerCase()
+          const regionTokens = selectedRegion.toLowerCase().split(/\s*(?:&|\band\b|\/|,)\s*/).map(t => t.trim()).filter(Boolean)
+          const matchesRegion = regionTokens.length > 0
+            ? regionTokens.some(term => term.length > 1 && destHaystack.includes(term))
+            : destHaystack.includes(selectedRegion.toLowerCase())
+          if (!matchesRegion) return false
+        }
+      }
 
       // Travel type
       if (selectedType !== 'all' && inferType(pkg) !== selectedType) return false
@@ -229,14 +249,30 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
       // Search
       const q = searchQuery.toLowerCase().trim()
       if (q) {
+        const searchTokens = q.split(/\s*(?:&|\band\b|\/|,)\s*/).map(t => t.trim()).filter(Boolean)
+
         const matchingCatIds = categories
-          .filter(c => c.name.toLowerCase().includes(q) || c.keyword.toLowerCase().includes(q))
+          .filter(c => {
+            const cName = (c.name || '').toLowerCase()
+            const cKw = (c.keyword || '').toLowerCase()
+            return cName.includes(q) || cKw.includes(q) ||
+              searchTokens.some(t => t.length > 1 && (cName.includes(t) || cKw.includes(t)))
+          })
           .map(c => c.id)
 
         const isTagged = Array.isArray(pkg.categoryIds) && pkg.categoryIds.some(cid => matchingCatIds.includes(cid))
 
-        const haystack = [pkg.name, pkg.description, pkg.region, pkg.category, ...(pkg.highlights || []), ...(pkg.inclusions || [])].join(' ').toLowerCase()
-        const textMatch = haystack.includes(q)
+        const haystack = [
+          pkg.name,
+          pkg.description,
+          pkg.region,
+          pkg.category,
+          ...(pkg.highlights || []),
+          ...(pkg.inclusions || [])
+        ].join(' ').toLowerCase()
+
+        const textMatch = haystack.includes(q) ||
+          (searchTokens.length > 0 && searchTokens.some(t => t.length > 1 && haystack.includes(t)))
 
         if (!isTagged && !textMatch) return false
       }
@@ -333,6 +369,11 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
                   {r === 'All' ? 'All Regions' : r}
                 </Pill>
               ))}
+              {selectedRegion !== 'All' && !REGIONS.some(r => r.toLowerCase() === selectedRegion.toLowerCase()) && (
+                <Pill active={true} onClick={() => setSelectedRegion(selectedRegion)}>
+                  {selectedRegion}
+                </Pill>
+              )}
             </div>
           </div>
 

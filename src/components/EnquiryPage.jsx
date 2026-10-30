@@ -181,8 +181,14 @@ export default function EnquiryPage({ enquiryId, onBackToHome }) {
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-[0.1em] block">Travel Date</span>
-                    <span className="text-sm font-semibold text-stone-800">{formatDate(enquiry.travelDate)}</span>
+                    <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-[0.1em] block">
+                      {enquiry.endDate && enquiry.endDate !== (enquiry.startDate || enquiry.travelDate) ? 'Travel Dates' : 'Travel Date'}
+                    </span>
+                    <span className="text-sm font-semibold text-stone-800">
+                      {enquiry.startDate && enquiry.endDate && enquiry.startDate !== enquiry.endDate
+                        ? `${formatDate(enquiry.startDate)} → ${formatDate(enquiry.endDate)}`
+                        : formatDate(enquiry.travelDate || enquiry.startDate)}
+                    </span>
                   </div>
                 </div>
 

@@ -27,58 +27,70 @@ function getInitialRoute() {
   const path = window.location.pathname.toLowerCase()
   const hash = window.location.hash.replace('#', '').toLowerCase()
   const searchParams = new URLSearchParams(window.location.search)
+  const querySearch = searchParams.get('search') || searchParams.get('q') || searchParams.get('destination') || ''
 
   // 1. Direct package deep links (/package/:id or #/package/:id or ?pkg=:id)
   const pkgMatch = path.match(/^\/package\/([\w-]+)/i) || hash.match(/^\/?package\/([\w-]+)/i)
   if (pkgMatch) {
-    return { page: 'detail', pkgId: pkgMatch[1], enquiryId: null, region: 'All' }
+    return { page: 'detail', pkgId: pkgMatch[1], enquiryId: null, region: 'All', search: '' }
   }
   const queryPkg = searchParams.get('pkg') || searchParams.get('package')
   if (queryPkg) {
-    return { page: 'detail', pkgId: queryPkg, enquiryId: null, region: 'All' }
+    return { page: 'detail', pkgId: queryPkg, enquiryId: null, region: 'All', search: '' }
   }
 
   // 2. Enquiry link (/enquiry/:id or hash enquiry=...)
   const enqMatch = path.match(/^\/enquiry\/([\w-]+)/i)
   if (enqMatch) {
-    return { page: 'enquiry', pkgId: null, enquiryId: enqMatch[1], region: 'All' }
+    return { page: 'enquiry', pkgId: null, enquiryId: enqMatch[1], region: 'All', search: '' }
   }
   if (hash.startsWith('enquiry=')) {
-    return { page: 'booking', pkgId: null, enquiryId: hash.replace('enquiry=', ''), region: 'All' }
+    return { page: 'booking', pkgId: null, enquiryId: hash.replace('enquiry=', ''), region: 'All', search: '' }
   }
 
   // 3. Destination filter links (/destination/:region)
-  const destMatch = path.match(/^\/destination\/([\w-]+)/i)
+  const destMatch = path.match(/^\/destination\/([\w%.-]+)/i)
   if (destMatch) {
-    const regName = decodeURIComponent(destMatch[1])
-    return { page: 'destinations', pkgId: null, enquiryId: null, region: regName.charAt(0).toUpperCase() + regName.slice(1) }
+    const rawName = decodeURIComponent(destMatch[1]).replace(/[-_]+/g, ' ').trim()
+    const KNOWN_REGIONS = ['Africa', 'Asia', 'Europe', 'India', 'Middle East', 'Australia', 'North America', 'South America']
+    const matchedKnown = KNOWN_REGIONS.find(r => r.toLowerCase() === rawName.toLowerCase())
+    const regName = matchedKnown || rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    return { page: 'destinations', pkgId: null, enquiryId: null, region: regName, search: querySearch }
   }
 
   // 4. Standard path routes
   if (path === '/reviews' || path === '/gallery' || hash === 'reviews' || hash === 'gallery') {
-    return { page: 'gallery', pkgId: null, enquiryId: null, region: 'All' }
+    return { page: 'gallery', pkgId: null, enquiryId: null, region: 'All', search: '' }
   }
   if (path === '/destinations' || hash === 'destinations') {
-    return { page: 'destinations', pkgId: null, enquiryId: null, region: 'All' }
+    const regParam = searchParams.get('region')
+    let resolvedRegion = 'All'
+    if (regParam) {
+      const rawReg = decodeURIComponent(regParam).replace(/[-_]+/g, ' ').trim()
+      const KNOWN_REGIONS = ['Africa', 'Asia', 'Europe', 'India', 'Middle East', 'Australia', 'North America', 'South America']
+      const matched = KNOWN_REGIONS.find(r => r.toLowerCase() === rawReg.toLowerCase())
+      resolvedRegion = matched || rawReg.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    }
+    return { page: 'destinations', pkgId: null, enquiryId: null, region: resolvedRegion, search: querySearch }
   }
   if (path === '/about' || hash === 'about') {
-    return { page: 'about', pkgId: null, enquiryId: null, region: 'All' }
+    return { page: 'about', pkgId: null, enquiryId: null, region: 'All', search: '' }
   }
   if (path === '/luxury' || hash === 'luxury') {
-    return { page: 'luxury', pkgId: null, enquiryId: null, region: 'All' }
+    return { page: 'luxury', pkgId: null, enquiryId: null, region: 'All', search: '' }
   }
   if (path === '/corporate' || hash === 'corporate') {
-    return { page: 'corporate', pkgId: null, enquiryId: null, region: 'All' }
+    return { page: 'corporate', pkgId: null, enquiryId: null, region: 'All', search: '' }
   }
   if (path === '/group-tours' || hash === 'group-tours') {
-    return { page: 'group-tours', pkgId: null, enquiryId: null, region: 'All' }
+    return { page: 'group-tours', pkgId: null, enquiryId: null, region: 'All', search: '' }
   }
   if (path === '/booking' || hash === 'booking') {
-    return { page: 'booking', pkgId: null, enquiryId: null, region: 'All' }
+    return { page: 'booking', pkgId: null, enquiryId: null, region: 'All', search: '' }
   }
 
   const validPages = ['home', 'destinations', 'about', 'luxury', 'booking', 'group-tours', 'corporate', 'giftcards', 'gallery']
-  return { page: validPages.includes(hash) ? hash : 'home', pkgId: null, enquiryId: null, region: 'All' }
+  return { page: validPages.includes(hash) ? hash : 'home', pkgId: null, enquiryId: null, region: 'All', search: querySearch }
 }
 
 function App() {
@@ -118,7 +130,7 @@ function App() {
     }
     return fallbackTestimonials
   })
-  const [initialSearch, setInitialSearch] = useState('')
+  const [initialSearch, setInitialSearch] = useState(initialRoute.search || '')
   const [stats, setStats] = useState(() => {
     try {
       const cached = localStorage.getItem('kraft_customer_stats')
@@ -203,7 +215,9 @@ function App() {
     } else if (page === 'detail' && pkg?.id) {
       newPath = `/package/${pkg.id}`
     } else if (page === 'destinations') {
-      newPath = region && region !== 'All' ? `/destination/${encodeURIComponent(region.toLowerCase())}` : '/destinations'
+      const regPart = region && region !== 'All' ? `/destination/${encodeURIComponent(region.toLowerCase())}` : '/destinations'
+      const searchPart = search ? `?search=${encodeURIComponent(search)}` : ''
+      newPath = `${regPart}${searchPart}`
     } else if (page === 'gallery' || page === 'reviews') {
       newPath = '/reviews'
     } else if (page === 'about') {
@@ -249,16 +263,33 @@ function App() {
       let { page, pkgId, departureId, departureDate, returnDate, priceModifier, region, search, enquiryId } = state
 
       const currPath = window.location.pathname.toLowerCase()
+      const dMatch = currPath.match(/^\/destination\/([\w%.-]+)/i)
       const pMatch = currPath.match(/^\/package\/([\w-]+)/i)
       if (pMatch) {
         page = 'detail'
         pkgId = pMatch[1]
-      } else if (currPath === '/reviews' || currPath === '/gallery') {
-        page = 'gallery'
+      } else if (dMatch) {
+        page = 'destinations'
+        if (!region || region === 'All') {
+          const rawName = decodeURIComponent(dMatch[1]).replace(/[-_]+/g, ' ').trim()
+          const KNOWN_REGIONS = ['Africa', 'Asia', 'Europe', 'India', 'Middle East', 'Australia', 'North America', 'South America']
+          const matched = KNOWN_REGIONS.find(r => r.toLowerCase() === rawName.toLowerCase())
+          region = matched || rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        }
       } else if (currPath === '/destinations') {
         page = 'destinations'
+      } else if (currPath === '/reviews' || currPath === '/gallery') {
+        page = 'gallery'
       } else if (currPath === '/about') {
         page = 'about'
+      } else if (currPath === '/corporate') {
+        page = 'corporate'
+      } else if (currPath === '/group-tours') {
+        page = 'group-tours'
+      } else if (currPath === '/booking') {
+        page = 'booking'
+      } else if (currPath === '/luxury') {
+        page = 'luxury'
       }
 
       const basePkg = pkgId ? packages.find(p => p.id?.toLowerCase() === pkgId?.toLowerCase()) ?? null : null

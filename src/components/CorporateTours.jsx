@@ -4,6 +4,7 @@ import { Building2, ArrowRight, CheckCircle2, Quote, ChevronLeft, ChevronRight, 
 import { formatINR } from '../utils/currency'
 import { SmartMarkdown } from '../utils/markdownUtils'
 import PackageBrochureModal from './PackageBrochureModal'
+import ItineraryDownloadLeadModal from './ItineraryDownloadLeadModal'
 import corporateHero from '../assets/corporate-hero.jpg'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -19,6 +20,7 @@ export default function CorporateTours({ onNavigate }) {
   const [testiIndex, setTestiIndex] = useState(0)
   const [selectedItineraryPkg, setSelectedItineraryPkg] = useState(null)
   const [brochurePkg, setBrochurePkg] = useState(null)
+  const [leadGatePkg, setLeadGatePkg] = useState(null)
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -88,7 +90,7 @@ export default function CorporateTours({ onNavigate }) {
   }
 
   const openBrochure = (pkg) => {
-    setBrochurePkg({
+    const formatted = {
       id: pkg.id,
       name: pkg.destination,
       duration: pkg.nights,
@@ -103,7 +105,17 @@ export default function CorporateTours({ onNavigate }) {
       heroImage: pkg.image_url ? imgUrl(pkg.image_url) : undefined,
       cardImage: pkg.image_url ? imgUrl(pkg.image_url) : undefined,
       termsAndConditions: pkg.terms_and_conditions || pkg.termsAndConditions || ''
-    })
+    }
+
+    try {
+      if (sessionStorage.getItem('kraft_lead_captured') === 'true') {
+        setBrochurePkg(formatted)
+        return
+      }
+    } catch {
+      // ignore
+    }
+    setLeadGatePkg(formatted)
   }
 
   return (
@@ -239,77 +251,117 @@ export default function CorporateTours({ onNavigate }) {
 
       {/* Itinerary Schedule Details Modal mounted to Body Portal */}
       {selectedItineraryPkg && createPortal(
-        <div className="fixed inset-0 z-[100] bg-stone-950/80 backdrop-blur-md overflow-y-auto p-3 sm:p-6 md:p-8 flex items-center justify-center min-h-screen" role="dialog" aria-modal="true">
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] sm:max-h-[88vh] flex flex-col my-auto overflow-hidden animate-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 w-screen h-screen z-[100] bg-stone-950/90 backdrop-blur-md overflow-y-auto flex flex-col"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative bg-[#FAF9F5] w-full min-h-screen flex flex-col animate-in fade-in duration-200">
             {/* Modal Top Header with Image & Title */}
-            <div className="relative bg-stone-900 text-white px-5 py-4 sm:px-6 sm:py-5 shrink-0 overflow-hidden">
+            <div className="relative bg-stone-950 text-white px-6 py-6 sm:px-10 sm:py-8 shrink-0 overflow-hidden border-b border-stone-800">
               {selectedItineraryPkg.image_url && (
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                   <img src={imgUrl(selectedItineraryPkg.image_url)} alt="" className="w-full h-full object-cover" />
                 </div>
               )}
-              <div className="relative z-10 flex justify-between items-start gap-4">
+              <div className="relative z-10 max-w-6xl mx-auto flex justify-between items-start gap-6 w-full">
                 <div className="min-w-0">
-                  <span className="inline-block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 mb-1.5">
-                    {selectedItineraryPkg.category === 'india' ? 'Domestic India MICE' : 'International MICE Tour'}
-                  </span>
-                  <h2 className="text-lg sm:text-2xl font-bold text-white tracking-tight leading-snug break-words">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="inline-block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                      {selectedItineraryPkg.category === 'india' ? 'Domestic India MICE' : 'International MICE Tour'}
+                    </span>
+                    <span className="text-[11px] font-medium text-stone-300 bg-white/10 px-2.5 py-0.5 rounded-full">
+                      Corporate Itinerary Blueprint
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-snug break-words">
                     {selectedItineraryPkg.destination}
                   </h2>
-                  <p className="text-[11px] sm:text-xs text-stone-300 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-light">
-                    <span className="shrink-0">{selectedItineraryPkg.nights}</span>
+                  <p className="text-xs sm:text-sm text-stone-300 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-light">
+                    <span className="font-medium text-amber-300">{selectedItineraryPkg.nights}</span>
                     {selectedItineraryPkg.starting_price && (
                       <span className="shrink-0">• Starting from {formatINR(selectedItineraryPkg.starting_price)} / person</span>
                     )}
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedItineraryPkg(null)}
-                  className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-stone-300 hover:text-white transition-colors cursor-pointer shrink-0 mt-0.5"
+                  className="p-2 sm:px-4 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 text-stone-200 hover:text-white transition-colors cursor-pointer shrink-0 flex items-center gap-1.5 text-xs font-semibold"
                   title="Close (Esc)"
+                  aria-label="Close Itinerary"
                 >
+                  <span className="hidden sm:inline">Close</span>
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Itinerary Timeline Body */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 min-h-0 custom-scrollbar">
-              {/* Trip Overview */}
-              {selectedItineraryPkg.description && (
-                <div className="space-y-1 bg-stone-50 p-3.5 sm:p-4 rounded-xl border border-stone-200/80">
-                  <h3 className="text-[11px] sm:text-xs font-bold text-stone-800 uppercase tracking-wider">Overview</h3>
-                  <p className="text-xs text-stone-600 leading-relaxed break-words">{selectedItineraryPkg.description}</p>
+            <div className="p-6 sm:p-10 max-w-6xl mx-auto w-full space-y-8 flex-1">
+              {/* Trip Overview and Corporate Inclusions Bar */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {selectedItineraryPkg.description && (
+                  <div className="md:col-span-2 bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs space-y-2">
+                    <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-amber-600" />
+                      Executive Tour Overview
+                    </h3>
+                    <p className="text-sm text-stone-600 leading-relaxed font-light break-words">{selectedItineraryPkg.description}</p>
+                  </div>
+                )}
+                <div className="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider text-amber-800">
+                    MICE Inclusions
+                  </h3>
+                  <ul className="text-xs text-stone-600 space-y-2 font-light">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Dedicated MICE Tour Director & Onsite Coordinator
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Conference & Gala Dinner Venue Setup
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Executive Coach Transfers & Airport Meet
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Custom Branding & Team Building Sessions
+                    </li>
+                  </ul>
                 </div>
-              )}
+              </div>
 
               {/* Day-by-Day Itinerary Timeline */}
-              <div className="space-y-3.5">
-                <div className="flex items-center justify-between border-b border-stone-200 pb-2">
-                  <h3 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-amber-600 shrink-0" />
-                    Day-by-Day Itinerary Schedule
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+                  <h3 className="text-sm sm:text-base font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2.5">
+                    <Calendar className="w-5 h-5 text-amber-600 shrink-0" />
+                    Complete Day-by-Day Itinerary Schedule
                   </h3>
-                  <span className="text-[11px] sm:text-xs text-stone-500 font-medium">
+                  <span className="text-xs sm:text-sm text-stone-500 font-medium">
                     {selectedItineraryPkg.itinerary?.length || 0} Scheduled Days
                   </span>
                 </div>
 
                 {(!selectedItineraryPkg.itinerary || selectedItineraryPkg.itinerary.length === 0) ? (
-                  <div className="text-center py-8 bg-amber-50/40 border border-dashed border-amber-200/80 rounded-xl px-4">
-                    <p className="text-xs text-stone-600 font-medium">Standard corporate itinerary customized based on group size and flight schedule.</p>
-                    <p className="text-[11px] text-stone-500 mt-1">Contact our MICE concierge for the complete day-by-day blueprint.</p>
+                  <div className="text-center py-12 bg-amber-50/40 border border-dashed border-amber-200/80 rounded-2xl px-6">
+                    <p className="text-sm text-stone-700 font-medium">Standard corporate itinerary customized based on group size and flight schedule.</p>
+                    <p className="text-xs text-stone-500 mt-1.5">Contact our MICE concierge for the complete day-by-day blueprint and bespoke banquet arrangements.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 relative pl-2 sm:pl-3 before:absolute before:top-3 before:bottom-3 before:left-[1.35rem] sm:before:left-[1.6rem] before:w-0.5 before:bg-stone-200">
+                  <div className="grid grid-cols-1 gap-4">
                     {selectedItineraryPkg.itinerary.map((dayItem, idx) => (
-                      <div key={idx} className="relative flex items-start gap-3 sm:gap-4">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center shrink-0 z-10 shadow-sm ring-4 ring-white">
+                      <div key={idx} className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-sm transition-all flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-600 text-white font-bold text-sm sm:text-base flex items-center justify-center shrink-0 shadow-sm">
                           D{dayItem.day}
                         </div>
-                        <div className="flex-1 min-w-0 bg-stone-50/90 hover:bg-stone-50 border border-stone-200 rounded-xl p-3 sm:p-4 transition-colors">
-                          <h4 className="font-bold text-xs sm:text-sm text-stone-900 mb-1 break-words">{dayItem.title}</h4>
-                          <SmartMarkdown content={dayItem.desc} className="text-xs text-stone-600 leading-relaxed font-light break-words" />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-sm sm:text-base text-stone-900 mb-2 break-words">{dayItem.title}</h4>
+                          <SmartMarkdown content={dayItem.desc} className="text-xs sm:text-sm text-stone-600 leading-relaxed font-light break-words" />
                         </div>
                       </div>
                     ))}
@@ -319,39 +371,55 @@ export default function CorporateTours({ onNavigate }) {
             </div>
 
             {/* Modal Sticky Footer Actions */}
-            <div className="px-4 py-3 sm:px-6 sm:py-4 border-t border-stone-100 bg-stone-50/95 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => openBrochure(selectedItineraryPkg)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-xs font-bold text-stone-700 hover:text-stone-900 border border-stone-300 bg-white hover:bg-stone-100 px-4 py-2 rounded-xl transition-all cursor-pointer order-2 sm:order-1"
-              >
-                <FileText className="w-3.5 h-3.5 text-stone-500" />
-                Download Brochure (PDF)
-              </button>
-              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end order-1 sm:order-2">
+            <div className="sticky bottom-0 px-6 py-4 sm:px-10 border-t border-stone-200 bg-white/95 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 shadow-lg">
+              <div className="max-w-6xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-3">
                 <button
                   type="button"
-                  onClick={() => setSelectedItineraryPkg(null)}
-                  className="flex-1 sm:flex-none px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-200/60 rounded-xl transition-colors cursor-pointer text-center"
+                  onClick={() => openBrochure(selectedItineraryPkg)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs font-bold text-stone-700 hover:text-stone-900 border border-stone-300 bg-white hover:bg-stone-50 px-5 py-2.5 rounded-full transition-all cursor-pointer order-2 sm:order-1"
                 >
-                  Close
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  Download Brochure (PDF)
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pkg = selectedItineraryPkg
-                    setSelectedItineraryPkg(null)
-                    handleEnquireClick(pkg)
-                  }}
-                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
-                >
-                  Enquire for this Trip <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end order-1 sm:order-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedItineraryPkg(null)}
+                    className="flex-1 sm:flex-none px-5 py-2.5 text-xs font-semibold text-stone-600 hover:bg-stone-200/60 rounded-full transition-colors cursor-pointer text-center"
+                  >
+                    Close Itinerary
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const pkg = selectedItineraryPkg
+                      setSelectedItineraryPkg(null)
+                      handleEnquireClick(pkg)
+                    }}
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-full shadow-sm transition-all cursor-pointer"
+                  >
+                    Enquire for this Trip <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Lead Capture Modal for Corporate Itinerary Download */}
+      {leadGatePkg && (
+        <ItineraryDownloadLeadModal
+          pkg={leadGatePkg}
+          isOpen={!!leadGatePkg}
+          onClose={() => setLeadGatePkg(null)}
+          onSuccess={() => {
+            const target = leadGatePkg
+            setLeadGatePkg(null)
+            setBrochurePkg(target)
+          }}
+        />
       )}
 
       {/* Brochure Modal for Corporate Package */}
