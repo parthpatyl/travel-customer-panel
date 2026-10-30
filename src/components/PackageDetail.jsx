@@ -10,6 +10,7 @@ import { SmartMarkdown, SmartMarkdownInline, flattenBulletedItems } from '../uti
 import PackageBrochureModal from './PackageBrochureModal'
 import ItineraryDownloadLeadModal from './ItineraryDownloadLeadModal'
 import PhoneInput from './PhoneInput'
+import { validateEmail, validatePhone, validateName } from '../utils/validation'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
 
@@ -146,13 +147,15 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
     e.preventDefault()
     const errors = {}
 
-    if (!fullName.trim()) errors.fullName = 'Full name is required'
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Valid email is required'
-    }
-    if (!phone.trim() || phone.replace(/\D/g, '').length < 7) {
-      errors.phone = 'Valid phone number is required'
-    }
+    const nameCheck = validateName(fullName)
+    if (!nameCheck.isValid) errors.fullName = nameCheck.error
+
+    const emailCheck = validateEmail(email)
+    if (!emailCheck.isValid) errors.email = emailCheck.error
+
+    const phoneCheck = validatePhone(phone, countryCode)
+    if (!phoneCheck.isValid) errors.phone = phoneCheck.error
+
     if (!travelDate) {
       errors.travelDate = 'Please select a preferred travel date'
     }

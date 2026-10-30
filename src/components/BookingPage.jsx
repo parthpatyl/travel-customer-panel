@@ -6,6 +6,7 @@ import { parsePhoneNumber } from 'libphonenumber-js'
 import PhoneInput from './PhoneInput'
 import CalendarPopup from './CalendarPopup'
 import { getDefaultDialCode } from '../utils/dialCodes'
+import { validateEmail, validatePhone, validateName } from '../utils/validation'
 
 const BESPOKE_DESTINATIONS_DEFAULTS = [
   { id: 'custom-maldives', name: 'Maldives Overwater Villas', region: 'Indian Ocean', image: '/assets/unsplash-maldives.jpg' },
@@ -306,60 +307,23 @@ export default function BookingPage({ packages, selectedPackage }) {
 
     switch (fieldName) {
       case 'name': {
-        const nameVal = (value || '').trim()
-        if (!nameVal) return 'Full name is required'
-        if (!NAME_REGEX.test(nameVal)) return 'Name should contain letters and spaces only (e.g. Jane Doe)'
-        if (nameVal.length < 2) return 'Name must be at least 2 characters'
-        return null
+        const check = validateName(value)
+        return check.isValid ? null : check.error
       }
       case 'email': {
-        const emailVal = (value || '').trim()
-        if (!emailVal) {
-          return inquiryType === 'corporate' 
-            ? 'Work email is required (e.g. name@company.com)' 
-            : 'Email address is required (e.g. name@example.com)'
-        }
-        if (!/\S+@\S+\.\S+/.test(emailVal)) {
-          return 'Please enter a valid email address (e.g. name@example.com)'
-        }
-        return null
+        const check = validateEmail(value, { requireCorporate: inquiryType === 'corporate' })
+        return check.isValid ? null : check.error
       }
       case 'phone': {
-        const phoneVal = (value || '').trim()
         const cc = data.countryCode || defaultCode?.code || '+91'
-        if (!phoneVal) return 'Phone number is required'
-        if (!cc) return 'Please select a country dial code'
-        const full = `${cc}${phoneVal}`
-        try {
-          const parsed = parsePhoneNumber(full)
-          if (!parsed?.isValid()) {
-            if (/^\d{10}$/.test(phoneVal)) return null
-            if (cc === '+91') return 'Please enter a valid 10-digit Indian mobile number (+91)'
-            if (cc === '+1') return 'Please enter a valid 10-digit US/Canada phone number (+1)'
-            if (cc === '+44') return 'Please enter a valid UK phone number (+44)'
-            return `Invalid phone number format${parsed?.country ? ` for ${parsed.country}` : ''}`
-          }
-        } catch {
-          if (/^\d{10}$/.test(phoneVal)) return null
-          if (cc === '+91' && phoneVal.length !== 10) return 'Please enter a valid 10-digit Indian mobile number (+91)'
-          return 'Invalid phone number format'
-        }
-        return null
+        const check = validatePhone(value, cc)
+        return check.isValid ? null : check.error
       }
       case 'countryCode': {
         if (!value) return 'Please select a country dial code'
         if (data.phone) {
-          const full = `${value}${data.phone}`
-          try {
-            const parsed = parsePhoneNumber(full)
-            if (!parsed?.isValid()) {
-              if (value === '+91') return 'Please enter a valid 10-digit Indian mobile number (+91)'
-              if (value === '+1') return 'Please enter a valid 10-digit US/Canada phone number (+1)'
-              return `Invalid phone number format${parsed?.country ? ` for ${parsed.country}` : ''}`
-            }
-          } catch {
-            return 'Invalid phone number format'
-          }
+          const check = validatePhone(data.phone, value)
+          return check.isValid ? null : check.error
         }
         return null
       }

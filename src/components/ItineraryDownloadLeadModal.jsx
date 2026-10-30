@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, FileText, Download, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import PhoneInput from './PhoneInput'
+import { validateEmail, validatePhone, validateName } from '../utils/validation'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -45,26 +46,14 @@ export default function ItineraryDownloadLeadModal({ isOpen, onClose, onSuccess,
 
   const validate = () => {
     const errs = {}
-    if (!name.trim()) {
-      errs.name = 'Please enter your full name'
-    } else if (name.trim().length < 2) {
-      errs.name = 'Name must be at least 2 characters'
-    } else if (!/^[a-zA-Z\s.'-]+$/.test(name.trim())) {
-      errs.name = 'Name should only contain letters and spaces'
-    }
+    const nameCheck = validateName(name)
+    if (!nameCheck.isValid) errs.name = nameCheck.error
 
-    if (!email.trim()) {
-      errs.email = 'Please enter your email address'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      errs.email = 'Please provide a valid email address'
-    }
+    const emailCheck = validateEmail(email)
+    if (!emailCheck.isValid) errs.email = emailCheck.error
 
-    const cleanPhone = phone.replace(/\D/g, '')
-    if (!cleanPhone) {
-      errs.phone = 'Please enter your phone number'
-    } else if (cleanPhone.length < 7 || cleanPhone.length > 15) {
-      errs.phone = 'Phone number must be between 7 and 15 digits'
-    }
+    const phoneCheck = validatePhone(phone, countryCode)
+    if (!phoneCheck.isValid) errs.phone = phoneCheck.error
 
     setErrors(errs)
     return Object.keys(errs).length === 0
