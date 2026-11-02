@@ -47,26 +47,60 @@ export function formatTravelMarkdown(text) {
  * Useful when pasting multiline/bulleted text into input fields for inclusions/exclusions.
  */
 export function splitBulletedItems(text) {
-  if (!text || typeof text !== 'string') return []
+  if (!text) return []
+  if (Array.isArray(text)) return flattenBulletedItems(text)
+  if (typeof text !== 'string') return []
+
+  const trimmed = text.trim()
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) return flattenBulletedItems(parsed)
+    } catch {
+      // continue to split by delimiter
+    }
+  }
+
   return text
     .split(/\r?\n|[•▪●\u2022]/)
-    .map(item => item.trim().replace(/^[-*]\s*/, ''))
+    .map(item => item.trim().replace(/^[-*+]\s+/, '').replace(/^\d+[\.\)]\s+/, ''))
     .filter(Boolean)
 }
 
 /**
- * Flattens an array of items where any item might contain embedded bullets or newlines.
+ * Flattens an array or string of items where any item might contain embedded bullets or newlines.
  * Ensures every bullet item gets rendered as a separate element in lists.
  */
 export function flattenBulletedItems(items) {
+  if (!items) return []
+  if (typeof items === 'string') {
+    return splitBulletedItems(items)
+  }
   if (!Array.isArray(items)) return []
+
   const result = []
   for (const item of items) {
-    if (typeof item === 'string' && (item.includes('•') || item.includes('\n') || item.includes('▪') || item.includes('●'))) {
-      const split = splitBulletedItems(item)
-      result.push(...split)
+    if (typeof item === 'string') {
+      const trimmed = item.trim()
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed)
+          if (Array.isArray(parsed)) {
+            result.push(...flattenBulletedItems(parsed))
+            continue
+          }
+        } catch {
+          // treat as plain text
+        }
+      }
+      if (item.includes('•') || item.includes('\n') || item.includes('▪') || item.includes('●')) {
+        const split = splitBulletedItems(item)
+        result.push(...split)
+      } else if (trimmed) {
+        result.push(trimmed.replace(/^[-*+]\s+/, '').replace(/^\d+[\.\)]\s+/, ''))
+      }
     } else if (item) {
-      result.push(item)
+      result.push(String(item))
     }
   }
   return result

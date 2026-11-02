@@ -20,6 +20,7 @@ import staticPackages from './data/packages'
 import { fallbackTestimonials } from './data/fallbackData'
 import { updatePageMeta } from './utils/meta'
 import { handleImageError, DEFAULT_HERO_IMAGE } from './utils/image'
+import { Compass } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -112,12 +113,15 @@ function App() {
     return staticPackages
   })
 
+  const [detailPkgId, setDetailPkgId] = useState(initialRoute.pkgId || null)
   const [selectedPackage, setSelectedPackage] = useState(() => {
     if (initialRoute.pkgId) {
       return staticPackages.find(p => p.id?.toLowerCase() === initialRoute.pkgId?.toLowerCase()) || null
     }
     return null
   })
+  const [isPkgLoading, setIsPkgLoading] = useState(Boolean(initialRoute.pkgId && !staticPackages.some(p => p.id?.toLowerCase() === initialRoute.pkgId?.toLowerCase())))
+  const [pkgNotFound, setPkgNotFound] = useState(false)
   const [testimonials, setTestimonials] = useState(() => {
     try {
       const cached = localStorage.getItem('kraft_customer_testimonials')
@@ -202,6 +206,53 @@ function App() {
     loadDynamicData()
   }, [])
 
+  // Resolve package for direct deep-link /package/:id or sharable URL
+  useEffect(() => {
+    if (activePage !== 'detail' || !detailPkgId) return
+
+    // 1. If already selected and matches ID, nothing to fetch
+    if (selectedPackage && selectedPackage.id?.toLowerCase() === detailPkgId.toLowerCase()) {
+      setIsPkgLoading(false)
+      setPkgNotFound(false)
+      return
+    }
+
+    // 2. Search in loaded packages
+    const matched = packages.find(p => p.id?.toLowerCase() === detailPkgId.toLowerCase())
+    if (matched) {
+      setSelectedPackage(matched)
+      setIsPkgLoading(false)
+      setPkgNotFound(false)
+      return
+    }
+
+    // 3. Fallback: fetch directly from backend API /api/packages/:id
+    let isCancelled = false
+    setIsPkgLoading(true)
+    fetch(`${API_URL}/api/packages/${encodeURIComponent(detailPkgId)}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Package not found')
+        return res.json()
+      })
+      .then(data => {
+        if (!isCancelled && data && data.id) {
+          setSelectedPackage(data)
+          setIsPkgLoading(false)
+          setPkgNotFound(false)
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setIsPkgLoading(false)
+          setPkgNotFound(true)
+        }
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [activePage, detailPkgId, packages, selectedPackage])
+
   // Helper for CMS Section Visibility toggles
   const isSectionVisible = (secKey) => {
     return settings?.sectionVisibility?.[secKey] !== false
@@ -209,13 +260,14 @@ function App() {
 
   // Push a history entry and update state together with clean unique URLs
   const navigate = useCallback((page, pkg = null, region = 'All', search = '', enquiryId = null) => {
+    const safeRegion = (typeof region === 'string' && region) ? region : 'All'
     let newPath = '/'
     if (page === 'enquiry' && enquiryId) {
       newPath = `/enquiry/${enquiryId}`
     } else if (page === 'detail' && pkg?.id) {
       newPath = `/package/${pkg.id}`
     } else if (page === 'destinations') {
-      const regPart = region && region !== 'All' ? `/destination/${encodeURIComponent(region.toLowerCase())}` : '/destinations'
+      const regPart = safeRegion !== 'All' ? `/destination/${encodeURIComponent(safeRegion.toLowerCase())}` : '/destinations'
       const searchPart = search ? `?search=${encodeURIComponent(search)}` : ''
       newPath = `${regPart}${searchPart}`
     } else if (page === 'gallery' || page === 'reviews') {
@@ -240,7 +292,7 @@ function App() {
         departureDate: pkg?.departureDate ?? null,
         returnDate: pkg?.returnDate ?? null,
         priceModifier: pkg?.priceModifier ?? 0,
-        region,
+        region: safeRegion,
         search,
         enquiryId
       }, '', newPath)
@@ -250,7 +302,8 @@ function App() {
 
     setActivePage(page)
     setSelectedPackage(pkg)
-    setInitialRegion(region)
+    setDetailPkgId(pkg?.id ?? null)
+    setInitialRegion(safeRegion)
     setInitialSearch(search)
     setSelectedEnquiryId(enquiryId)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -302,9 +355,12 @@ function App() {
             priceModifier: priceModifier ?? 0
           }
         : null
+
+      const safeRegion = (typeof region === 'string' && region) ? region : 'All'
       setActivePage(page)
       setSelectedPackage(pkg)
-      setInitialRegion(region || 'All')
+      setDetailPkgId(pkgId ?? null)
+      setInitialRegion(safeRegion)
       setInitialSearch(search ?? '')
       setSelectedEnquiryId(enquiryId ?? null)
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -320,7 +376,10 @@ function App() {
   }, [activePage])
 
   const handleViewPackage = (pkg) => navigate('detail', pkg)
-  const handleExplore = (region = 'All') => navigate('destinations', null, region)
+  const handleExplore = (region = 'All') => {
+    const safeRegion = (typeof region === 'string' && region) ? region : 'All'
+    navigate('destinations', null, safeRegion)
+  }
   const handleBook = (pkg = null) => navigate('booking', pkg)
 
   return (
@@ -461,13 +520,36 @@ function App() {
           />
         )}
 
-        {activePage === 'detail' && selectedPackage && (
-          <PackageDetail
-            pkg={selectedPackage}
-            onBack={handleExplore}
-            onBook={handleBook}
-            settings={settings}
-          />
+        {activePage === 'detail' && (
+          selectedPackage ? (
+            <PackageDetail
+              pkg={selectedPackage}
+              onBack={handleExplore}
+              onBook={handleBook}
+              settings={settings}
+            />
+          ) : isPkgLoading ? (
+            <div className="py-32 text-center max-w-md mx-auto px-4">
+              <div className="w-10 h-10 mx-auto mb-4 border-3 border-amber-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest">Loading luxury journey details...</p>
+            </div>
+          ) : (
+            <div className="py-24 text-center max-w-lg mx-auto px-4 animate-fade-in">
+              <div className="w-16 h-16 mx-auto mb-4 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center">
+                <Compass className="w-8 h-8" />
+              </div>
+              <h2 className="font-display text-2xl text-stone-900 mb-2">Package Not Found</h2>
+              <p className="text-sm text-stone-500 mb-6 font-light">
+                The package link you followed may have expired or is unavailable. Explore all our handcrafted destinations to find your next luxury escape.
+              </p>
+              <button
+                onClick={() => handleExplore('All')}
+                className="px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-xs font-semibold shadow-md transition-all cursor-pointer"
+              >
+                Browse All Destinations
+              </button>
+            </div>
+          )
         )}
 
         {activePage === 'enquiry' && selectedEnquiryId && (

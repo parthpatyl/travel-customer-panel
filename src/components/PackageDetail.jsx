@@ -11,6 +11,7 @@ import PackageBrochureModal from './PackageBrochureModal'
 import ItineraryDownloadLeadModal from './ItineraryDownloadLeadModal'
 import PhoneInput from './PhoneInput'
 import { validateEmail, validatePhone, validateName, validateGuests } from '../utils/validation'
+import { updatePageMeta } from '../utils/meta'
 
 const imgUrl = (url) => getImgUrl(url, DEFAULT_HERO_IMAGE)
 
@@ -76,19 +77,22 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
     ? selectedDeparture.returnDate.split('T')[0]
     : calculateEndDate(travelDate, pkgDays)
 
-  // Ensure document title updates for Meta/SEO
+  // Ensure document title and rich social sharing tags update for Meta/SEO
   useEffect(() => {
-    document.title = 'Kraft Your Trip | Package Details'
-    let ogTitle = document.querySelector('meta[property="og:title"]')
-    if (ogTitle) ogTitle.setAttribute('content', 'Kraft Your Trip | Package Details')
-    let twTitle = document.querySelector('meta[name="twitter:title"], meta[property="twitter:title"]')
-    if (twTitle) twTitle.setAttribute('content', 'Kraft Your Trip | Package Details')
+    if (pkg?.name) {
+      const canonicalUrl = typeof window !== 'undefined' ? `${window.location.origin}/package/${pkg.id}` : ''
+      updatePageMeta('detail', pkg.name, {
+        title: pkg.name,
+        description: pkg.description ? pkg.description.slice(0, 160) : `Discover ${pkg.name} handcrafted by Kraft Your Trip luxury travel experts.`,
+        image: imgUrl(pkg.heroImage || pkg.cardImage),
+        url: canonicalUrl
+      })
+    }
 
     return () => {
-      document.title = 'Kraft Your Trip | Luxury Travel Experiences'
-      if (ogTitle) ogTitle.setAttribute('content', 'Kraft Your Trip | Luxury Travel Experiences')
+      updatePageMeta('home')
     }
-  }, [])
+  }, [pkg?.id, pkg?.name, pkg?.description, pkg?.heroImage, pkg?.cardImage])
 
   useEffect(() => {
     const fetchGroupDepartures = async () => {
@@ -109,27 +113,31 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
 
   // Handle Share Trip
   const handleShare = async () => {
-    const currentUrl = window.location.href
+    const canonicalUrl = typeof window !== 'undefined' ? `${window.location.origin}/package/${pkg.id}` : window.location.href
     const shareData = {
       title: `${pkg.name} — Kraft Your Trip`,
       text: `Discover ${pkg.name} (${pkg.duration}, ${pkg.region}) handcrafted by Kraft Your Trip luxury travel experts.`,
-      url: currentUrl
+      url: canonicalUrl
     }
 
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share(shareData)
         return
       } catch {
-        // User cancelled or fallback to copy
+        // User cancelled or fallback to copy/modal
       }
     }
 
     // Fallback: Copy to clipboard and show modal/toast
     try {
-      await navigator.clipboard.writeText(currentUrl)
-      setShareToast('Trip link copied to clipboard! Ready to share on WhatsApp or Meta ads.')
-      setTimeout(() => setShareToast(null), 4000)
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(canonicalUrl)
+        setShareToast('Trip link copied to clipboard! Ready to share on WhatsApp or Meta ads.')
+        setTimeout(() => setShareToast(null), 4000)
+      } else {
+        setIsShareModalOpen(true)
+      }
     } catch {
       setIsShareModalOpen(true)
     }
@@ -210,156 +218,270 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   }
 
   useEffect(() => {
-    fetch(`${API_URL}/api/weather`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.data) {
-          // Country keyword lookup — maps city/destination keywords to country cache keys
-          const KEYWORD_TO_COUNTRY = {
-            // India
-            'india': 'India', 'delhi': 'India', 'jaipur': 'India', 'udaipur': 'India',
-            'jodhpur': 'India', 'coorg': 'India', 'agra': 'India', 'kerala': 'India',
-            'kashmir': 'India', 'ladakh': 'India', 'andaman': 'India', 'guwahati': 'India',
-            'golden triangle': 'India', 'taj mahal': 'India', 'mumbai': 'India',
-            'rajasthan': 'India', 'goa': 'India', 'himachal': 'India', 'manali': 'India',
-            'darjeeling': 'India', 'varanasi': 'India', 'rishikesh': 'India',
-            // Thailand
-            'thailand': 'Thailand', 'bangkok': 'Thailand', 'phuket': 'Thailand', 'chiang mai': 'Thailand',
-            // Japan
-            'japan': 'Japan', 'tokyo': 'Japan', 'kyoto': 'Japan', 'osaka': 'Japan',
-            // China
-            'china': 'China', 'beijing': 'China', 'shanghai': 'China', 'great wall': 'China',
-            // Indonesia
-            'indonesia': 'Indonesia', 'bali': 'Indonesia', 'jakarta': 'Indonesia',
-            // Maldives
-            'maldives': 'Maldives', 'malé': 'Maldives',
-            // Sri Lanka
-            'sri lanka': 'Sri Lanka', 'colombo': 'Sri Lanka',
-            // Nepal
-            'nepal': 'Nepal', 'kathmandu': 'Nepal', 'everest': 'Nepal',
-            // Bhutan
-            'bhutan': 'Bhutan', 'thimphu': 'Bhutan', 'paro': 'Bhutan',
-            // Cambodia
-            'cambodia': 'Cambodia', 'angkor': 'Cambodia', 'siem reap': 'Cambodia', 'phnom penh': 'Cambodia',
-            // Myanmar
-            'myanmar': 'Myanmar', 'yangon': 'Myanmar', 'bagan': 'Myanmar',
-            // Philippines
-            'philippines': 'Philippines', 'manila': 'Philippines', 'boracay': 'Philippines', 'palawan': 'Philippines',
-            // South Korea
-            'south korea': 'South Korea', 'korea': 'South Korea', 'seoul': 'South Korea', 'busan': 'South Korea',
-            // France
-            'france': 'France', 'paris': 'France', 'provence': 'France', 'nice': 'France',
-            // Switzerland
-            'switzerland': 'Switzerland', 'swiss': 'Switzerland', 'alps': 'Switzerland', 'zurich': 'Switzerland', 'bern': 'Switzerland',
-            // Italy
-            'italy': 'Italy', 'rome': 'Italy', 'venice': 'Italy', 'tuscany': 'Italy', 'florence': 'Italy', 'amalfi': 'Italy',
-            // Greece
-            'greece': 'Greece', 'santorini': 'Greece', 'athens': 'Greece', 'mykonos': 'Greece',
-            // Spain
-            'spain': 'Spain', 'barcelona': 'Spain', 'madrid': 'Spain', 'ibiza': 'Spain',
-            // Portugal
-            'portugal': 'Portugal', 'lisbon': 'Portugal', 'porto': 'Portugal',
-            // UK
-            'london': 'United Kingdom', 'england': 'United Kingdom', 'scotland': 'United Kingdom',
-            // Germany
-            'germany': 'Germany', 'berlin': 'Germany', 'munich': 'Germany',
-            // Austria
-            'austria': 'Austria', 'vienna': 'Austria', 'salzburg': 'Austria',
-            // Netherlands
-            'netherlands': 'Netherlands', 'amsterdam': 'Netherlands',
-            // Norway
-            'norway': 'Norway', 'oslo': 'Norway', 'fjord': 'Norway', 'northern lights': 'Norway',
-            // Iceland
-            'iceland': 'Iceland', 'reykjavik': 'Iceland',
-            // Croatia
-            'croatia': 'Croatia', 'dubrovnik': 'Croatia', 'split': 'Croatia',
-            // Czech Republic
-            'czech': 'Czech Republic', 'prague': 'Czech Republic',
-            // USA
-            'new york': 'USA', 'california': 'USA', 'hawaii': 'USA', 'usa': 'USA', 'las vegas': 'USA',
-            // Canada
-            'canada': 'Canada', 'toronto': 'Canada', 'vancouver': 'Canada', 'banff': 'Canada',
-            // Mexico
-            'mexico': 'Mexico', 'cancun': 'Mexico', 'tulum': 'Mexico',
-            // Brazil
-            'brazil': 'Brazil', 'rio': 'Brazil',
-            // Peru
-            'peru': 'Peru', 'cusco': 'Peru', 'machu picchu': 'Peru', 'lima': 'Peru',
-            // Argentina
-            'argentina': 'Argentina', 'buenos aires': 'Argentina', 'patagonia': 'Argentina',
-            // Colombia
-            'colombia': 'Colombia', 'bogota': 'Colombia', 'cartagena': 'Colombia',
-            // UAE
-            'dubai': 'UAE', 'abu dhabi': 'UAE', 'uae': 'UAE',
-            // Oman
-            'oman': 'Oman', 'muscat': 'Oman',
-            // Jordan
-            'jordan': 'Jordan', 'petra': 'Jordan', 'amman': 'Jordan', 'dead sea': 'Jordan',
-            // Kenya
-            'kenya': 'Kenya', 'nairobi': 'Kenya', 'safari': 'Kenya', 'masai mara': 'Kenya',
-            // South Africa
-            'south africa': 'South Africa', 'cape town': 'South Africa', 'kruger': 'South Africa',
-            // Tanzania
-            'tanzania': 'Tanzania', 'kilimanjaro': 'Tanzania', 'serengeti': 'Tanzania', 'zanzibar': 'Tanzania',
-            // Egypt
-            'egypt': 'Egypt', 'cairo': 'Egypt', 'pyramid': 'Egypt', 'luxor': 'Egypt',
-            // Morocco
-            'morocco': 'Morocco', 'marrakech': 'Morocco', 'casablanca': 'Morocco', 'fes': 'Morocco',
-            // Australia
-            'australia': 'Australia', 'sydney': 'Australia', 'melbourne': 'Australia', 'barrier reef': 'Australia',
-            // New Zealand
-            'new zealand': 'New Zealand', 'auckland': 'New Zealand', 'queenstown': 'New Zealand',
-            // Fiji
-            'fiji': 'Fiji', 'suva': 'Fiji',
-            // Singapore
-            'singapore': 'Singapore',
-            // Malaysia
-            'malaysia': 'Malaysia', 'kuala lumpur': 'Malaysia', 'langkawi': 'Malaysia',
-            // Vietnam
-            'vietnam': 'Vietnam', 'hanoi': 'Vietnam', 'ho chi minh': 'Vietnam', 'ha long': 'Vietnam',
-            // Turkey
-            'turkey': 'Turkey', 'istanbul': 'Turkey', 'cappadocia': 'Turkey',
-            // Russia
-            'russia': 'Russia', 'moscow': 'Russia', 'st petersburg': 'Russia',
-          };
+    let isCancelled = false
+    const fetchWeather = async () => {
+      // Country keyword lookup — maps city/destination keywords to country cache keys
+      const KEYWORD_TO_COUNTRY = {
+        // India
+        'india': 'India', 'delhi': 'India', 'jaipur': 'India', 'udaipur': 'India',
+        'jodhpur': 'India', 'coorg': 'India', 'agra': 'India', 'kerala': 'India',
+        'kashmir': 'India', 'ladakh': 'India', 'andaman': 'India', 'guwahati': 'India',
+        'golden triangle': 'India', 'taj mahal': 'India', 'mumbai': 'India',
+        'rajasthan': 'India', 'goa': 'India', 'himachal': 'India', 'manali': 'India',
+        'darjeeling': 'India', 'varanasi': 'India', 'rishikesh': 'India',
+        // Thailand
+        'thailand': 'Thailand', 'bangkok': 'Thailand', 'phuket': 'Thailand', 'chiang mai': 'Thailand',
+        // Japan
+        'japan': 'Japan', 'tokyo': 'Japan', 'kyoto': 'Japan', 'osaka': 'Japan',
+        // China
+        'china': 'China', 'beijing': 'China', 'shanghai': 'China', 'great wall': 'China',
+        // Indonesia
+        'indonesia': 'Indonesia', 'bali': 'Indonesia', 'jakarta': 'Indonesia',
+        // Maldives
+        'maldives': 'Maldives', 'malé': 'Maldives',
+        // Sri Lanka
+        'sri lanka': 'Sri Lanka', 'colombo': 'Sri Lanka',
+        // Nepal
+        'nepal': 'Nepal', 'kathmandu': 'Nepal', 'everest': 'Nepal',
+        // Bhutan
+        'bhutan': 'Bhutan', 'thimphu': 'Bhutan', 'paro': 'Bhutan',
+        // Cambodia
+        'cambodia': 'Cambodia', 'angkor': 'Cambodia', 'siem reap': 'Cambodia', 'phnom penh': 'Cambodia',
+        // Myanmar
+        'myanmar': 'Myanmar', 'yangon': 'Myanmar', 'bagan': 'Myanmar',
+        // Philippines
+        'philippines': 'Philippines', 'manila': 'Philippines', 'boracay': 'Philippines', 'palawan': 'Philippines',
+        // South Korea
+        'south korea': 'South Korea', 'korea': 'South Korea', 'seoul': 'South Korea', 'busan': 'South Korea',
+        // France
+        'france': 'France', 'paris': 'France', 'provence': 'France', 'nice': 'France',
+        // Switzerland
+        'switzerland': 'Switzerland', 'swiss': 'Switzerland', 'alps': 'Switzerland', 'zurich': 'Switzerland', 'bern': 'Switzerland',
+        // Italy
+        'italy': 'Italy', 'rome': 'Italy', 'venice': 'Italy', 'tuscany': 'Italy', 'florence': 'Italy', 'amalfi': 'Italy',
+        // Greece
+        'greece': 'Greece', 'santorini': 'Greece', 'athens': 'Greece', 'mykonos': 'Greece',
+        // Spain
+        'spain': 'Spain', 'barcelona': 'Spain', 'madrid': 'Spain', 'ibiza': 'Spain',
+        // Portugal
+        'portugal': 'Portugal', 'lisbon': 'Portugal', 'porto': 'Portugal',
+        // UK
+        'london': 'United Kingdom', 'england': 'United Kingdom', 'scotland': 'United Kingdom',
+        // Germany
+        'germany': 'Germany', 'berlin': 'Germany', 'munich': 'Germany',
+        // Austria
+        'austria': 'Austria', 'vienna': 'Austria', 'salzburg': 'Austria',
+        // Netherlands
+        'netherlands': 'Netherlands', 'amsterdam': 'Netherlands',
+        // Norway
+        'norway': 'Norway', 'oslo': 'Norway', 'fjord': 'Norway', 'northern lights': 'Norway',
+        // Iceland
+        'iceland': 'Iceland', 'reykjavik': 'Iceland',
+        // Croatia
+        'croatia': 'Croatia', 'dubrovnik': 'Croatia', 'split': 'Croatia',
+        // Czech Republic
+        'czech': 'Czech Republic', 'prague': 'Czech Republic',
+        // USA
+        'new york': 'USA', 'california': 'USA', 'hawaii': 'USA', 'usa': 'USA', 'las vegas': 'USA',
+        // Canada
+        'canada': 'Canada', 'toronto': 'Canada', 'vancouver': 'Canada', 'banff': 'Canada',
+        // Mexico
+        'mexico': 'Mexico', 'cancun': 'Mexico', 'tulum': 'Mexico',
+        // Brazil
+        'brazil': 'Brazil', 'rio': 'Brazil',
+        // Peru
+        'peru': 'Peru', 'cusco': 'Peru', 'machu picchu': 'Peru', 'lima': 'Peru',
+        // Argentina
+        'argentina': 'Argentina', 'buenos aires': 'Argentina', 'patagonia': 'Argentina',
+        // Colombia
+        'colombia': 'Colombia', 'bogota': 'Colombia', 'cartagena': 'Colombia',
+        // UAE
+        'dubai': 'UAE', 'abu dhabi': 'UAE', 'uae': 'UAE',
+        // Oman
+        'oman': 'Oman', 'muscat': 'Oman',
+        // Jordan
+        'jordan': 'Jordan', 'petra': 'Jordan', 'amman': 'Jordan', 'dead sea': 'Jordan',
+        // Kenya
+        'kenya': 'Kenya', 'nairobi': 'Kenya', 'safari': 'Kenya', 'masai mara': 'Kenya',
+        // South Africa
+        'south africa': 'South Africa', 'cape town': 'South Africa', 'kruger': 'South Africa',
+        // Tanzania
+        'tanzania': 'Tanzania', 'kilimanjaro': 'Tanzania', 'serengeti': 'Tanzania', 'zanzibar': 'Tanzania',
+        // Egypt
+        'egypt': 'Egypt', 'cairo': 'Egypt', 'pyramid': 'Egypt', 'luxor': 'Egypt',
+        // Morocco
+        'morocco': 'Morocco', 'marrakech': 'Morocco', 'casablanca': 'Morocco', 'fes': 'Morocco',
+        // Australia
+        'australia': 'Australia', 'sydney': 'Australia', 'melbourne': 'Australia', 'barrier reef': 'Australia',
+        // New Zealand
+        'new zealand': 'New Zealand', 'auckland': 'New Zealand', 'queenstown': 'New Zealand',
+        // Fiji
+        'fiji': 'Fiji', 'suva': 'Fiji',
+        // Singapore
+        'singapore': 'Singapore',
+        // Malaysia
+        'malaysia': 'Malaysia', 'kuala lumpur': 'Malaysia', 'langkawi': 'Malaysia',
+        // Vietnam
+        'vietnam': 'Vietnam', 'hanoi': 'Vietnam', 'ho chi minh': 'Vietnam', 'ha long': 'Vietnam',
+        // Turkey
+        'turkey': 'Turkey', 'istanbul': 'Turkey', 'cappadocia': 'Turkey',
+        // Russia
+        'russia': 'Russia', 'moscow': 'Russia', 'st petersburg': 'Russia',
+      };
 
-          // Region-to-country fallback (for broad regions like "Asia", "Europe" etc.)
-          const REGION_FALLBACK = {
-            'Asia': 'India',
-            'Europe': 'France',
-            'Africa': 'Kenya',
-            'Middle East': 'UAE',
-            'Australia': 'Australia',
-            'North America': 'USA',
-            'South America': 'Brazil',
-            'South East Asia': 'Thailand',
-          };
+      // Region-to-country fallback (for broad regions like "Asia", "Europe" etc.)
+      const REGION_FALLBACK = {
+        'Asia': 'India',
+        'Europe': 'France',
+        'Africa': 'Kenya',
+        'Middle East': 'UAE',
+        'Australia': 'Australia',
+        'North America': 'USA',
+        'South America': 'Brazil',
+        'South East Asia': 'Thailand',
+      };
 
-          const searchText = `${pkg.name} ${pkg.description} ${pkg.id}`.toLowerCase();
+      const COUNTRY_COORDS = {
+        'India': { lat: 28.61, lon: 77.23, city: 'New Delhi' },
+        'Sri Lanka': { lat: 6.93, lon: 79.84, city: 'Colombo' },
+        'Nepal': { lat: 27.72, lon: 85.32, city: 'Kathmandu' },
+        'Maldives': { lat: 4.18, lon: 73.51, city: 'Malé' },
+        'Bhutan': { lat: 27.47, lon: 89.64, city: 'Thimphu' },
+        'Thailand': { lat: 13.76, lon: 100.50, city: 'Bangkok' },
+        'Indonesia': { lat: -8.41, lon: 115.19, city: 'Bali' },
+        'Singapore': { lat: 1.35, lon: 103.82, city: 'Singapore' },
+        'Malaysia': { lat: 3.14, lon: 101.69, city: 'Kuala Lumpur' },
+        'Vietnam': { lat: 21.03, lon: 105.85, city: 'Hanoi' },
+        'Cambodia': { lat: 13.36, lon: 103.86, city: 'Siem Reap' },
+        'Myanmar': { lat: 16.87, lon: 96.20, city: 'Yangon' },
+        'Philippines': { lat: 14.60, lon: 120.98, city: 'Manila' },
+        'Japan': { lat: 35.68, lon: 139.69, city: 'Tokyo' },
+        'China': { lat: 39.90, lon: 116.40, city: 'Beijing' },
+        'South Korea': { lat: 37.57, lon: 126.98, city: 'Seoul' },
+        'UAE': { lat: 25.20, lon: 55.27, city: 'Dubai' },
+        'Oman': { lat: 23.59, lon: 58.54, city: 'Muscat' },
+        'Jordan': { lat: 31.95, lon: 35.93, city: 'Amman' },
+        'Turkey': { lat: 41.01, lon: 28.98, city: 'Istanbul' },
+        'France': { lat: 48.86, lon: 2.35, city: 'Paris' },
+        'Switzerland': { lat: 46.95, lon: 7.45, city: 'Bern' },
+        'Italy': { lat: 41.90, lon: 12.50, city: 'Rome' },
+        'Greece': { lat: 37.97, lon: 23.73, city: 'Athens' },
+        'Spain': { lat: 40.42, lon: -3.70, city: 'Madrid' },
+        'Portugal': { lat: 38.72, lon: -9.14, city: 'Lisbon' },
+        'United Kingdom': { lat: 51.51, lon: -0.13, city: 'London' },
+        'Germany': { lat: 52.52, lon: 13.41, city: 'Berlin' },
+        'Austria': { lat: 48.21, lon: 16.37, city: 'Vienna' },
+        'Netherlands': { lat: 52.37, lon: 4.90, city: 'Amsterdam' },
+        'Norway': { lat: 59.91, lon: 10.75, city: 'Oslo' },
+        'Iceland': { lat: 64.15, lon: -21.94, city: 'Reykjavik' },
+        'Croatia': { lat: 43.51, lon: 16.44, city: 'Split' },
+        'Czech Republic': { lat: 50.08, lon: 14.44, city: 'Prague' },
+        'Kenya': { lat: -1.29, lon: 36.82, city: 'Nairobi' },
+        'South Africa': { lat: -33.92, lon: 18.42, city: 'Cape Town' },
+        'Tanzania': { lat: -6.17, lon: 35.75, city: 'Dodoma' },
+        'Egypt': { lat: 30.04, lon: 31.24, city: 'Cairo' },
+        'Morocco': { lat: 33.97, lon: -6.85, city: 'Rabat' },
+        'USA': { lat: 40.71, lon: -74.01, city: 'New York' },
+        'Canada': { lat: 43.65, lon: -79.38, city: 'Toronto' },
+        'Mexico': { lat: 19.43, lon: -99.13, city: 'Mexico City' },
+        'Brazil': { lat: -22.90, lon: -43.17, city: 'Rio de Janeiro' },
+        'Peru': { lat: -13.53, lon: -71.97, city: 'Cusco' },
+        'Argentina': { lat: -34.60, lon: -58.38, city: 'Buenos Aires' },
+        'Colombia': { lat: 4.71, lon: -74.07, city: 'Bogotá' },
+        'Australia': { lat: -33.86, lon: 151.20, city: 'Sydney' },
+        'New Zealand': { lat: -36.85, lon: 174.76, city: 'Auckland' },
+        'Fiji': { lat: -17.77, lon: 177.95, city: 'Suva' },
+        'Russia': { lat: 55.76, lon: 37.62, city: 'Moscow' },
+      };
 
-          // Scan for the most specific keyword match
-          let matched = null;
-          // Sort keywords longest-first so "south africa" matches before "africa"
-          const sortedKeywords = Object.keys(KEYWORD_TO_COUNTRY).sort((a, b) => b.length - a.length);
-          for (const kw of sortedKeywords) {
-            if (searchText.includes(kw)) {
-              matched = KEYWORD_TO_COUNTRY[kw];
-              break;
+      const searchText = `${pkg?.name || ''} ${pkg?.description || ''} ${pkg?.id || ''}`.toLowerCase();
+
+      // Scan for the most specific keyword match
+      let matched = null;
+      const sortedKeywords = Object.keys(KEYWORD_TO_COUNTRY).sort((a, b) => b.length - a.length);
+      for (const kw of sortedKeywords) {
+        if (searchText.includes(kw)) {
+          matched = KEYWORD_TO_COUNTRY[kw];
+          break;
+        }
+      }
+
+      if (!matched) {
+        matched = REGION_FALLBACK[pkg?.region] || null;
+      }
+
+      if (!matched) {
+        if (!isCancelled) setWeather(null);
+        return;
+      }
+
+      // Step 1: Check backend cached weather
+      try {
+        const cacheRes = await fetch(`${API_URL}/api/weather`);
+        if (cacheRes.ok) {
+          const cacheData = await cacheRes.json();
+          if (cacheData && cacheData.data && cacheData.data[matched] && Array.isArray(cacheData.data[matched].months)) {
+            const wData = cacheData.data[matched];
+            wData._country = matched;
+            if (!isCancelled) setWeather(wData);
+            return;
+          }
+        }
+      } catch {
+        // Backend cache query failed, proceed to live Open-Meteo fallback
+      }
+
+      // Step 2: Live Open-Meteo fallback
+      const coords = COUNTRY_COORDS[matched];
+      if (coords && typeof fetch !== 'undefined') {
+        try {
+          const lastYear = new Date().getFullYear() - 1;
+          const meteoUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${coords.lat}&longitude=${coords.lon}&start_date=${lastYear}-01-01&end_date=${lastYear}-12-31&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+          const mRes = await fetch(meteoUrl);
+          if (mRes.ok) {
+            const mData = await mRes.json();
+            const daily = mData?.daily;
+            if (daily && Array.isArray(daily.time) && daily.time.length > 0) {
+              const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              const monthlyData = [];
+              for (let m = 0; m < 12; m++) {
+                let maxTemps = [], minTemps = [];
+                for (let i = 0; i < daily.time.length; i++) {
+                  const date = new Date(daily.time[i]);
+                  if (date.getMonth() === m) {
+                    if (daily.temperature_2m_max?.[i] != null) maxTemps.push(daily.temperature_2m_max[i]);
+                    if (daily.temperature_2m_min?.[i] != null) minTemps.push(daily.temperature_2m_min[i]);
+                  }
+                }
+                const avgHigh = maxTemps.length ? Math.round(maxTemps.reduce((a, b) => a + b, 0) / maxTemps.length) : null;
+                const avgLow = minTemps.length ? Math.round(minTemps.reduce((a, b) => a + b, 0) / minTemps.length) : null;
+                monthlyData.push({ month: MONTH_NAMES[m], avgHigh, avgLow });
+              }
+              if (!isCancelled) {
+                setWeather({ _country: matched, city: coords.city, months: monthlyData });
+                return;
+              }
             }
           }
-
-          // Fallback: map the broad region to a default country
-          if (!matched) {
-            matched = REGION_FALLBACK[pkg.region] || null;
-          }
-
-          const weatherData = matched ? d.data[matched] || null : null;
-          if (weatherData) weatherData._country = matched;
-          setWeather(weatherData);
+        } catch {
+          // Live Open-Meteo failed
         }
-      })
-      .catch(() => { })
-  }, [pkg.region, pkg.name, pkg.description, pkg.id])
+      }
+
+      // Cleanly hide weather section if not available
+      if (!isCancelled) setWeather(null);
+    };
+
+    if (pkg) {
+      fetchWeather();
+    } else {
+      setWeather(null);
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [pkg?.region, pkg?.name, pkg?.description, pkg?.id]);
 
   return (
     <section className="bg-[#FDFCF7] pb-24">
@@ -379,7 +501,13 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
           {/* Back, Share & Download buttons */}
           <div className="self-start mb-5 flex flex-wrap items-center gap-2.5">
             <button
-              onClick={onBack || (() => window.history.back())}
+              onClick={() => {
+                if (typeof onBack === 'function') {
+                  onBack('All')
+                } else if (typeof window !== 'undefined') {
+                  window.history.back()
+                }
+              }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/95 backdrop-blur-sm text-stone-900 hover:bg-white shadow-sm border border-white/40 rounded-full text-xs font-semibold transition-all cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -507,51 +635,83 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                 )}
 
                 {/* Tab content: Inclusions/Exclusions */}
-                {activeTab === 'inclusions' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Inclusions */}
-                    <div>
-                      <h4 className="text-xs font-bold text-stone-900 uppercase tracking-[0.15em] mb-4 border-b border-stone-100 pb-2 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> What's Included
-                      </h4>
-                      <ul className="space-y-3">
-                        {flattenBulletedItems(pkg.inclusions).map((inc, i) => (
-                          <li key={i} className="flex gap-2.5 items-start text-sm text-stone-700 leading-relaxed font-light">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                            <SmartMarkdownInline>{inc}</SmartMarkdownInline>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                {activeTab === 'inclusions' && (() => {
+                  const incSel = pkg.inclusionsSelection || pkg.inclusions_selection || {}
+                  const hasHotel = Boolean(incSel.hotel || incSel.hotels)
+                  const hasSightseeing = Boolean(incSel.sightseeing || incSel.tours)
+                  const hasGuide = Boolean(incSel.guide)
+                  const hasTransfer = Boolean(incSel.airportTransfer || incSel.transfers)
+                  const hasFlight = Boolean(incSel.flight || incSel.flights)
+                  const hasCruise = Boolean(incSel.cruise)
+                  const hasAnyAmenities = hasHotel || hasSightseeing || hasGuide || hasTransfer || hasFlight || hasCruise
 
-                    {/* Exclusions */}
-                    <div>
-                      <h4 className="text-xs font-bold text-stone-900 uppercase tracking-[0.15em] mb-4 border-b border-stone-100 pb-2 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" /> What's Excluded
-                      </h4>
-                      <ul className="space-y-3">
-                        {flattenBulletedItems(pkg.exclusions).map((exc, i) => (
-                          <li key={i} className="flex gap-2.5 items-start text-sm text-stone-700 leading-relaxed font-light">
-                            <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                            <SmartMarkdownInline>{exc}</SmartMarkdownInline>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  const inclusionsList = flattenBulletedItems(pkg.inclusions)
+                  const exclusionsList = flattenBulletedItems(pkg.exclusions)
 
-                    {/* Terms & Conditions */}
-                    {pkg.termsAndConditions && (
-                      <div className="md:col-span-2 pt-4 border-t border-stone-100 space-y-2">
-                        <h4 className="text-xs font-bold text-stone-900 uppercase tracking-[0.15em] flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> Terms & Conditions
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Inclusions */}
+                      <div>
+                        <h4 className="text-xs font-bold text-stone-900 uppercase tracking-[0.15em] mb-4 border-b border-stone-100 pb-2 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> What's Included
                         </h4>
-                        <div className="p-4 bg-amber-50/60 border border-amber-200/70 rounded-xl text-xs text-stone-700 leading-relaxed">
-                          <SmartMarkdown content={pkg.termsAndConditions} />
-                        </div>
+                        {hasAnyAmenities && (
+                          <div className="flex flex-wrap items-center gap-2 mb-4 p-2 bg-emerald-50/70 border border-emerald-100 rounded-xl">
+                            {hasHotel && <span className="inline-flex items-center gap-1.5 text-xs text-emerald-800 font-medium px-2 py-0.5 bg-white rounded-md shadow-2xs"><Hotel className="w-3.5 h-3.5 text-emerald-600" /> Hotel</span>}
+                            {hasFlight && <span className="inline-flex items-center gap-1.5 text-xs text-emerald-800 font-medium px-2 py-0.5 bg-white rounded-md shadow-2xs"><Plane className="w-3.5 h-3.5 text-emerald-600" /> Flights</span>}
+                            {hasSightseeing && <span className="inline-flex items-center gap-1.5 text-xs text-emerald-800 font-medium px-2 py-0.5 bg-white rounded-md shadow-2xs"><Compass className="w-3.5 h-3.5 text-emerald-600" /> Sightseeing</span>}
+                            {hasGuide && <span className="inline-flex items-center gap-1.5 text-xs text-emerald-800 font-medium px-2 py-0.5 bg-white rounded-md shadow-2xs"><User className="w-3.5 h-3.5 text-emerald-600" /> Guide</span>}
+                            {hasTransfer && <span className="inline-flex items-center gap-1.5 text-xs text-emerald-800 font-medium px-2 py-0.5 bg-white rounded-md shadow-2xs"><Car className="w-3.5 h-3.5 text-emerald-600" /> Transfers</span>}
+                            {hasCruise && <span className="inline-flex items-center gap-1.5 text-xs text-emerald-800 font-medium px-2 py-0.5 bg-white rounded-md shadow-2xs"><Ship className="w-3.5 h-3.5 text-emerald-600" /> Cruise</span>}
+                          </div>
+                        )}
+                        <ul className="space-y-3">
+                          {inclusionsList.length > 0 ? (
+                            inclusionsList.map((inc, i) => (
+                              <li key={i} className="flex gap-2.5 items-start text-sm text-stone-700 leading-relaxed font-light">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                <SmartMarkdownInline>{inc}</SmartMarkdownInline>
+                              </li>
+                            ))
+                          ) : (
+                            <li className="text-xs text-stone-400 italic">No specific inclusions listed for this package. Contact our travel specialist for tailored inclusions.</li>
+                          )}
+                        </ul>
                       </div>
-                    )}
-                  </div>
-                )}
+
+                      {/* Exclusions */}
+                      <div>
+                        <h4 className="text-xs font-bold text-stone-900 uppercase tracking-[0.15em] mb-4 border-b border-stone-100 pb-2 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" /> What's Excluded
+                        </h4>
+                        <ul className="space-y-3">
+                          {exclusionsList.length > 0 ? (
+                            exclusionsList.map((exc, i) => (
+                              <li key={i} className="flex gap-2.5 items-start text-sm text-stone-700 leading-relaxed font-light">
+                                <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                                <SmartMarkdownInline>{exc}</SmartMarkdownInline>
+                              </li>
+                            ))
+                          ) : (
+                            <li className="text-xs text-stone-400 italic">No specific exclusions listed. Standard booking conditions apply.</li>
+                          )}
+                        </ul>
+                      </div>
+
+                      {/* Terms & Conditions */}
+                      {pkg.termsAndConditions && (
+                        <div className="md:col-span-2 pt-4 border-t border-stone-100 space-y-2">
+                          <h4 className="text-xs font-bold text-stone-900 uppercase tracking-[0.15em] flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> Terms & Conditions
+                          </h4>
+                          <div className="p-4 bg-amber-50/60 border border-amber-200/70 rounded-xl text-xs text-stone-700 leading-relaxed">
+                            <SmartMarkdown content={pkg.termsAndConditions} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -566,14 +726,26 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                     <span className="font-display text-lg text-amber-800 block">Custom Quote</span>
                     <p className="text-xs text-amber-700 mt-1 font-light">Tailored to your preferences</p>
                   </div>
-                  <div className="flex items-center gap-1.5 text-stone-500 bg-stone-50 px-2.5 py-1.5 rounded-full border border-stone-200 mt-3 w-fit">
-                    {pkg.inclusionsSelection?.hotel && <Hotel className="w-4 h-4 text-stone-600" title="Hotel Included" />}
-                    {pkg.inclusionsSelection?.sightseeing && <Compass className="w-4 h-4 text-stone-600" title="Sightseeing Included" />}
-                    {pkg.inclusionsSelection?.guide && <User className="w-4 h-4 text-stone-600" title="Guide Included" />}
-                    {pkg.inclusionsSelection?.airportTransfer && <Car className="w-4 h-4 text-stone-600" title="Airport Transfer Included" />}
-                    {pkg.inclusionsSelection?.flight && <Plane className="w-4 h-4 text-stone-600" title="Flight Included" />}
-                    {pkg.inclusionsSelection?.cruise && <Ship className="w-4 h-4 text-stone-600" title="Cruise Included" />}
-                  </div>
+                  {(() => {
+                    const incSel = pkg.inclusionsSelection || pkg.inclusions_selection || {}
+                    const hasHotel = Boolean(incSel.hotel || incSel.hotels)
+                    const hasSightseeing = Boolean(incSel.sightseeing || incSel.tours)
+                    const hasGuide = Boolean(incSel.guide)
+                    const hasTransfer = Boolean(incSel.airportTransfer || incSel.transfers)
+                    const hasFlight = Boolean(incSel.flight || incSel.flights)
+                    const hasCruise = Boolean(incSel.cruise)
+                    if (!hasHotel && !hasSightseeing && !hasGuide && !hasTransfer && !hasFlight && !hasCruise) return null
+                    return (
+                      <div className="flex items-center gap-1.5 text-stone-500 bg-stone-50 px-2.5 py-1.5 rounded-full border border-stone-200 mt-3 w-fit">
+                        {hasHotel && <Hotel className="w-4 h-4 text-stone-600" title="Hotel Included" />}
+                        {hasSightseeing && <Compass className="w-4 h-4 text-stone-600" title="Sightseeing Included" />}
+                        {hasGuide && <User className="w-4 h-4 text-stone-600" title="Guide Included" />}
+                        {hasTransfer && <Car className="w-4 h-4 text-stone-600" title="Airport Transfer Included" />}
+                        {hasFlight && <Plane className="w-4 h-4 text-stone-600" title="Flight Included" />}
+                        {hasCruise && <Ship className="w-4 h-4 text-stone-600" title="Cruise Included" />}
+                      </div>
+                    )
+                  })()}
                 </div>
               ) : (
                 <div>
@@ -588,14 +760,26 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                       <span className="text-[11px] font-bold text-red-600 tracking-wider uppercase block mt-0.5">T&C apply</span>
                     </div>
                     {/* Icons next to the price */}
-                    <div className="flex items-center gap-1.5 text-stone-500 bg-stone-50 px-2 py-1 rounded-full border border-stone-200">
-                      {pkg.inclusionsSelection?.hotel && <Hotel className="w-4 h-4 text-stone-600" title="Hotel Included" />}
-                      {pkg.inclusionsSelection?.sightseeing && <Compass className="w-4 h-4 text-stone-600" title="Sightseeing Included" />}
-                      {pkg.inclusionsSelection?.guide && <User className="w-4 h-4 text-stone-600" title="Guide Included" />}
-                      {pkg.inclusionsSelection?.airportTransfer && <Car className="w-4 h-4 text-stone-600" title="Airport Transfer Included" />}
-                      {pkg.inclusionsSelection?.flight && <Plane className="w-4 h-4 text-stone-600" title="Flight Included" />}
-                      {pkg.inclusionsSelection?.cruise && <Ship className="w-4 h-4 text-stone-600" title="Cruise Included" />}
-                    </div>
+                    {(() => {
+                      const incSel = pkg.inclusionsSelection || pkg.inclusions_selection || {}
+                      const hasHotel = Boolean(incSel.hotel || incSel.hotels)
+                      const hasSightseeing = Boolean(incSel.sightseeing || incSel.tours)
+                      const hasGuide = Boolean(incSel.guide)
+                      const hasTransfer = Boolean(incSel.airportTransfer || incSel.transfers)
+                      const hasFlight = Boolean(incSel.flight || incSel.flights)
+                      const hasCruise = Boolean(incSel.cruise)
+                      if (!hasHotel && !hasSightseeing && !hasGuide && !hasTransfer && !hasFlight && !hasCruise) return null
+                      return (
+                        <div className="flex items-center gap-1.5 text-stone-500 bg-stone-50 px-2 py-1 rounded-full border border-stone-200">
+                          {hasHotel && <Hotel className="w-4 h-4 text-stone-600" title="Hotel Included" />}
+                          {hasSightseeing && <Compass className="w-4 h-4 text-stone-600" title="Sightseeing Included" />}
+                          {hasGuide && <User className="w-4 h-4 text-stone-600" title="Guide Included" />}
+                          {hasTransfer && <Car className="w-4 h-4 text-stone-600" title="Airport Transfer Included" />}
+                          {hasFlight && <Plane className="w-4 h-4 text-stone-600" title="Flight Included" />}
+                          {hasCruise && <Ship className="w-4 h-4 text-stone-600" title="Cruise Included" />}
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               )}
@@ -1024,63 +1208,66 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
       )}
 
       {/* Share Modal for Desktop Fallback */}
-      {isShareModalOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scale-up">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg text-stone-900">Share This Luxury Journey</h3>
-              <button
-                onClick={() => setIsShareModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 hover:text-stone-800"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs text-stone-500">
-              Share the unique URL for <strong className="text-stone-800">{pkg.name}</strong> with clients or run Meta (Instagram/Facebook) ads.
-            </p>
-            <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl p-2.5">
-              <input
-                type="text"
-                readOnly
-                value={window.location.href}
-                className="flex-1 bg-transparent text-xs text-stone-700 outline-none truncate"
-              />
-              <button
-                onClick={async () => {
-                  await navigator.clipboard.writeText(window.location.href)
-                  setShareToast('Link copied to clipboard!')
-                  setIsShareModalOpen(false)
-                  setTimeout(() => setShareToast(null), 3000)
-                }}
-                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shrink-0"
-              >
-                Copy Link
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Take a look at ${pkg.name}: ${window.location.href}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-200"
-              >
-                <MessageSquare className="w-4 h-4 text-emerald-600" />
-                WhatsApp
-              </a>
-              <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-blue-200"
-              >
-                <Share2 className="w-4 h-4 text-blue-600" />
-                Facebook
-              </a>
+      {isShareModalOpen && (() => {
+        const canonicalUrl = typeof window !== 'undefined' ? `${window.location.origin}/package/${pkg.id}` : window.location.href
+        return (
+          <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scale-up">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-lg text-stone-900">Share This Luxury Journey</h3>
+                <button
+                  onClick={() => setIsShareModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 hover:text-stone-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs text-stone-500">
+                Share the direct link for <strong className="text-stone-800">{pkg.name}</strong> with friends, clients, or on social media.
+              </p>
+              <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                <input
+                  type="text"
+                  readOnly
+                  value={canonicalUrl}
+                  className="flex-1 bg-transparent text-xs text-stone-700 outline-none truncate"
+                />
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(canonicalUrl)
+                    setShareToast('Trip link copied to clipboard!')
+                    setIsShareModalOpen(false)
+                    setTimeout(() => setShareToast(null), 3000)
+                  }}
+                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer"
+                >
+                  Copy Link
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Discover ${pkg.name} (${pkg.duration}): ${canonicalUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-200 cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4 text-emerald-600" />
+                  WhatsApp
+                </a>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-blue-200 cursor-pointer"
+                >
+                  <Share2 className="w-4 h-4 text-blue-600" />
+                  Facebook
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </section>
   )
 }

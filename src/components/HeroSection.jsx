@@ -1,4 +1,5 @@
-import { Compass, CalendarRange, Sparkles, Globe, MapPin, Award, Heart } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Compass, CalendarRange, Sparkles, Globe, MapPin, Award, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -8,6 +9,29 @@ const getImgUrl = (url) => {
   if (url.startsWith('/assets/')) return `${API_URL}${url}`
   return url
 }
+
+const DEFAULT_HERO_SLIDES = [
+  {
+    url: '/photo-1506929562872-bb421503ef21.jpeg',
+    caption: 'Tropical Paradise & Private Overwater Villas'
+  },
+  {
+    url: `${API_URL}/assets/unsplash-swiss-alps.jpg`,
+    caption: 'Swiss Alps & Majestic Alpine Peaks'
+  },
+  {
+    url: `${API_URL}/assets/unsplash-dubai.jpg`,
+    caption: 'Dubai & Arabian Desert Splendour'
+  },
+  {
+    url: `${API_URL}/assets/unsplash-greece.jpg`,
+    caption: 'Santorini & Mediterranean Sea Breezes'
+  },
+  {
+    url: `${API_URL}/assets/unsplash-bali.jpg`,
+    caption: 'Bali & Southeast Asian Tranquility'
+  }
+]
 
 const iconMap = {
   Compass,
@@ -20,7 +44,26 @@ const iconMap = {
 }
 
 export default function HeroSection({ onExplore, onBook, heroSettings }) {
-  const bgImage = getImgUrl(heroSettings?.bgImage || '/photo-1506929562872-bb421503ef21.jpeg')
+  const customImages = Array.isArray(heroSettings?.bgImages) && heroSettings.bgImages.length > 0
+    ? heroSettings.bgImages.map(img => ({ url: getImgUrl(img), caption: '' }))
+    : heroSettings?.bgImage
+      ? [{ url: getImgUrl(heroSettings.bgImage), caption: '' }, ...DEFAULT_HERO_SLIDES.slice(1)]
+      : DEFAULT_HERO_SLIDES
+
+  const slides = customImages.length > 0 ? customImages : DEFAULT_HERO_SLIDES
+
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+
+  // Auto-advance hero carousel every 5 seconds (paused on hover)
+  useEffect(() => {
+    if (isPaused || slides.length <= 1) return
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % slides.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [isPaused, slides.length])
+
   const titleMain = heroSettings?.titleMain ?? 'Kraft your perfect'
   const titleItalic = heroSettings?.titleItalic ?? 'journey.'
   const description = heroSettings?.description ?? "Handcrafted travel to the world's most extraordinary places \nfrom ancient temples in Kyoto to overwater villas in the Maldives. Your escape, designed end-to-end."
@@ -38,25 +81,44 @@ export default function HeroSection({ onExplore, onBook, heroSettings }) {
     : defaultStats
 
   return (
-    <section className="relative min-h-[75vh] sm:min-h-[88vh] flex items-end justify-center overflow-hidden pt-20 pb-12 sm:pt-32 sm:pb-20">
-      {/* Background Image */}
+    <section
+      className="relative min-h-[75vh] sm:min-h-[88vh] flex items-end justify-center overflow-hidden pt-20 pb-12 sm:pt-32 sm:pb-20"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Background Image Carousel with Crossfade */}
       <div className="absolute inset-0">
-        <img
-          src={bgImage}
-          alt="Luxury tropical beach destination"
-          className="w-full h-full object-cover scale-100"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-stone-950/75 via-stone-950/45 to-stone-950/85" />
-        <div className="absolute inset-0 bg-gradient-to-r from-stone-950/45 via-transparent to-stone-950/35" />
+        {slides.map((slide, idx) => {
+          const isActive = idx === currentSlide
+          return (
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                isActive ? 'opacity-100 z-0' : 'opacity-0 -z-10 pointer-events-none'
+              }`}
+            >
+              <img
+                src={slide.url}
+                alt={slide.caption || 'Luxury travel destination'}
+                className="w-full h-full object-cover scale-100 transform transition-transform duration-10000 ease-out"
+                onError={(e) => {
+                  e.currentTarget.src = '/photo-1506929562872-bb421503ef21.jpeg'
+                }}
+              />
+            </div>
+          )
+        })}
+        <div className="absolute inset-0 bg-gradient-to-b from-stone-950/75 via-stone-950/45 to-stone-950/85 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-stone-950/45 via-transparent to-stone-950/35 z-10" />
       </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center w-full">
+      <div className="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 text-center w-full">
 
         {/* Headline — display serif */}
         <h1 className="animate-fade-in-up delay-100 font-display text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.05] tracking-[-0.02em] mb-6">
           {titleMain}{' '}
-          <span className="block italic text-grey-400 mt-1">{titleItalic}</span>
+          <span className="block italic text-stone-300 mt-1">{titleItalic}</span>
         </h1>
 
         {/* Subheadline */}
@@ -68,18 +130,36 @@ export default function HeroSection({ onExplore, onBook, heroSettings }) {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 max-w-md mx-auto sm:max-w-none">
           <button
             onClick={() => onExplore?.()}
-            className="w-full sm:w-auto px-7 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold active:scale-[0.97] transition-all duration-300 shadow-lg shadow-amber-900/20 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-7 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-full text-sm font-semibold active:scale-[0.97] transition-all duration-300 shadow-lg shadow-amber-900/20 flex items-center justify-center gap-2 cursor-pointer"
           >
             {btnPrimaryText}
           </button>
           <button
             onClick={onBook}
-            className="w-full sm:w-auto px-7 py-3.5 bg-white/95 hover:bg-white text-stone-900 rounded-full text-sm font-semibold active:scale-[0.97] transition-all duration-300 shadow-sm flex items-center justify-center gap-2 backdrop-blur-sm"
+            className="w-full sm:w-auto px-7 py-3.5 bg-white/95 hover:bg-white text-stone-900 rounded-full text-sm font-semibold active:scale-[0.97] transition-all duration-300 shadow-sm flex items-center justify-center gap-2 backdrop-blur-sm cursor-pointer"
           >
             <CalendarRange className="w-4 h-4 text-amber-600" />
             {btnSecondaryText}
           </button>
         </div>
+
+        {/* Carousel Indicators / Navigation Dots */}
+        {slides.length > 1 && (
+          <div className="flex items-center justify-center gap-2 mb-7">
+            {slides.map((_, dotIdx) => (
+              <button
+                key={dotIdx}
+                onClick={() => setCurrentSlide(dotIdx)}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  dotIdx === currentSlide
+                    ? 'w-7 h-2 bg-amber-400'
+                    : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                }`}
+                aria-label={`Go to slide ${dotIdx + 1}`}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Floating Stats — clear of the categories strip below */}
         <div className="grid grid-cols-3 gap-3 sm:gap-6 max-w-3xl mx-auto pt-7 border-t border-white/15">

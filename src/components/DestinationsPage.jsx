@@ -65,18 +65,22 @@ const SORT_OPTIONS = [
 // Tag packages with travel type keywords
 function inferType(pkg) {
   if (pkg.isBespoke) return 'bespoke'
-  const text = (pkg.name + ' ' + (pkg.highlights || []).join(' ')).toLowerCase()
-  if (text.includes('wellness') || text.includes('yoga') || text.includes('retreat') || text.includes('meditation')) return 'wellness'
+  const cat = String(pkg.category || '').toLowerCase()
+  if (cat && cat !== 'standard') return cat
+  const text = `${pkg.name || ''} ${(pkg.highlights || []).join(' ')} ${pkg.trend || ''} ${pkg.description || ''}`.toLowerCase()
+  if (text.includes('wellness') || text.includes('yoga') || text.includes('retreat') || text.includes('meditation') || text.includes('spa')) return 'wellness'
   if (text.includes('family') || text.includes('kids') || text.includes('children')) return 'family'
   if (text.includes('romantic') || text.includes('couple') || text.includes('honeymoon') || text.includes('sunset')) return 'romantic'
-  if (text.includes('business') || text.includes('executive') || text.includes('corporate')) return 'business'
-  if (text.includes('hiking') || text.includes('trek') || text.includes('alpine') || text.includes('adventure')) return 'adventure'
+  if (text.includes('business') || text.includes('executive') || text.includes('corporate') || text.includes('conference')) return 'business'
+  if (text.includes('hiking') || text.includes('trek') || text.includes('alpine') || text.includes('adventure') || text.includes('glacier') || text.includes('safari') || text.includes('scuba')) return 'adventure'
   return 'cultural'
 }
 
 function parseDays(duration) {
-  const match = duration.match(/(\d+)/)
-  return match ? parseInt(match[1]) : 0
+  if (!duration) return 0
+  const str = String(duration)
+  const match = str.match(/(\d+)\s*Days?/i) || str.match(/(\d+)/)
+  return match ? parseInt(match[1], 10) : 0
 }
 
 
@@ -138,11 +142,13 @@ const DEST_PLACEHOLDERS = [
 ]
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function DestinationsPage({ packages, onViewPackage, initialRegion = 'All', initialSearch = '', onBook }) {
-  const [searchQuery, setSearchQuery] = useState(initialSearch)
-  const [selectedRegion, setSelectedRegion] = useState(initialRegion)
-  const [prevInitialRegion, setPrevInitialRegion] = useState(initialRegion)
-  const [prevInitialSearch, setPrevInitialSearch] = useState(initialSearch)
+export default function DestinationsPage({ packages = [], onViewPackage, initialRegion = 'All', initialSearch = '', onBook }) {
+  const safeInitialRegion = typeof initialRegion === 'string' ? initialRegion : 'All'
+  const safeInitialSearch = typeof initialSearch === 'string' ? initialSearch : ''
+  const [searchQuery, setSearchQuery] = useState(safeInitialSearch)
+  const [selectedRegion, setSelectedRegion] = useState(safeInitialRegion)
+  const [prevInitialRegion, setPrevInitialRegion] = useState(safeInitialRegion)
+  const [prevInitialSearch, setPrevInitialSearch] = useState(safeInitialSearch)
   const [selectedType, setSelectedType] = useState('all')
   const [selectedDuration, setSelectedDuration] = useState('all')
   const [selectedBudget, setSelectedBudget] = useState('all')
@@ -169,15 +175,15 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   }, [])
 
   // Sync when parent sends a different initialRegion (e.g. back-nav then new category click)
-  if (initialRegion !== prevInitialRegion) {
-    setSelectedRegion(initialRegion)
-    setPrevInitialRegion(initialRegion)
+  if (safeInitialRegion !== prevInitialRegion) {
+    setSelectedRegion(safeInitialRegion)
+    setPrevInitialRegion(safeInitialRegion)
   }
 
   // Sync when parent sends a different initialSearch (e.g. clicking a destination from mega-menu)
-  if (initialSearch !== prevInitialSearch) {
-    setSearchQuery(initialSearch)
-    setPrevInitialSearch(initialSearch)
+  if (safeInitialSearch !== prevInitialSearch) {
+    setSearchQuery(safeInitialSearch)
+    setPrevInitialSearch(safeInitialSearch)
   }
 
   // Compute active filter count (excluding sort & search)
@@ -200,14 +206,17 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
   }
 
   const filteredPackages = useMemo(() => {
-    let result = packages.filter(pkg => {
-      // Region
-      if (selectedRegion !== 'All') {
-        const isKnownContinent = REGIONS.some(r => r.toLowerCase() === selectedRegion.toLowerCase() && r !== 'All')
+    const list = Array.isArray(packages) ? packages : []
+    const safeRegion = typeof selectedRegion === 'string' ? selectedRegion : 'All'
+
+    let result = list.filter(pkg => {
+      // Region / Destination
+      if (safeRegion !== 'All') {
+        const isKnownContinent = REGIONS.some(r => r.toLowerCase() === safeRegion.toLowerCase() && r !== 'All')
         if (isKnownContinent) {
-          if (pkg.region?.toLowerCase() !== selectedRegion.toLowerCase()) return false
+          if (pkg.region?.toLowerCase() !== safeRegion.toLowerCase()) return false
         } else {
-          // If selectedRegion is a country or compound destination name (e.g. 'Greece' or 'Greece & Turkey')
+          // If safeRegion is a country or compound destination name (e.g. 'Greece' or 'Greece & Turkey')
           const destHaystack = [
             pkg.name,
             pkg.description,
@@ -216,10 +225,10 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
             ...(pkg.highlights || []),
             ...(pkg.inclusions || [])
           ].join(' ').toLowerCase()
-          const regionTokens = selectedRegion.toLowerCase().split(/\s*(?:&|\band\b|\/|,)\s*/).map(t => t.trim()).filter(Boolean)
+          const regionTokens = safeRegion.toLowerCase().split(/\s*(?:&|\band\b|\/|,)\s*/).map(t => t.trim()).filter(Boolean)
           const matchesRegion = regionTokens.length > 0
             ? regionTokens.some(term => term.length > 1 && destHaystack.includes(term))
-            : destHaystack.includes(selectedRegion.toLowerCase())
+            : destHaystack.includes(safeRegion.toLowerCase())
           if (!matchesRegion) return false
         }
       }
@@ -229,11 +238,13 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
 
       // Duration
       const days = parseDays(pkg.duration)
-      if (selectedDuration === '1-5' && days > 5) return false
+      if (selectedDuration === '1-5' && (days < 1 || days > 5)) return false
       if (selectedDuration === '6-8' && (days < 6 || days > 8)) return false
       if (selectedDuration === '9+' && days < 9) return false
 
-      const price = pkg.price
+      // Budget
+      const rawPrice = pkg.price != null ? pkg.price : pkg.basePrice
+      const price = typeof rawPrice === 'number' ? rawPrice : parseFloat(String(rawPrice || 0).replace(/,/g, ''))
       if (pkg.isBespoke) {
         /* bespoke has no fixed price — include in all budget ranges */
       } else if (selectedBudget === 'under-50k' && price >= 50000) return false
@@ -280,7 +291,7 @@ export default function DestinationsPage({ packages, onViewPackage, initialRegio
       return true
     })
 
-    const bespokeSortVal = (p) => p.isBespoke ? Infinity : p.price
+    const bespokeSortVal = (p) => p.isBespoke ? Infinity : (typeof p.price === 'number' ? p.price : parseFloat(String(p.price || p.basePrice || 0).replace(/,/g, '')))
     if (sortBy === 'price-asc') result = [...result].sort((a, b) => bespokeSortVal(a) - bespokeSortVal(b))
     else if (sortBy === 'price-desc') result = [...result].sort((a, b) => bespokeSortVal(b) - bespokeSortVal(a))
     else if (sortBy === 'dur-asc') result = [...result].sort((a, b) => parseDays(a.duration) - parseDays(b.duration))

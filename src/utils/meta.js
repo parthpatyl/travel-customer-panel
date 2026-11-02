@@ -16,29 +16,49 @@ export const PAGE_TITLES = {
   enquiry: 'Enquiry Status'
 }
 
-export const updatePageMeta = (pageKey, customSectionTitle = null) => {
+export const updatePageMeta = (pageKey, customSectionTitle = null, details = {}) => {
   if (typeof document === 'undefined') return
 
-  const section = customSectionTitle || PAGE_TITLES[pageKey] || 'Luxury Travel Experiences'
-  const fullTitle = `Kraft Your Trip | ${section}`
+  const section = details.title || customSectionTitle || PAGE_TITLES[pageKey] || 'Luxury Travel Experiences'
+  const fullTitle = details.title ? `${details.title} | Kraft Your Trip` : `Kraft Your Trip | ${section}`
 
   document.title = fullTitle
 
-  // Update Open Graph og:title
-  let ogTitle = document.querySelector('meta[property="og:title"]')
-  if (!ogTitle) {
-    ogTitle = document.createElement('meta')
-    ogTitle.setAttribute('property', 'og:title')
-    document.head.appendChild(ogTitle)
+  // Helper to get or create a meta tag
+  const setMetaTag = (attributeName, attributeValue, content) => {
+    if (!content) return
+    let meta = document.querySelector(`meta[${attributeName}="${attributeValue}"]`)
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.setAttribute(attributeName, attributeValue)
+      document.head.appendChild(meta)
+    }
+    meta.setAttribute('content', content)
   }
-  ogTitle.setAttribute('content', fullTitle)
 
-  // Update Twitter twitter:title
-  let twTitle = document.querySelector('meta[name="twitter:title"], meta[property="twitter:title"]')
-  if (!twTitle) {
-    twTitle = document.createElement('meta')
-    twTitle.setAttribute('property', 'twitter:title')
-    document.head.appendChild(twTitle)
+  // Titles
+  setMetaTag('property', 'og:title', fullTitle)
+  setMetaTag('name', 'twitter:title', fullTitle)
+  setMetaTag('property', 'twitter:title', fullTitle)
+
+  // Description
+  const desc = details.description || 'Discover handcrafted luxury journeys and bespoke travel experiences with Kraft Your Trip.'
+  setMetaTag('name', 'description', desc)
+  setMetaTag('property', 'og:description', desc)
+  setMetaTag('name', 'twitter:description', desc)
+  setMetaTag('property', 'twitter:description', desc)
+
+  // Image
+  if (details.image) {
+    setMetaTag('property', 'og:image', details.image)
+    setMetaTag('name', 'twitter:image', details.image)
+    setMetaTag('property', 'twitter:image', details.image)
+    setMetaTag('name', 'twitter:card', 'summary_large_image')
   }
-  twTitle.setAttribute('content', fullTitle)
+
+  // URL
+  const currentUrl = details.url || (typeof window !== 'undefined' ? window.location.href : '')
+  if (currentUrl) {
+    setMetaTag('property', 'og:url', currentUrl)
+  }
 }
