@@ -230,255 +230,244 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   useEffect(() => {
     let isCancelled = false
     const fetchWeather = async () => {
-      // Country keyword lookup — maps city/destination keywords to country cache keys
-      const KEYWORD_TO_COUNTRY = {
-        // India
-        'india': 'India', 'delhi': 'India', 'jaipur': 'India', 'udaipur': 'India',
-        'jodhpur': 'India', 'coorg': 'India', 'agra': 'India', 'kerala': 'India',
-        'kashmir': 'India', 'ladakh': 'India', 'andaman': 'India', 'guwahati': 'India',
-        'golden triangle': 'India', 'taj mahal': 'India', 'mumbai': 'India',
-        'rajasthan': 'India', 'goa': 'India', 'himachal': 'India', 'manali': 'India',
-        'darjeeling': 'India', 'varanasi': 'India', 'rishikesh': 'India',
-        // Thailand
-        'thailand': 'Thailand', 'bangkok': 'Thailand', 'phuket': 'Thailand', 'chiang mai': 'Thailand',
-        // Japan
-        'japan': 'Japan', 'tokyo': 'Japan', 'kyoto': 'Japan', 'osaka': 'Japan',
-        // China
-        'china': 'China', 'beijing': 'China', 'shanghai': 'China', 'great wall': 'China',
-        // Indonesia
-        'indonesia': 'Indonesia', 'bali': 'Indonesia', 'jakarta': 'Indonesia',
-        // Maldives
-        'maldives': 'Maldives', 'malé': 'Maldives',
-        // Sri Lanka
-        'sri lanka': 'Sri Lanka', 'colombo': 'Sri Lanka',
-        // Nepal
-        'nepal': 'Nepal', 'kathmandu': 'Nepal', 'everest': 'Nepal',
-        // Bhutan
-        'bhutan': 'Bhutan', 'thimphu': 'Bhutan', 'paro': 'Bhutan',
-        // Cambodia
-        'cambodia': 'Cambodia', 'angkor': 'Cambodia', 'siem reap': 'Cambodia', 'phnom penh': 'Cambodia',
-        // Myanmar
-        'myanmar': 'Myanmar', 'yangon': 'Myanmar', 'bagan': 'Myanmar',
-        // Philippines
-        'philippines': 'Philippines', 'manila': 'Philippines', 'boracay': 'Philippines', 'palawan': 'Philippines',
-        // South Korea
-        'south korea': 'South Korea', 'korea': 'South Korea', 'seoul': 'South Korea', 'busan': 'South Korea',
-        // France
-        'france': 'France', 'paris': 'France', 'provence': 'France', 'nice': 'France',
-        // Switzerland
-        'switzerland': 'Switzerland', 'swiss': 'Switzerland', 'alps': 'Switzerland', 'zurich': 'Switzerland', 'bern': 'Switzerland',
-        // Italy
-        'italy': 'Italy', 'rome': 'Italy', 'venice': 'Italy', 'tuscany': 'Italy', 'florence': 'Italy', 'amalfi': 'Italy',
-        // Greece
-        'greece': 'Greece', 'santorini': 'Greece', 'athens': 'Greece', 'mykonos': 'Greece',
-        // Spain
-        'spain': 'Spain', 'barcelona': 'Spain', 'madrid': 'Spain', 'ibiza': 'Spain',
-        // Portugal
-        'portugal': 'Portugal', 'lisbon': 'Portugal', 'porto': 'Portugal',
-        // UK
-        'london': 'United Kingdom', 'england': 'United Kingdom', 'scotland': 'United Kingdom',
-        // Germany
-        'germany': 'Germany', 'berlin': 'Germany', 'munich': 'Germany',
-        // Austria
-        'austria': 'Austria', 'vienna': 'Austria', 'salzburg': 'Austria',
-        // Netherlands
-        'netherlands': 'Netherlands', 'amsterdam': 'Netherlands',
-        // Norway
-        'norway': 'Norway', 'oslo': 'Norway', 'fjord': 'Norway', 'northern lights': 'Norway',
-        // Iceland
-        'iceland': 'Iceland', 'reykjavik': 'Iceland',
-        // Croatia
-        'croatia': 'Croatia', 'dubrovnik': 'Croatia', 'split': 'Croatia',
-        // Czech Republic
-        'czech': 'Czech Republic', 'prague': 'Czech Republic',
-        // USA
-        'new york': 'USA', 'california': 'USA', 'hawaii': 'USA', 'usa': 'USA', 'las vegas': 'USA',
-        // Canada
-        'canada': 'Canada', 'toronto': 'Canada', 'vancouver': 'Canada', 'banff': 'Canada',
-        // Mexico
-        'mexico': 'Mexico', 'cancun': 'Mexico', 'tulum': 'Mexico',
-        // Brazil
-        'brazil': 'Brazil', 'rio': 'Brazil',
-        // Peru
-        'peru': 'Peru', 'cusco': 'Peru', 'machu picchu': 'Peru', 'lima': 'Peru',
-        // Argentina
-        'argentina': 'Argentina', 'buenos aires': 'Argentina', 'patagonia': 'Argentina',
-        // Colombia
-        'colombia': 'Colombia', 'bogota': 'Colombia', 'cartagena': 'Colombia',
-        // UAE
-        'dubai': 'UAE', 'abu dhabi': 'UAE', 'uae': 'UAE',
-        // Oman
-        'oman': 'Oman', 'muscat': 'Oman',
-        // Jordan
-        'jordan': 'Jordan', 'petra': 'Jordan', 'amman': 'Jordan', 'dead sea': 'Jordan',
-        // Kenya
-        'kenya': 'Kenya', 'nairobi': 'Kenya', 'safari': 'Kenya', 'masai mara': 'Kenya',
-        // South Africa
-        'south africa': 'South Africa', 'cape town': 'South Africa', 'kruger': 'South Africa',
-        // Tanzania
-        'tanzania': 'Tanzania', 'kilimanjaro': 'Tanzania', 'serengeti': 'Tanzania', 'zanzibar': 'Tanzania',
-        // Egypt
-        'egypt': 'Egypt', 'cairo': 'Egypt', 'pyramid': 'Egypt', 'luxor': 'Egypt',
-        // Morocco
-        'morocco': 'Morocco', 'marrakech': 'Morocco', 'casablanca': 'Morocco', 'fes': 'Morocco',
-        // Australia
-        'australia': 'Australia', 'sydney': 'Australia', 'melbourne': 'Australia', 'barrier reef': 'Australia',
-        // New Zealand
-        'new zealand': 'New Zealand', 'auckland': 'New Zealand', 'queenstown': 'New Zealand',
-        // Fiji
-        'fiji': 'Fiji', 'suva': 'Fiji',
-        // Singapore
-        'singapore': 'Singapore',
-        // Malaysia
-        'malaysia': 'Malaysia', 'kuala lumpur': 'Malaysia', 'langkawi': 'Malaysia',
-        // Vietnam
-        'vietnam': 'Vietnam', 'hanoi': 'Vietnam', 'ho chi minh': 'Vietnam', 'ha long': 'Vietnam',
-        // Turkey
-        'turkey': 'Turkey', 'istanbul': 'Turkey', 'cappadocia': 'Turkey',
-        // Russia
-        'russia': 'Russia', 'moscow': 'Russia', 'st petersburg': 'Russia',
+      // Granular destination-to-coordinates catalog for regional tourist hotspots
+      const DESTINATION_COORDS = {
+        // India - North & Himalayas
+        'shillong': { lat: 25.58, lon: 91.89, city: 'Shillong', region: 'Shillong (Meghalaya)' },
+        'meghalaya': { lat: 25.58, lon: 91.89, city: 'Shillong', region: 'Shillong (Meghalaya)' },
+        'cherrapunji': { lat: 25.27, lon: 91.73, city: 'Cherrapunji', region: 'Cherrapunji (Meghalaya)' },
+        'srinagar': { lat: 34.08, lon: 74.80, city: 'Srinagar', region: 'Srinagar (Kashmir)' },
+        'kashmir': { lat: 34.08, lon: 74.80, city: 'Srinagar', region: 'Srinagar (Kashmir)' },
+        'gulmarg': { lat: 34.05, lon: 74.38, city: 'Gulmarg', region: 'Gulmarg (Kashmir)' },
+        'leh': { lat: 34.15, lon: 77.58, city: 'Leh', region: 'Leh (Ladakh)' },
+        'ladakh': { lat: 34.15, lon: 77.58, city: 'Leh', region: 'Leh (Ladakh)' },
+        'nubra': { lat: 34.69, lon: 77.56, city: 'Nubra Valley', region: 'Nubra Valley (Ladakh)' },
+        'manali': { lat: 32.24, lon: 77.19, city: 'Manali', region: 'Manali (Himachal)' },
+        'shimla': { lat: 31.10, lon: 77.17, city: 'Shimla', region: 'Shimla (Himachal)' },
+        'spiti': { lat: 32.25, lon: 78.03, city: 'Kaza', region: 'Spiti Valley (Himachal)' },
+        'dharamshala': { lat: 32.22, lon: 76.32, city: 'Dharamshala', region: 'Dharamshala (Himachal)' },
+        'rishikesh': { lat: 30.09, lon: 78.27, city: 'Rishikesh', region: 'Rishikesh (Uttarakhand)' },
+        'haridwar': { lat: 29.95, lon: 78.16, city: 'Haridwar', region: 'Haridwar (Uttarakhand)' },
+        'nainital': { lat: 29.39, lon: 79.45, city: 'Nainital', region: 'Nainital (Uttarakhand)' },
+        'mussoorie': { lat: 30.46, lon: 78.07, city: 'Mussoorie', region: 'Mussoorie (Uttarakhand)' },
+        'darjeeling': { lat: 27.04, lon: 88.26, city: 'Darjeeling', region: 'Darjeeling (West Bengal)' },
+        'gangtok': { lat: 27.33, lon: 88.61, city: 'Gangtok', region: 'Gangtok (Sikkim)' },
+        'sikkim': { lat: 27.33, lon: 88.61, city: 'Gangtok', region: 'Gangtok (Sikkim)' },
+        'kaziranga': { lat: 26.58, lon: 93.17, city: 'Kaziranga', region: 'Kaziranga (Assam)' },
+        'guwahati': { lat: 26.14, lon: 91.74, city: 'Guwahati', region: 'Guwahati (Assam)' },
+        'assam': { lat: 26.14, lon: 91.74, city: 'Guwahati', region: 'Guwahati (Assam)' },
+        // India - West & Desert
+        'jaipur': { lat: 26.91, lon: 75.79, city: 'Jaipur', region: 'Jaipur (Rajasthan)' },
+        'udaipur': { lat: 24.59, lon: 73.71, city: 'Udaipur', region: 'Udaipur (Rajasthan)' },
+        'jodhpur': { lat: 26.24, lon: 73.02, city: 'Jodhpur', region: 'Jodhpur (Rajasthan)' },
+        'jaisalmer': { lat: 26.92, lon: 70.90, city: 'Jaisalmer', region: 'Jaisalmer (Rajasthan)' },
+        'pushkar': { lat: 26.49, lon: 74.55, city: 'Pushkar', region: 'Pushkar (Rajasthan)' },
+        'rajasthan': { lat: 26.91, lon: 75.79, city: 'Jaipur', region: 'Jaipur (Rajasthan)' },
+        'agra': { lat: 27.18, lon: 78.01, city: 'Agra', region: 'Agra (Uttar Pradesh)' },
+        'varanasi': { lat: 25.32, lon: 82.97, city: 'Varanasi', region: 'Varanasi (Uttar Pradesh)' },
+        'delhi': { lat: 28.61, lon: 77.23, city: 'New Delhi', region: 'New Delhi' },
+        'mumbai': { lat: 19.08, lon: 72.88, city: 'Mumbai', region: 'Mumbai (Maharashtra)' },
+        'goa': { lat: 15.30, lon: 74.12, city: 'Goa', region: 'Goa' },
+        // India - South & Islands
+        'munnar': { lat: 10.09, lon: 77.06, city: 'Munnar', region: 'Munnar (Kerala)' },
+        'alleppey': { lat: 9.49, lon: 76.33, city: 'Alleppey', region: 'Alleppey (Kerala)' },
+        'kochi': { lat: 9.93, lon: 76.27, city: 'Kochi', region: 'Kochi (Kerala)' },
+        'wayanad': { lat: 11.69, lon: 76.13, city: 'Wayanad', region: 'Wayanad (Kerala)' },
+        'kerala': { lat: 9.93, lon: 76.27, city: 'Kochi', region: 'Kerala' },
+        'coorg': { lat: 12.34, lon: 75.81, city: 'Coorg', region: 'Coorg (Karnataka)' },
+        'ooty': { lat: 11.41, lon: 76.70, city: 'Ooty', region: 'Ooty (Tamil Nadu)' },
+        'andaman': { lat: 11.62, lon: 92.73, city: 'Port Blair', region: 'Port Blair (Andaman)' },
+        'havelock': { lat: 12.00, lon: 93.00, city: 'Havelock', region: 'Havelock (Andaman)' },
+        'lakshadweep': { lat: 10.57, lon: 72.64, city: 'Kavaratti', region: 'Lakshadweep' },
+
+        // Asia - Southeast
+        'bali': { lat: -8.41, lon: 115.19, city: 'Bali', region: 'Bali (Indonesia)' },
+        'ubud': { lat: -8.51, lon: 115.26, city: 'Ubud', region: 'Ubud (Bali)' },
+        'indonesia': { lat: -8.41, lon: 115.19, city: 'Bali', region: 'Bali (Indonesia)' },
+        'phuket': { lat: 7.88, lon: 98.39, city: 'Phuket', region: 'Phuket (Thailand)' },
+        'krabi': { lat: 8.09, lon: 98.91, city: 'Krabi', region: 'Krabi (Thailand)' },
+        'bangkok': { lat: 13.76, lon: 100.50, city: 'Bangkok', region: 'Bangkok (Thailand)' },
+        'chiang mai': { lat: 18.79, lon: 98.98, city: 'Chiang Mai', region: 'Chiang Mai (Thailand)' },
+        'thailand': { lat: 13.76, lon: 100.50, city: 'Bangkok', region: 'Bangkok (Thailand)' },
+        'singapore': { lat: 1.35, lon: 103.82, city: 'Singapore', region: 'Singapore' },
+        'kuala lumpur': { lat: 3.14, lon: 101.69, city: 'Kuala Lumpur', region: 'Kuala Lumpur (Malaysia)' },
+        'langkawi': { lat: 6.35, lon: 99.80, city: 'Langkawi', region: 'Langkawi (Malaysia)' },
+        'malaysia': { lat: 3.14, lon: 101.69, city: 'Kuala Lumpur', region: 'Kuala Lumpur (Malaysia)' },
+        'vietnam': { lat: 21.03, lon: 105.85, city: 'Hanoi', region: 'Hanoi (Vietnam)' },
+        'hanoi': { lat: 21.03, lon: 105.85, city: 'Hanoi', region: 'Hanoi (Vietnam)' },
+        'da nang': { lat: 16.05, lon: 108.20, city: 'Da Nang', region: 'Da Nang (Vietnam)' },
+        'ho chi minh': { lat: 10.82, lon: 106.63, city: 'Ho Chi Minh', region: 'Ho Chi Minh (Vietnam)' },
+        'siem reap': { lat: 13.36, lon: 103.86, city: 'Siem Reap', region: 'Siem Reap (Cambodia)' },
+        'cambodia': { lat: 13.36, lon: 103.86, city: 'Siem Reap', region: 'Siem Reap (Cambodia)' },
+        'boracay': { lat: 11.97, lon: 121.92, city: 'Boracay', region: 'Boracay (Philippines)' },
+        'philippines': { lat: 14.60, lon: 120.98, city: 'Manila', region: 'Manila (Philippines)' },
+
+        // Asia - East & Central & South
+        'tokyo': { lat: 35.68, lon: 139.69, city: 'Tokyo', region: 'Tokyo (Japan)' },
+        'kyoto': { lat: 35.01, lon: 135.77, city: 'Kyoto', region: 'Kyoto (Japan)' },
+        'osaka': { lat: 34.69, lon: 135.50, city: 'Osaka', region: 'Osaka (Japan)' },
+        'japan': { lat: 35.68, lon: 139.69, city: 'Tokyo', region: 'Tokyo (Japan)' },
+        'seoul': { lat: 37.57, lon: 126.98, city: 'Seoul', region: 'Seoul (South Korea)' },
+        'korea': { lat: 37.57, lon: 126.98, city: 'Seoul', region: 'Seoul (South Korea)' },
+        'beijing': { lat: 39.90, lon: 116.40, city: 'Beijing', region: 'Beijing (China)' },
+        'maldives': { lat: 4.18, lon: 73.51, city: 'Malé', region: 'Maldives' },
+        'colombo': { lat: 6.93, lon: 79.84, city: 'Colombo', region: 'Colombo (Sri Lanka)' },
+        'kandy': { lat: 7.29, lon: 80.64, city: 'Kandy', region: 'Kandy (Sri Lanka)' },
+        'sri lanka': { lat: 6.93, lon: 79.84, city: 'Colombo', region: 'Sri Lanka' },
+        'kathmandu': { lat: 27.72, lon: 85.32, city: 'Kathmandu', region: 'Kathmandu (Nepal)' },
+        'nepal': { lat: 27.72, lon: 85.32, city: 'Kathmandu', region: 'Kathmandu (Nepal)' },
+        'bhutan': { lat: 27.47, lon: 89.64, city: 'Thimphu', region: 'Thimphu (Bhutan)' },
+        'thimphu': { lat: 27.47, lon: 89.64, city: 'Thimphu', region: 'Thimphu (Bhutan)' },
+
+        // Middle East & Africa
+        'dubai': { lat: 25.20, lon: 55.27, city: 'Dubai', region: 'Dubai (UAE)' },
+        'abu dhabi': { lat: 24.45, lon: 54.38, city: 'Abu Dhabi', region: 'Abu Dhabi (UAE)' },
+        'uae': { lat: 25.20, lon: 55.27, city: 'Dubai', region: 'Dubai (UAE)' },
+        'muscat': { lat: 23.59, lon: 58.54, city: 'Muscat', region: 'Muscat (Oman)' },
+        'oman': { lat: 23.59, lon: 58.54, city: 'Muscat', region: 'Muscat (Oman)' },
+        'petra': { lat: 30.33, lon: 35.44, city: 'Petra', region: 'Petra (Jordan)' },
+        'cappadocia': { lat: 38.64, lon: 34.83, city: 'Cappadocia', region: 'Cappadocia (Turkey)' },
+        'istanbul': { lat: 41.01, lon: 28.98, city: 'Istanbul', region: 'Istanbul (Turkey)' },
+        'turkey': { lat: 41.01, lon: 28.98, city: 'Istanbul', region: 'Istanbul (Turkey)' },
+        'cairo': { lat: 30.04, lon: 31.24, city: 'Cairo', region: 'Cairo (Egypt)' },
+        'egypt': { lat: 30.04, lon: 31.24, city: 'Cairo', region: 'Cairo (Egypt)' },
+        'nairobi': { lat: -1.29, lon: 36.82, city: 'Nairobi', region: 'Nairobi (Kenya)' },
+        'masai mara': { lat: -1.49, lon: 35.14, city: 'Masai Mara', region: 'Masai Mara (Kenya)' },
+        'kenya': { lat: -1.29, lon: 36.82, city: 'Nairobi', region: 'Nairobi (Kenya)' },
+        'cape town': { lat: -33.92, lon: 18.42, city: 'Cape Town', region: 'Cape Town (South Africa)' },
+        'south africa': { lat: -33.92, lon: 18.42, city: 'Cape Town', region: 'Cape Town (South Africa)' },
+        'marrakech': { lat: 31.63, lon: -7.99, city: 'Marrakech', region: 'Marrakech (Morocco)' },
+        'morocco': { lat: 31.63, lon: -7.99, city: 'Marrakech', region: 'Marrakech (Morocco)' },
+        'mauritius': { lat: -20.35, lon: 57.55, city: 'Port Louis', region: 'Mauritius' },
+        'seychelles': { lat: -4.68, lon: 55.49, city: 'Victoria', region: 'Seychelles' },
+
+        // Europe
+        'zermatt': { lat: 45.98, lon: 7.75, city: 'Zermatt', region: 'Zermatt (Switzerland)' },
+        'interlaken': { lat: 46.69, lon: 7.86, city: 'Interlaken', region: 'Interlaken (Switzerland)' },
+        'zurich': { lat: 47.38, lon: 8.54, city: 'Zurich', region: 'Zurich (Switzerland)' },
+        'switzerland': { lat: 46.69, lon: 7.86, city: 'Interlaken', region: 'Swiss Alps' },
+        'paris': { lat: 48.86, lon: 2.35, city: 'Paris', region: 'Paris (France)' },
+        'nice': { lat: 43.71, lon: 7.26, city: 'Nice', region: 'Nice (French Riviera)' },
+        'france': { lat: 48.86, lon: 2.35, city: 'Paris', region: 'Paris (France)' },
+        'rome': { lat: 41.90, lon: 12.50, city: 'Rome', region: 'Rome (Italy)' },
+        'florence': { lat: 43.77, lon: 11.25, city: 'Florence', region: 'Florence (Italy)' },
+        'venice': { lat: 45.44, lon: 12.32, city: 'Venice', region: 'Venice (Italy)' },
+        'amalfi': { lat: 40.63, lon: 14.60, city: 'Amalfi', region: 'Amalfi Coast (Italy)' },
+        'italy': { lat: 41.90, lon: 12.50, city: 'Rome', region: 'Rome (Italy)' },
+        'santorini': { lat: 36.39, lon: 25.46, city: 'Santorini', region: 'Santorini (Greece)' },
+        'athens': { lat: 37.98, lon: 23.73, city: 'Athens', region: 'Athens (Greece)' },
+        'greece': { lat: 36.39, lon: 25.46, city: 'Santorini', region: 'Santorini (Greece)' },
+        'barcelona': { lat: 41.39, lon: 2.17, city: 'Barcelona', region: 'Barcelona (Spain)' },
+        'madrid': { lat: 40.42, lon: -3.70, city: 'Madrid', region: 'Madrid (Spain)' },
+        'spain': { lat: 41.39, lon: 2.17, city: 'Barcelona', region: 'Barcelona (Spain)' },
+        'lisbon': { lat: 38.72, lon: -9.14, city: 'Lisbon', region: 'Lisbon (Portugal)' },
+        'portugal': { lat: 38.72, lon: -9.14, city: 'Lisbon', region: 'Lisbon (Portugal)' },
+        'london': { lat: 51.51, lon: -0.13, city: 'London', region: 'London (UK)' },
+        'amsterdam': { lat: 52.37, lon: 4.90, city: 'Amsterdam', region: 'Amsterdam (Netherlands)' },
+        'vienna': { lat: 48.21, lon: 16.37, city: 'Vienna', region: 'Vienna (Austria)' },
+        'prague': { lat: 50.08, lon: 14.44, city: 'Prague', region: 'Prague (Czech Republic)' },
+        'reykjavik': { lat: 64.15, lon: -21.94, city: 'Reykjavik', region: 'Reykjavik (Iceland)' },
+        'iceland': { lat: 64.15, lon: -21.94, city: 'Reykjavik', region: 'Reykjavik (Iceland)' },
+        'dubrovnik': { lat: 42.65, lon: 18.09, city: 'Dubrovnik', region: 'Dubrovnik (Croatia)' },
+        'croatia': { lat: 42.65, lon: 18.09, city: 'Dubrovnik', region: 'Dubrovnik (Croatia)' },
+
+        // Americas & Oceania
+        'new york': { lat: 40.71, lon: -74.01, city: 'New York', region: 'New York (USA)' },
+        'hawaii': { lat: 21.31, lon: -157.86, city: 'Honolulu', region: 'Hawaii (USA)' },
+        'cusco': { lat: -13.53, lon: -71.97, city: 'Cusco', region: 'Cusco (Peru)' },
+        'machu picchu': { lat: -13.16, lon: -72.54, city: 'Machu Picchu', region: 'Machu Picchu (Peru)' },
+        'peru': { lat: -13.53, lon: -71.97, city: 'Cusco', region: 'Cusco (Peru)' },
+        'rio': { lat: -22.90, lon: -43.17, city: 'Rio de Janeiro', region: 'Rio de Janeiro (Brazil)' },
+        'sydney': { lat: -33.86, lon: 151.20, city: 'Sydney', region: 'Sydney (Australia)' },
+        'queenstown': { lat: -45.03, lon: 168.66, city: 'Queenstown', region: 'Queenstown (New Zealand)' },
+        'auckland': { lat: -36.85, lon: 174.76, city: 'Auckland', region: 'Auckland (New Zealand)' },
       };
 
-      // Region-to-country fallback (for broad regions like "Asia", "Europe" etc.)
-      const REGION_FALLBACK = {
-        'Asia': 'India',
-        'Europe': 'France',
-        'Africa': 'Kenya',
-        'Middle East': 'UAE',
-        'Australia': 'Australia',
-        'North America': 'USA',
-        'South America': 'Brazil',
-        'South East Asia': 'Thailand',
-      };
-
-      const COUNTRY_COORDS = {
-        'India': { lat: 28.61, lon: 77.23, city: 'New Delhi' },
-        'Sri Lanka': { lat: 6.93, lon: 79.84, city: 'Colombo' },
-        'Nepal': { lat: 27.72, lon: 85.32, city: 'Kathmandu' },
-        'Maldives': { lat: 4.18, lon: 73.51, city: 'Malé' },
-        'Bhutan': { lat: 27.47, lon: 89.64, city: 'Thimphu' },
-        'Thailand': { lat: 13.76, lon: 100.50, city: 'Bangkok' },
-        'Indonesia': { lat: -8.41, lon: 115.19, city: 'Bali' },
-        'Singapore': { lat: 1.35, lon: 103.82, city: 'Singapore' },
-        'Malaysia': { lat: 3.14, lon: 101.69, city: 'Kuala Lumpur' },
-        'Vietnam': { lat: 21.03, lon: 105.85, city: 'Hanoi' },
-        'Cambodia': { lat: 13.36, lon: 103.86, city: 'Siem Reap' },
-        'Myanmar': { lat: 16.87, lon: 96.20, city: 'Yangon' },
-        'Philippines': { lat: 14.60, lon: 120.98, city: 'Manila' },
-        'Japan': { lat: 35.68, lon: 139.69, city: 'Tokyo' },
-        'China': { lat: 39.90, lon: 116.40, city: 'Beijing' },
-        'South Korea': { lat: 37.57, lon: 126.98, city: 'Seoul' },
-        'UAE': { lat: 25.20, lon: 55.27, city: 'Dubai' },
-        'Oman': { lat: 23.59, lon: 58.54, city: 'Muscat' },
-        'Jordan': { lat: 31.95, lon: 35.93, city: 'Amman' },
-        'Turkey': { lat: 41.01, lon: 28.98, city: 'Istanbul' },
-        'France': { lat: 48.86, lon: 2.35, city: 'Paris' },
-        'Switzerland': { lat: 46.95, lon: 7.45, city: 'Bern' },
-        'Italy': { lat: 41.90, lon: 12.50, city: 'Rome' },
-        'Greece': { lat: 37.97, lon: 23.73, city: 'Athens' },
-        'Spain': { lat: 40.42, lon: -3.70, city: 'Madrid' },
-        'Portugal': { lat: 38.72, lon: -9.14, city: 'Lisbon' },
-        'United Kingdom': { lat: 51.51, lon: -0.13, city: 'London' },
-        'Germany': { lat: 52.52, lon: 13.41, city: 'Berlin' },
-        'Austria': { lat: 48.21, lon: 16.37, city: 'Vienna' },
-        'Netherlands': { lat: 52.37, lon: 4.90, city: 'Amsterdam' },
-        'Norway': { lat: 59.91, lon: 10.75, city: 'Oslo' },
-        'Iceland': { lat: 64.15, lon: -21.94, city: 'Reykjavik' },
-        'Croatia': { lat: 43.51, lon: 16.44, city: 'Split' },
-        'Czech Republic': { lat: 50.08, lon: 14.44, city: 'Prague' },
-        'Kenya': { lat: -1.29, lon: 36.82, city: 'Nairobi' },
-        'South Africa': { lat: -33.92, lon: 18.42, city: 'Cape Town' },
-        'Tanzania': { lat: -6.17, lon: 35.75, city: 'Dodoma' },
-        'Egypt': { lat: 30.04, lon: 31.24, city: 'Cairo' },
-        'Morocco': { lat: 33.97, lon: -6.85, city: 'Rabat' },
-        'USA': { lat: 40.71, lon: -74.01, city: 'New York' },
-        'Canada': { lat: 43.65, lon: -79.38, city: 'Toronto' },
-        'Mexico': { lat: 19.43, lon: -99.13, city: 'Mexico City' },
-        'Brazil': { lat: -22.90, lon: -43.17, city: 'Rio de Janeiro' },
-        'Peru': { lat: -13.53, lon: -71.97, city: 'Cusco' },
-        'Argentina': { lat: -34.60, lon: -58.38, city: 'Buenos Aires' },
-        'Colombia': { lat: 4.71, lon: -74.07, city: 'Bogotá' },
-        'Australia': { lat: -33.86, lon: 151.20, city: 'Sydney' },
-        'New Zealand': { lat: -36.85, lon: 174.76, city: 'Auckland' },
-        'Fiji': { lat: -17.77, lon: 177.95, city: 'Suva' },
-        'Russia': { lat: 55.76, lon: 37.62, city: 'Moscow' },
-      };
-
-      const searchText = `${pkg?.name || ''} ${pkg?.description || ''} ${pkg?.id || ''}`.toLowerCase();
-
-      // Scan for the most specific keyword match
-      let matched = null;
-      const sortedKeywords = Object.keys(KEYWORD_TO_COUNTRY).sort((a, b) => b.length - a.length);
-      for (const kw of sortedKeywords) {
-        if (searchText.includes(kw)) {
-          matched = KEYWORD_TO_COUNTRY[kw];
-          break;
+      // Priority 1: Check admin-configured weatherCity override on package
+      let targetDest = null;
+      if (pkg?.weatherCity && typeof pkg.weatherCity === 'string' && pkg.weatherCity.trim()) {
+        const cleanCustom = pkg.weatherCity.trim().toLowerCase();
+        if (DESTINATION_COORDS[cleanCustom]) {
+          targetDest = DESTINATION_COORDS[cleanCustom];
+        } else {
+          // Attempt geocoding lookup via Open-Meteo geocoding API
+          try {
+            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(pkg.weatherCity.trim())}&count=1&language=en&format=json`);
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              if (geoData?.results?.[0]) {
+                const r = geoData.results[0];
+                targetDest = {
+                  lat: r.latitude,
+                  lon: r.longitude,
+                  city: r.name,
+                  region: r.admin1 ? `${r.name} (${r.admin1})` : `${r.name} (${r.country || ''})`
+                };
+              }
+            }
+          } catch {
+            // Geocoding lookup fallback failed
+          }
         }
       }
 
-      if (!matched) {
-        matched = REGION_FALLBACK[pkg?.region] || null;
+      // Priority 2: Auto-detect from package name, region, description, and highlights
+      if (!targetDest) {
+        const fullText = `${pkg?.name || ''} ${pkg?.region || ''} ${pkg?.description || ''} ${(pkg?.highlights || []).join(' ')} ${pkg?.id || ''}`.toLowerCase();
+        // Sort destinations by key length descending so "shillong" or "meghalaya" matches before short generic words
+        const sortedKeys = Object.keys(DESTINATION_COORDS).sort((a, b) => b.length - a.length);
+        for (const key of sortedKeys) {
+          if (fullText.includes(key)) {
+            targetDest = DESTINATION_COORDS[key];
+            break;
+          }
+        }
       }
 
-      if (!matched) {
+      if (!targetDest) {
         if (!isCancelled) setWeather(null);
         return;
       }
 
-      // Step 1: Check backend cached weather
+      // Priority 3: Fetch monthly archive data from Open-Meteo for exact coordinates
       try {
-        const cacheRes = await fetch(`${API_URL}/api/weather`);
-        if (cacheRes.ok) {
-          const cacheData = await cacheRes.json();
-          if (cacheData && cacheData.data && cacheData.data[matched] && Array.isArray(cacheData.data[matched].months)) {
-            const wData = cacheData.data[matched];
-            wData._country = matched;
-            if (!isCancelled) setWeather(wData);
-            return;
+        const lastYear = new Date().getFullYear() - 1;
+        const meteoUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${targetDest.lat}&longitude=${targetDest.lon}&start_date=${lastYear}-01-01&end_date=${lastYear}-12-31&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+        const mRes = await fetch(meteoUrl);
+        if (mRes.ok) {
+          const mData = await mRes.json();
+          const daily = mData?.daily;
+          if (daily && Array.isArray(daily.time) && daily.time.length > 0) {
+            const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const monthlyData = [];
+            for (let m = 0; m < 12; m++) {
+              let maxTemps = [], minTemps = [];
+              for (let i = 0; i < daily.time.length; i++) {
+                const date = new Date(daily.time[i]);
+                if (date.getMonth() === m) {
+                  if (daily.temperature_2m_max?.[i] != null) maxTemps.push(daily.temperature_2m_max[i]);
+                  if (daily.temperature_2m_min?.[i] != null) minTemps.push(daily.temperature_2m_min[i]);
+                }
+              }
+              const avgHigh = maxTemps.length ? Math.round(maxTemps.reduce((a, b) => a + b, 0) / maxTemps.length) : null;
+              const avgLow = minTemps.length ? Math.round(minTemps.reduce((a, b) => a + b, 0) / minTemps.length) : null;
+              monthlyData.push({ month: MONTH_NAMES[m], avgHigh, avgLow });
+            }
+            if (!isCancelled) {
+              setWeather({
+                locationLabel: targetDest.region || targetDest.city,
+                city: targetDest.city,
+                _country: targetDest.region || targetDest.city,
+                months: monthlyData
+              });
+              return;
+            }
           }
         }
       } catch {
-        // Backend cache query failed, proceed to live Open-Meteo fallback
+        // Open-Meteo fetch failed
       }
 
-      // Step 2: Live Open-Meteo fallback
-      const coords = COUNTRY_COORDS[matched];
-      if (coords && typeof fetch !== 'undefined') {
-        try {
-          const lastYear = new Date().getFullYear() - 1;
-          const meteoUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${coords.lat}&longitude=${coords.lon}&start_date=${lastYear}-01-01&end_date=${lastYear}-12-31&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
-          const mRes = await fetch(meteoUrl);
-          if (mRes.ok) {
-            const mData = await mRes.json();
-            const daily = mData?.daily;
-            if (daily && Array.isArray(daily.time) && daily.time.length > 0) {
-              const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-              const monthlyData = [];
-              for (let m = 0; m < 12; m++) {
-                let maxTemps = [], minTemps = [];
-                for (let i = 0; i < daily.time.length; i++) {
-                  const date = new Date(daily.time[i]);
-                  if (date.getMonth() === m) {
-                    if (daily.temperature_2m_max?.[i] != null) maxTemps.push(daily.temperature_2m_max[i]);
-                    if (daily.temperature_2m_min?.[i] != null) minTemps.push(daily.temperature_2m_min[i]);
-                  }
-                }
-                const avgHigh = maxTemps.length ? Math.round(maxTemps.reduce((a, b) => a + b, 0) / maxTemps.length) : null;
-                const avgLow = minTemps.length ? Math.round(minTemps.reduce((a, b) => a + b, 0) / minTemps.length) : null;
-                monthlyData.push({ month: MONTH_NAMES[m], avgHigh, avgLow });
-              }
-              if (!isCancelled) {
-                setWeather({ _country: matched, city: coords.city, months: monthlyData });
-                return;
-              }
-            }
-          }
-        } catch {
-          // Live Open-Meteo failed
-        }
-      }
-
-      // Cleanly hide weather section if not available
       if (!isCancelled) setWeather(null);
     };
 
@@ -1136,7 +1125,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
             {weather && weather.months && (
               <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-sm">
                 <h4 className="text-xs font-semibold text-stone-900 uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
-                  <span aria-hidden>🌤️</span> Monthly Weather — {weather._country || weather.city}
+                  <span aria-hidden>🌤️</span> Monthly Weather — {weather.locationLabel || weather.city || weather._country}
                 </h4>
                 <div className="grid grid-cols-4 gap-1.5">
                   {weather.months.map((m) => {
