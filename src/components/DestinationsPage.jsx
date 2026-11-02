@@ -62,11 +62,24 @@ const SORT_OPTIONS = [
   { label: 'Availability', value: 'avail' },
 ]
 
-// Tag packages with travel type keywords
+// Tag packages with travel type keywords for card badge display
 function inferType(pkg) {
   if (pkg.isBespoke) return 'bespoke'
   const cat = String(pkg.category || '').toLowerCase()
   if (cat && cat !== 'standard') return cat
+
+  const catIds = [
+    ...(Array.isArray(pkg.categoryIds) ? pkg.categoryIds : []),
+    ...(Array.isArray(pkg.category_ids) ? pkg.category_ids : [])
+  ].map(c => String(c).toLowerCase())
+
+  if (catIds.includes('wellness') || catIds.includes('spa')) return 'wellness'
+  if (catIds.includes('adventure') || catIds.includes('wildlife')) return 'adventure'
+  if (catIds.includes('romantic') || catIds.includes('honeymoon')) return 'romantic'
+  if (catIds.includes('family')) return 'family'
+  if (catIds.includes('cultural') || catIds.includes('heritage')) return 'cultural'
+  if (catIds.includes('business') || catIds.includes('corporate')) return 'business'
+
   const text = `${pkg.name || ''} ${(pkg.highlights || []).join(' ')} ${pkg.trend || ''} ${pkg.description || ''}`.toLowerCase()
   if (text.includes('wellness') || text.includes('yoga') || text.includes('retreat') || text.includes('meditation') || text.includes('spa')) return 'wellness'
   if (text.includes('family') || text.includes('kids') || text.includes('children')) return 'family'
@@ -76,10 +89,61 @@ function inferType(pkg) {
   return 'cultural'
 }
 
+function matchesTravelType(pkg, type) {
+  if (!type || type === 'all') return true
+  if (type === 'bespoke') return Boolean(pkg.isBespoke)
+
+  const catIds = [
+    ...(Array.isArray(pkg.categoryIds) ? pkg.categoryIds : []),
+    ...(Array.isArray(pkg.category_ids) ? pkg.category_ids : []),
+    pkg.category
+  ].filter(Boolean).map(c => String(c).toLowerCase().trim())
+
+  if (catIds.includes(type)) return true
+  if (type === 'romantic' && (catIds.includes('honeymoon') || catIds.includes('couples'))) return true
+  if (type === 'adventure' && (catIds.includes('wildlife') || catIds.includes('trekking') || catIds.includes('nature') || catIds.includes('cruises'))) return true
+  if (type === 'wellness' && (catIds.includes('spa') || catIds.includes('ayurveda') || catIds.includes('yoga') || catIds.includes('photography'))) return true
+  if (type === 'cultural' && (catIds.includes('heritage') || catIds.includes('historical') || catIds.includes('pilgrimage') || catIds.includes('spiritual') || catIds.includes('standard'))) return true
+  if (type === 'business' && (catIds.includes('corporate') || catIds.includes('mice') || catIds.includes('group-tours'))) return true
+
+  const textParts = [
+    pkg.name,
+    pkg.description,
+    pkg.region,
+    pkg.trend,
+    ...(pkg.highlights || []),
+    ...(pkg.inclusions || []),
+    ...(Array.isArray(pkg.itinerary) ? pkg.itinerary.map(i => `${i.title || ''} ${i.desc || ''}`) : [])
+  ]
+  const haystack = textParts.join(' ').toLowerCase()
+
+  if (type === 'wellness') {
+    return haystack.includes('wellness') || haystack.includes('yoga') || haystack.includes('retreat') || haystack.includes('meditation') || haystack.includes('spa') || haystack.includes('ayurveda') || haystack.includes('nature') || haystack.includes('scenic')
+  }
+  if (type === 'family') {
+    return haystack.includes('family') || haystack.includes('kids') || haystack.includes('children') || haystack.includes('all ages') || haystack.includes('leisure') || haystack.includes('holiday')
+  }
+  if (type === 'romantic') {
+    return haystack.includes('romantic') || haystack.includes('couple') || haystack.includes('honeymoon') || haystack.includes('sunset') || haystack.includes('candlelight') || haystack.includes('beach') || haystack.includes('lake') || haystack.includes('cruise') || haystack.includes('paradise')
+  }
+  if (type === 'business') {
+    return haystack.includes('business') || haystack.includes('executive') || haystack.includes('corporate') || haystack.includes('conference') || haystack.includes('group')
+  }
+  if (type === 'adventure') {
+    return haystack.includes('adventure') || haystack.includes('hiking') || haystack.includes('trek') || haystack.includes('alpine') || haystack.includes('glacier') || haystack.includes('safari') || haystack.includes('scuba') || haystack.includes('rafting') || haystack.includes('camping') || haystack.includes('caves') || haystack.includes('waterfall') || haystack.includes('mountain') || haystack.includes('valley')
+  }
+  if (type === 'cultural') {
+    return haystack.includes('cultural') || haystack.includes('culture') || haystack.includes('heritage') || haystack.includes('temple') || haystack.includes('monument') || haystack.includes('ancient') || haystack.includes('history') || haystack.includes('historic') || haystack.includes('tradition') || haystack.includes('museum') || haystack.includes('palace') || haystack.includes('shikara') || haystack.includes('old town') || catIds.includes('standard')
+  }
+
+  return false
+}
+
 function parseDays(duration) {
+  if (typeof duration === 'number') return duration
   if (!duration) return 0
   const str = String(duration)
-  const match = str.match(/(\d+)\s*Days?/i) || str.match(/(\d+)/)
+  const match = str.match(/(\d+)\s*(?:Days?|D\b)/i) || str.match(/(\d+)/)
   return match ? parseInt(match[1], 10) : 0
 }
 
@@ -212,29 +276,45 @@ export default function DestinationsPage({ packages = [], onViewPackage, initial
     let result = list.filter(pkg => {
       // Region / Destination
       if (safeRegion !== 'All') {
-        const isKnownContinent = REGIONS.some(r => r.toLowerCase() === safeRegion.toLowerCase() && r !== 'All')
+        const lowerReg = safeRegion.toLowerCase()
+        const isKnownContinent = REGIONS.some(r => r.toLowerCase() === lowerReg && r !== 'All')
+        const destHaystack = [
+          pkg.name,
+          pkg.description,
+          pkg.region,
+          pkg.category,
+          ...(pkg.highlights || []),
+          ...(pkg.inclusions || [])
+        ].join(' ').toLowerCase()
+
         if (isKnownContinent) {
-          if (pkg.region?.toLowerCase() !== safeRegion.toLowerCase()) return false
+          if (lowerReg === 'india') {
+            const isIndia = (pkg.region || '').toLowerCase() === 'india' ||
+              /\b(india|kashmir|goa|meghalaya|kerala|rajasthan|ladakh|delhi|mumbai|agra|jaipur|manali|shillong)\b/i.test(destHaystack)
+            if (!isIndia) return false
+          } else if (lowerReg === 'asia') {
+            const isAsia = ['asia', 'india'].includes((pkg.region || '').toLowerCase()) ||
+              /\b(asia|india|vietnam|bali|thailand|japan|singapore|malaysia|indonesia|kashmir|goa|meghalaya)\b/i.test(destHaystack)
+            if (!isAsia) return false
+          } else if (lowerReg === 'europe') {
+            const isEurope = (pkg.region || '').toLowerCase() === 'europe' ||
+              /\b(europe|swiss|switzerland|alps|france|italy|greece|spain|germany|paris|rome|london|amalfi|santorini)\b/i.test(destHaystack)
+            if (!isEurope) return false
+          } else {
+            if ((pkg.region || '').toLowerCase() !== lowerReg && !destHaystack.includes(lowerReg)) return false
+          }
         } else {
           // If safeRegion is a country or compound destination name (e.g. 'Greece' or 'Greece & Turkey')
-          const destHaystack = [
-            pkg.name,
-            pkg.description,
-            pkg.region,
-            pkg.category,
-            ...(pkg.highlights || []),
-            ...(pkg.inclusions || [])
-          ].join(' ').toLowerCase()
-          const regionTokens = safeRegion.toLowerCase().split(/\s*(?:&|\band\b|\/|,)\s*/).map(t => t.trim()).filter(Boolean)
+          const regionTokens = lowerReg.split(/\s*(?:&|\band\b|\/|,)\s*/).map(t => t.trim()).filter(Boolean)
           const matchesRegion = regionTokens.length > 0
             ? regionTokens.some(term => term.length > 1 && destHaystack.includes(term))
-            : destHaystack.includes(safeRegion.toLowerCase())
+            : destHaystack.includes(lowerReg)
           if (!matchesRegion) return false
         }
       }
 
       // Travel type
-      if (selectedType !== 'all' && inferType(pkg) !== selectedType) return false
+      if (selectedType !== 'all' && !matchesTravelType(pkg, selectedType)) return false
 
       // Duration
       const days = parseDays(pkg.duration)
@@ -243,8 +323,8 @@ export default function DestinationsPage({ packages = [], onViewPackage, initial
       if (selectedDuration === '9+' && days < 9) return false
 
       // Budget
-      const rawPrice = pkg.price != null ? pkg.price : pkg.basePrice
-      const price = typeof rawPrice === 'number' ? rawPrice : parseFloat(String(rawPrice || 0).replace(/,/g, ''))
+      const rawPrice = pkg.price != null ? pkg.price : (pkg.basePrice != null ? pkg.basePrice : pkg.base_price)
+      const price = typeof rawPrice === 'number' ? rawPrice : parseFloat(String(rawPrice || 0).replace(/[^0-9.]/g, ''))
       if (pkg.isBespoke) {
         /* bespoke has no fixed price — include in all budget ranges */
       } else if (selectedBudget === 'under-50k' && price >= 50000) return false

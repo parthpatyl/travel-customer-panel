@@ -114,40 +114,42 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   // Handle Share Trip
   const handleShare = async () => {
     const canonicalUrl = typeof window !== 'undefined' ? `${window.location.origin}/package/${pkg.id}` : window.location.href
-    const cleanPrice = pkg.price ? `₹${Number(pkg.price).toLocaleString('en-IN')}` : ''
+    const cleanPrice = (pkg.price != null && pkg.price !== '')
+      ? `₹${Number(pkg.price).toLocaleString('en-IN')}`
+      : (pkg.basePrice ? `₹${Number(pkg.basePrice).toLocaleString('en-IN')}` : '')
+
     const detailsLine = [
       pkg.name,
       pkg.duration,
       cleanPrice ? `Starting from ${cleanPrice}` : '',
       'Handcrafted by Kraft Your Trip'
     ].filter(Boolean).join(' | ')
-    const formattedShareText = `${detailsLine}\nView Package: ${canonicalUrl}`
 
-    const shareData = {
-      title: `${pkg.name} — Kraft Your Trip`,
-      text: detailsLine,
-      url: canonicalUrl
+    const formattedShareText = `${detailsLine}\n${canonicalUrl}`
+
+    // Always copy formatted rich text to clipboard on click as immediate convenience
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(formattedShareText)
+        setShareToast('Package details and link copied to clipboard!')
+        setTimeout(() => setShareToast(null), 3500)
+      }
+    } catch {
+      // ignore
     }
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share(shareData)
+        await navigator.share({
+          title: `${pkg.name} — Kraft Your Trip`,
+          text: formattedShareText
+        })
         return
       } catch {
         // Fallback to modal
       }
     }
 
-    // Fallback: Copy formatted text to clipboard and open share modal
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(formattedShareText)
-        setShareToast('Package details and link copied to clipboard!')
-        setTimeout(() => setShareToast(null), 4000)
-      }
-    } catch {
-      // ignore
-    }
     setIsShareModalOpen(true)
   }
 
@@ -1218,14 +1220,16 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
       {/* Share Modal for Desktop Fallback */}
       {isShareModalOpen && (() => {
         const canonicalUrl = typeof window !== 'undefined' ? `${window.location.origin}/package/${pkg.id}` : window.location.href
-        const cleanPrice = pkg.price ? `₹${Number(pkg.price).toLocaleString('en-IN')}` : ''
+        const cleanPrice = (pkg.price != null && pkg.price !== '')
+          ? `₹${Number(pkg.price).toLocaleString('en-IN')}`
+          : (pkg.basePrice ? `₹${Number(pkg.basePrice).toLocaleString('en-IN')}` : '')
         const detailsLine = [
           pkg.name,
           pkg.duration,
           cleanPrice ? `Starting from ${cleanPrice}` : '',
           'Handcrafted by Kraft Your Trip'
         ].filter(Boolean).join(' | ')
-        const formattedShareText = `${detailsLine}\nView Package: ${canonicalUrl}`
+        const formattedShareText = `${detailsLine}\n${canonicalUrl}`
 
         return (
           <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
