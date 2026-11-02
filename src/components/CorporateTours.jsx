@@ -428,8 +428,7 @@ export default function CorporateTours({ onNavigate }) {
       {corporateTestimonials.length > 0 && (
         <section className="py-8 bg-gray-50 overflow-hidden">
           <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-slate-900 mb-3">What Our Clients Say</h2>
-            <p className="text-slate-500 text-center mb-10">Trusted by corporate leaders across industries</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-center text-slate-900 mb-8 sm:mb-10">What Our Clients Say</h2>
 
             <div className="relative">
               <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">

@@ -389,12 +389,9 @@ export default function DestinationsPage({ packages = [], onViewPackage, initial
           <span className="editorial-mark text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2">
             Luxury Catalog
           </span>
-          <h1 className="font-display text-2xl sm:text-3xl text-stone-900 tracking-[-0.02em] mb-2">
+          <h1 className="font-display text-2xl sm:text-3xl text-stone-900 tracking-[-0.02em]">
             Handcrafted destinations
           </h1>
-          <p className="text-xs sm:text-sm text-stone-500 max-w-2xl mx-auto font-light">
-            Discover our collection of curated luxury travel experiences designed for the discerning traveller.
-          </p>
         </div>
 
         {/* ── Filter Bar ── */}

@@ -63,9 +63,6 @@ export default function LuxuryExperiences({ onViewPackage, onBook }) {
           <h1 className="font-display text-3xl sm:text-4xl text-stone-900 tracking-tight">
             Luxury Experiences
           </h1>
-          <p className="text-sm text-stone-500 mt-2 max-w-xl">
-            Handpicked premium journeys designed for discerning travellers who seek the extraordinary.
-          </p>
         </div>
 
         {/* Filters */}

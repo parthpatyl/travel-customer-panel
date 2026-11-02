@@ -89,9 +89,6 @@ export default function DestinationCategories({ onExplore }) {
           <h2 className="font-display text-2xl sm:text-3xl text-stone-900 tracking-tight leading-tight">
             Explore destinations
           </h2>
-          <p className="text-sm text-stone-500 mt-1.5 font-light max-w-md leading-relaxed">
-            Seven continents. One curator. Each region hand-picked for the discerning traveller.
-          </p>
         </div>
 
         {/* ── Scrollable Strip (Centered) ── */}

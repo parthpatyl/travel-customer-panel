@@ -99,9 +99,6 @@ export default function TestimonialsSection({ testimonials = [], onNavigate }) {
             <h2 className="font-display text-2xl sm:text-4xl text-stone-900 tracking-tight">
               What our travellers say
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 font-light mt-1">
-              Verified stories from travellers who embarked on our handcrafted luxury journeys.
-            </p>
           </div>
 
           {/* Wall Link */}

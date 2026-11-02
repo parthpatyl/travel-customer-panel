@@ -126,7 +126,7 @@ export default function SpecialityCategories({ packages = [], onSelectCategory }
     <section className="relative z-10 py-14 sm:py-20 bg-[#FDFCF7] border-t border-stone-200/60 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ── Section Header (Centered) ── */}
-        <div className="text-center flex flex-col items-center max-w-2xl mx-auto mb-10 sm:mb-12">
+        <div className="text-center flex flex-col items-center max-w-2xl mx-auto mb-8 sm:mb-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/5 border border-stone-900/10 text-stone-800 text-[11px] font-semibold tracking-wide mb-3 shadow-xs">
             <Sparkle className="w-3 h-3 text-amber-600 fill-amber-500" />
             <span>Unique Experiences</span>
@@ -138,10 +138,6 @@ export default function SpecialityCategories({ packages = [], onSelectCategory }
               Tour Categories
             </span>
           </h2>
-
-          <p className="text-xs sm:text-sm text-stone-500 mt-2 font-light leading-relaxed">
-            Beyond ordinary travel — choose your unique adventure style.
-          </p>
         </div>
 
         {/* ── Responsive Card Grid Layout with Photographic Backgrounds ── */}

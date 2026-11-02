@@ -142,9 +142,6 @@ export default function UpcomingTrips({ onBook, onViewPackage }) {
             <h1 className="font-display text-3xl sm:text-4xl text-stone-900 tracking-tight">
               Scheduled Departures
             </h1>
-            <p className="text-sm text-stone-500 mt-2 max-w-xl">
-              Join a scheduled departure and explore the world with like-minded travellers. Fixed dates, shared experiences.
-            </p>
           </div>
 
           {/* Right-Aligned Stats Counter Pills (Image 2) */}
