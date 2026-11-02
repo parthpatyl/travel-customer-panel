@@ -49,9 +49,11 @@ export function formatTravelMarkdown(text) {
 export function splitBulletedItems(text) {
   if (!text) return []
   if (Array.isArray(text)) return flattenBulletedItems(text)
-  if (typeof text !== 'string') return []
+  if (typeof text !== 'string') return [String(text)]
 
   const trimmed = text.trim()
+  if (!trimmed) return []
+
   if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
     try {
       const parsed = JSON.parse(trimmed)
@@ -61,10 +63,46 @@ export function splitBulletedItems(text) {
     }
   }
 
-  return text
-    .split(/\r?\n|[•▪●\u2022]/)
-    .map(item => item.trim().replace(/^[-*+]\s+/, '').replace(/^\d+[\.\)]\s+/, ''))
-    .filter(Boolean)
+  // If text already contains explicit newlines or bullet symbols, split strictly on them
+  const hasBulletsOrNewlines = /[\r\n•▪●\u2022]/.test(trimmed)
+  if (hasBulletsOrNewlines) {
+    return trimmed
+      .split(/\r?\n|[•▪●\u2022]/)
+      .map(item => item.trim().replace(/^[-*+]\s+/, '').replace(/^\d+[\.\)]\s+/, ''))
+      .filter(Boolean)
+  }
+
+  // Dense paragraph mode: split on sentence boundaries (. followed by capital letter) or semicolons
+  const delimRegex = /(?<=\.)\s*(?=[A-Z0-9])|(?<=[a-z0-9])\.\s*(?=[A-Z0-9])|;/
+  const initialChunks = trimmed.split(delimRegex)
+
+  const items = []
+  const phraseBoundary = /\s+(?=(?:Insurance|GST|Guide charges|Room heater charges|Anything which is not|Any additional costs)\b)/
+
+  for (let chunk of initialChunks) {
+    chunk = chunk.trim()
+      .replace(/^[-*+]\s+/, '')
+      .replace(/^\d+[\.\)]\s+/, '')
+    if (!chunk) continue
+
+    const subChunks = chunk.split(phraseBoundary)
+    for (const sub of subChunks) {
+      const cleaned = sub.trim().replace(/\.+$/, '')
+      if (cleaned) {
+        items.push(cleaned)
+      }
+    }
+  }
+
+  // Deduplicate consecutive identical items
+  const deduped = []
+  for (let i = 0; i < items.length; i++) {
+    if (i === 0 || items[i].toLowerCase() !== items[i - 1].toLowerCase()) {
+      deduped.push(items[i])
+    }
+  }
+
+  return deduped
 }
 
 /**
@@ -93,12 +131,8 @@ export function flattenBulletedItems(items) {
           // treat as plain text
         }
       }
-      if (item.includes('•') || item.includes('\n') || item.includes('▪') || item.includes('●')) {
-        const split = splitBulletedItems(item)
-        result.push(...split)
-      } else if (trimmed) {
-        result.push(trimmed.replace(/^[-*+]\s+/, '').replace(/^\d+[\.\)]\s+/, ''))
-      }
+      const split = splitBulletedItems(item)
+      result.push(...split)
     } else if (item) {
       result.push(String(item))
     }

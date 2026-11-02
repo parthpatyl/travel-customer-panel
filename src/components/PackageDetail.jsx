@@ -114,9 +114,18 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
   // Handle Share Trip
   const handleShare = async () => {
     const canonicalUrl = typeof window !== 'undefined' ? `${window.location.origin}/package/${pkg.id}` : window.location.href
+    const cleanPrice = pkg.price ? `₹${Number(pkg.price).toLocaleString('en-IN')}` : ''
+    const detailsLine = [
+      pkg.name,
+      pkg.duration,
+      cleanPrice ? `Starting from ${cleanPrice}` : '',
+      'Handcrafted by Kraft Your Trip'
+    ].filter(Boolean).join(' | ')
+    const formattedShareText = `${detailsLine}\nView Package: ${canonicalUrl}`
+
     const shareData = {
       title: `${pkg.name} — Kraft Your Trip`,
-      text: `Discover ${pkg.name} (${pkg.duration}, ${pkg.region}) handcrafted by Kraft Your Trip luxury travel experts.`,
+      text: detailsLine,
       url: canonicalUrl
     }
 
@@ -125,22 +134,21 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
         await navigator.share(shareData)
         return
       } catch {
-        // User cancelled or fallback to copy/modal
+        // Fallback to modal
       }
     }
 
-    // Fallback: Copy to clipboard and show modal/toast
+    // Fallback: Copy formatted text to clipboard and open share modal
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(canonicalUrl)
-        setShareToast('Trip link copied to clipboard! Ready to share on WhatsApp or Meta ads.')
+        await navigator.clipboard.writeText(formattedShareText)
+        setShareToast('Package details and link copied to clipboard!')
         setTimeout(() => setShareToast(null), 4000)
-      } else {
-        setIsShareModalOpen(true)
       }
     } catch {
-      setIsShareModalOpen(true)
+      // ignore
     }
+    setIsShareModalOpen(true)
   }
 
   // Handle embedded Booking Form Submit
@@ -1210,6 +1218,15 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
       {/* Share Modal for Desktop Fallback */}
       {isShareModalOpen && (() => {
         const canonicalUrl = typeof window !== 'undefined' ? `${window.location.origin}/package/${pkg.id}` : window.location.href
+        const cleanPrice = pkg.price ? `₹${Number(pkg.price).toLocaleString('en-IN')}` : ''
+        const detailsLine = [
+          pkg.name,
+          pkg.duration,
+          cleanPrice ? `Starting from ${cleanPrice}` : '',
+          'Handcrafted by Kraft Your Trip'
+        ].filter(Boolean).join(' | ')
+        const formattedShareText = `${detailsLine}\nView Package: ${canonicalUrl}`
+
         return (
           <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scale-up">
@@ -1217,36 +1234,49 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                 <h3 className="font-display text-lg text-stone-900">Share This Luxury Journey</h3>
                 <button
                   onClick={() => setIsShareModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 hover:text-stone-800"
+                  className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 hover:text-stone-800 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-xs text-stone-500">
-                Share the direct link for <strong className="text-stone-800">{pkg.name}</strong> with friends, clients, or on social media.
-              </p>
-              <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl p-2.5">
-                <input
-                  type="text"
-                  readOnly
-                  value={canonicalUrl}
-                  className="flex-1 bg-transparent text-xs text-stone-700 outline-none truncate"
-                />
+
+              <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3.5 space-y-1">
+                <p className="text-xs font-bold text-stone-900 leading-snug">{pkg.name}</p>
+                <p className="text-[11px] text-stone-500 font-medium">
+                  {pkg.duration} &bull; {pkg.region} {cleanPrice ? `&bull; Starting from ${cleanPrice}` : ''}
+                </p>
+                <p className="text-[11px] text-amber-700 font-mono truncate pt-1">{canonicalUrl}</p>
+              </div>
+
+              <div className="flex gap-2">
                 <button
                   onClick={async () => {
-                    await navigator.clipboard.writeText(canonicalUrl)
-                    setShareToast('Trip link copied to clipboard!')
+                    await navigator.clipboard.writeText(formattedShareText)
+                    setShareToast('Package details and link copied to clipboard!')
                     setIsShareModalOpen(false)
                     setTimeout(() => setShareToast(null), 3000)
                   }}
-                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer"
+                  className="flex-1 py-2.5 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
                 >
-                  Copy Link
+                  <Share2 className="w-4 h-4" />
+                  Copy Details & Link
+                </button>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(canonicalUrl)
+                    setShareToast('Direct link copied to clipboard!')
+                    setIsShareModalOpen(false)
+                    setTimeout(() => setShareToast(null), 3000)
+                  }}
+                  className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  Link Only
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-3 pt-2">
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <a
-                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Discover ${pkg.name} (${pkg.duration}): ${canonicalUrl}`)}`}
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(formattedShareText)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-200 cursor-pointer"

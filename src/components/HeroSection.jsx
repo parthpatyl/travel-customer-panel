@@ -143,24 +143,6 @@ export default function HeroSection({ onExplore, onBook, heroSettings }) {
           </button>
         </div>
 
-        {/* Carousel Indicators / Navigation Dots */}
-        {slides.length > 1 && (
-          <div className="flex items-center justify-center gap-2 mb-7">
-            {slides.map((_, dotIdx) => (
-              <button
-                key={dotIdx}
-                onClick={() => setCurrentSlide(dotIdx)}
-                className={`transition-all duration-300 rounded-full cursor-pointer ${
-                  dotIdx === currentSlide
-                    ? 'w-7 h-2 bg-amber-400'
-                    : 'w-2 h-2 bg-white/40 hover:bg-white/70'
-                }`}
-                aria-label={`Go to slide ${dotIdx + 1}`}
-              />
-            ))}
-          </div>
-        )}
-
         {/* Floating Stats — clear of the categories strip below */}
         <div className="grid grid-cols-3 gap-3 sm:gap-6 max-w-3xl mx-auto pt-7 border-t border-white/15">
           {displayStats.map((stat, i) => {
@@ -178,6 +160,24 @@ export default function HeroSection({ onExplore, onBook, heroSettings }) {
             )
           })}
         </div>
+
+        {/* Carousel Indicators / Navigation Dots — positioned below all elements */}
+        {slides.length > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            {slides.map((_, dotIdx) => (
+              <button
+                key={dotIdx}
+                onClick={() => setCurrentSlide(dotIdx)}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  dotIdx === currentSlide
+                    ? 'w-7 h-2 bg-amber-400'
+                    : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                }`}
+                aria-label={`Go to slide ${dotIdx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )
