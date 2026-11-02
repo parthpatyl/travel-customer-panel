@@ -72,7 +72,7 @@ export default function EnquiryPage({ enquiryId, onBackToHome }) {
           onClick={onBackToHome}
           className="px-6 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-full text-sm font-semibold transition-all shadow-sm"
         >
-          Return to Home Page
+          Back to Homepage
         </button>
       </div>
     )
@@ -87,7 +87,7 @@ export default function EnquiryPage({ enquiryId, onBackToHome }) {
           className="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-50 text-stone-700 shadow-sm border border-stone-200 rounded-full text-xs font-semibold transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Home Page
+          Back to Homepage
         </button>
 
         {/* Branded Header */}

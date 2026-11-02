@@ -112,7 +112,7 @@ export default function TestimonialsSection({ testimonials = [], onNavigate }) {
                 onClick={() => onNavigate('gallery')}
                 className="text-xs font-bold text-amber-700 hover:text-amber-600 transition-colors cursor-pointer underline decoration-amber-300 underline-offset-4"
               >
-                View Full Wall ({count}) &rarr;
+                Browse Traveler Stories ({count}) &rarr;
               </button>
             )}
           </div>

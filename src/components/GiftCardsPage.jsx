@@ -47,7 +47,7 @@ export default function GiftCardsPage({ onNavigate }) {
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-amber-400 block mb-1">Voucher Preview</span>
                 <h3 className="font-display text-xl font-bold tracking-wider text-white">KRAFT YOUR TRIP</h3>
-                <p className="text-[11px] text-stone-400">LUXURY CONCIERGE EXPERIENCE</p>
+                <p className="text-[11px] text-stone-400">Luxury Concierge Experience</p>
               </div>
               <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0">
                 <Gift className="w-5 h-5" />

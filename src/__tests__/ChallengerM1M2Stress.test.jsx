@@ -301,7 +301,7 @@ describe('Empirical Challenger: Milestone 1 Gen 2 & Milestone 2 Stress Test Suit
       expect(screen.queryByText(/passport/i)).not.toBeInTheDocument()
 
       // Submit inquiry
-      const submitBtn = screen.getByRole('button', { name: /Submit Request/i })
+      const submitBtn = screen.getByRole('button', { name: /Send Trip Inquiry|Submit Request/i })
       await act(async () => {
         fireEvent.click(submitBtn)
       })

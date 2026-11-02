@@ -22,14 +22,14 @@ export default function AboutPage() {
   const banner = about.banner || {
     badge: 'Our Story',
     title: 'Curating bespoke travel',
-    description: `Founded on the belief that travel should be art, ${agencyName} transforms ordinary vacations into masterfully tailored luxury itineraries.`,
+    description: `Every journey with ${agencyName} is designed as an original work—combining private access, vetted local guides, and seamless concierge support.`,
     bgImage: '/assets/unsplash-about-hero.jpg'
   }
 
   const philosophy = about.philosophy || {
     badge: 'Our Philosophy',
     heading: 'Bespoke travel, curated down to the finest detail.',
-    p1: "We understand that the true luxury of travel isn't just the 5-star accommodations or private transport — it's the luxury of peace of mind, of deep local experiences, and of memories created without friction.",
+    p1: "Real travel luxury lies in peace of mind, deep local connection, and frictionless logistics from doorstep to destination.",
     p2: "Whether it is exploring Kyoto's historic shrines in traditional dress, trekking the alpine trails facing the Matterhorn, or floating in a private overwater bungalow in the Maldives, our specialists spend months designing, testing, and perfecting each detail to guarantee a perfect trip.",
     image: '/assets/unsplash-about-section.jpg'
   }

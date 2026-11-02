@@ -85,7 +85,7 @@ describe('Adversarial Group Departure & Resiliency Stress Tests', () => {
       });
 
       expect(await screen.findByText(/20 \/ 20 spots/i)).toBeInTheDocument();
-      const bookBtn = screen.getByRole('button', { name: /^Book$/i });
+      const bookBtn = screen.getByRole('button', { name: /^(Book|Join Departure)$/i });
       expect(bookBtn).not.toBeDisabled();
     });
 
@@ -117,7 +117,7 @@ describe('Adversarial Group Departure & Resiliency Stress Tests', () => {
         render(<UpcomingTrips onBook={vi.fn()} />);
       });
 
-      const fullButtons = await screen.findAllByRole('button', { name: /^Full$/i });
+      const fullButtons = await screen.findAllByRole('button', { name: /^(Full|Sold Out)$/i });
       expect(fullButtons.length).toBeGreaterThan(0);
       expect(fullButtons[0]).toBeDisabled();
     });
@@ -150,7 +150,7 @@ describe('Adversarial Group Departure & Resiliency Stress Tests', () => {
         render(<UpcomingTrips onBook={vi.fn()} />);
       });
 
-      const bookBtn = await screen.findByRole('button', { name: /^Full$/i });
+      const bookBtn = await screen.findByRole('button', { name: /^(Full|Sold Out)$/i });
       expect(bookBtn).toBeDisabled();
     });
 
@@ -229,7 +229,7 @@ describe('Adversarial Group Departure & Resiliency Stress Tests', () => {
 
       // Click book on orphan departure — alert should fire since packageId is null
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      const bookBtn = screen.getByRole('button', { name: /^Book$/i });
+      const bookBtn = screen.getByRole('button', { name: /^(Book|Join Departure)$/i });
       fireEvent.click(bookBtn);
 
       expect(alertSpy).toHaveBeenCalledWith(expect.stringMatching(/missing/i));
@@ -443,7 +443,7 @@ describe('Adversarial Group Departure & Resiliency Stress Tests', () => {
       }));
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /Submit Request/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Send Trip Inquiry|Submit Request/i }));
       });
 
       expect(postPayload).toEqual(expect.objectContaining({
@@ -500,7 +500,7 @@ describe('Adversarial Group Departure & Resiliency Stress Tests', () => {
       }));
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /Submit Request/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Send Trip Inquiry|Submit Request/i }));
       });
 
       expect(postPayload).not.toHaveProperty('priceModifier');

@@ -314,7 +314,7 @@ describe('Empirical Challenger 2 - Milestone 2 In-Depth Verification', () => {
       fireEvent.change(phoneInput, { target: { value: '2025550133' } });
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /Submit Request/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Send Trip Inquiry|Submit Request/i }));
       });
 
       const errorElements = await screen.findAllByText(/This group departure is fully booked/i);
@@ -353,7 +353,7 @@ describe('Empirical Challenger 2 - Milestone 2 In-Depth Verification', () => {
       fireEvent.change(phoneInput, { target: { value: '2025550133' } });
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /Submit Request/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Send Trip Inquiry|Submit Request/i }));
       });
 
       const errorElements = await screen.findAllByText(/Network offline or connection refused/i);

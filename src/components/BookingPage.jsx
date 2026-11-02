@@ -494,11 +494,11 @@ ${formData.notes || 'No special requests specified.'}
 
         const data = await response.json()
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to submit inquiry')
+          throw new Error(data.error || 'Unable to send your inquiry. Check your details or contact us directly on WhatsApp.')
         }
 
         setSubmitted(true)
-        setToast({ message: 'Inquiry submitted successfully!', type: 'success' })
+        setToast({ message: 'Inquiry sent. Our concierge will review your trip within 24 hours.', type: 'success' })
       } catch (err) {
         setSubmitError(err.message)
         setToast({ message: err.message, type: 'error' })
@@ -535,11 +535,11 @@ ${formData.notes || 'No special requests specified.'}
 
         const data = await response.json()
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to submit inquiry')
+          throw new Error(data.error || 'Unable to send your inquiry. Check your details or contact us directly on WhatsApp.')
         }
 
         setSubmitted(true)
-        setToast({ message: 'Inquiry submitted successfully!', type: 'success' })
+        setToast({ message: 'Inquiry sent. Our concierge will review your trip within 24 hours.', type: 'success' })
       } catch (err) {
         setSubmitError(err.message)
         setToast({ message: err.message, type: 'error' })
@@ -1269,7 +1269,7 @@ ${formData.notes || 'No special requests specified.'}
                 </>
               ) : (
                 <>
-                  Submit Request
+                  Send Trip Inquiry
                   <ArrowRight className="w-4 h-4 text-amber-400" />
                 </>
               )}

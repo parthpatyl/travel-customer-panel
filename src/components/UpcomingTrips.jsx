@@ -198,7 +198,13 @@ export default function UpcomingTrips({ onBook, onViewPackage }) {
         {!loading && filtered.length === 0 && (
           <div className="text-center py-20">
             <CalendarDays className="w-10 h-10 text-stone-300 mx-auto mb-3" />
-            <p className="text-stone-500 text-sm">No departures found for this filter.</p>
+            <p className="text-stone-500 text-sm">No departures scheduled for this filter.</p>
+            <button
+              onClick={() => setStatusFilter('all')}
+              className="mt-3 text-amber-700 text-xs font-semibold hover:underline cursor-pointer"
+            >
+              Show All Departures
+            </button>
           </div>
         )}
 
@@ -381,7 +387,7 @@ export default function UpcomingTrips({ onBook, onViewPackage }) {
                             : 'bg-stone-900 hover:bg-amber-600 text-white active:scale-98'
                         } ${activeItinerary.length === 0 ? 'col-span-2' : ''}`}
                       >
-                        {isFull ? 'Full' : 'Book'}
+                        {isFull ? 'Sold Out' : 'Join Departure'}
                         {!isFull && <ArrowRight className="w-3.5 h-3.5" />}
                       </button>
                     </div>

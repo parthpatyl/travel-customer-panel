@@ -131,16 +131,24 @@ export default function Footer({ onNavigate }) {
               </div>
             </div>
 
-            {/* Phone */}
+            {/* Phone & WhatsApp */}
             <div className="flex items-center sm:items-start justify-center sm:justify-start gap-2.5">
               <Phone className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 block">Phone</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 block">Phone & WhatsApp</span>
                 <a
                   href={`tel:${agencyPhone.replace(/[^0-9+]/g, '')}`}
                   className="text-xs text-amber-300 font-medium hover:underline block"
                 >
                   {agencyPhone}
+                </a>
+                <a
+                  href={`https://wa.me/917046704693?text=${encodeURIComponent('Hi Kraft Your Trip concierge, I would like to inquire about a luxury bespoke itinerary.')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium inline-block mt-0.5"
+                >
+                  Chat on WhatsApp &rarr;
                 </a>
               </div>
             </div>

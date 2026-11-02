@@ -186,7 +186,7 @@ describe('Customer Site Components Resiliency', () => {
     fireEvent.change(phoneInput, { target: { value: '2025550199' } });
 
     // Submit inquiry
-    fireEvent.click(screen.getByRole('button', { name: /Submit Request/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Send Trip Inquiry|Submit Request/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Inquiry Received/i)).toBeInTheDocument();

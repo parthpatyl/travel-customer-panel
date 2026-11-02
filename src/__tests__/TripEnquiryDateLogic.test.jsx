@@ -133,7 +133,7 @@ describe('Trip Enquiry Frontend Date Calculation & Logic', () => {
     })
 
     // Submit inquiry
-    const submitBtn = screen.getByRole('button', { name: /Book Now \/ Submit Inquiry/i })
+    const submitBtn = screen.getByRole('button', { name: /Request Booking Inquiry|Book Now \/ Submit Inquiry/i })
     fireEvent.click(submitBtn)
 
     await waitFor(() => {

@@ -112,14 +112,14 @@ export default function SubmitStoryModal({ isOpen, onClose, packages = [], onSuc
 
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to submit story')
+        throw new Error(data.error || 'Unable to publish your story. Please verify your photo sizes and retry.')
       }
 
       const newStory = await res.json()
       setSubmitted(true)
       if (onSuccess) onSuccess(newStory)
     } catch (err) {
-      setError(err.message || 'Error submitting your story. Please try again.')
+      setError(err.message || 'Unable to publish your story. Please verify your photo sizes (under 5MB) and retry.')
     } finally {
       setSubmitting(false)
     }

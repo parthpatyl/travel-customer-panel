@@ -218,7 +218,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
           message: data.message || 'Your luxury booking inquiry has been confirmed with our concierge desk!'
         })
       } else {
-        setFormErrors({ submit: data.error || data.message || 'Failed to submit inquiry. Please try again.' })
+        setFormErrors({ submit: data.error || data.message || 'Inquiry could not be sent. Check your connection or message our concierge desk on WhatsApp.' })
       }
     } catch {
       setFormErrors({ submit: 'Network connection issue. Please check your connection or contact us via WhatsApp.' })
@@ -1088,7 +1088,7 @@ export default function PackageDetail({ pkg, onBook, settings = {}, onBack }) {
                     ) : (
                       <>
                         <Send className="w-3.5 h-3.5" />
-                        <span>{pkg.isBespoke ? 'Request Custom Quote' : 'Book Now / Submit Inquiry'}</span>
+                        <span>{pkg.isBespoke ? 'Request Custom Quote' : 'Request Booking Inquiry'}</span>
                       </>
                     )}
                   </button>
