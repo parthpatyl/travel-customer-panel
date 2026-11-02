@@ -116,7 +116,11 @@ function App() {
   const [detailPkgId, setDetailPkgId] = useState(initialRoute.pkgId || null)
   const [selectedPackage, setSelectedPackage] = useState(() => {
     if (initialRoute.pkgId) {
-      return staticPackages.find(p => p.id?.toLowerCase() === initialRoute.pkgId?.toLowerCase()) || null
+      const q = initialRoute.pkgId.toLowerCase()
+      return staticPackages.find(p => 
+        p.id?.toLowerCase() === q ||
+        p.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === q
+      ) || null
     }
     return null
   })
@@ -217,8 +221,12 @@ function App() {
       return
     }
 
-    // 2. Search in loaded packages
-    const matched = packages.find(p => p.id?.toLowerCase() === detailPkgId.toLowerCase())
+    // 2. Search in loaded packages (by ID or slugified name)
+    const q = detailPkgId.toLowerCase()
+    const matched = packages.find(p => 
+      p.id?.toLowerCase() === q ||
+      p.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === q
+    )
     if (matched) {
       setSelectedPackage(matched)
       setIsPkgLoading(false)
